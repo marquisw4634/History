@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reconstruction: Rebuilding a Divided Nation (1865-1877)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light grayish-blue background */
+        }
+        .section-title {
+            font-size: 1.75rem; /* 28px */
+            font-weight: 700;
+            color: #1e3a8a; /* Dark blue */
+            margin-bottom: 1.5rem; /* 24px */
+            padding-bottom: 0.5rem; /* 8px */
+            border-bottom: 2px solid #3b82f6; /* Medium blue */
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem; /* 12px */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem; /* 24px */
+            margin-bottom: 1.5rem; /* 24px */
+            transition: transform 0.3s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .card h3 {
+            font-size: 1.25rem; /* 20px */
+            font-weight: 600;
+            color: #1e40af; /* Darker blue for card titles */
+            margin-bottom: 0.75rem; /* 12px */
+        }
+        .card ul li {
+            margin-bottom: 0.5rem; /* 8px */
+            color: #374151; /* Dark gray text */
+            position: relative;
+            padding-left: 1.25rem; /* 20px */
+        }
+        .card ul li::before {
+            content: "•";
+            color: #3b82f6; /* Medium blue bullet point */
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1.25rem; /* Adjust to align with padding */
+            position: absolute;
+            left: 0;
+        }
+        .highlight {
+            color: #d97706; /* Amber for highlights */
+            font-weight: 600;
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1.5rem; /* 24px */
+            padding-left: 2.5rem; /* 40px */
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0.625rem; /* 10px */
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #93c5fd; /* Light blue for timeline */
+        }
+        .timeline-item:last-child::before {
+            height: 0.75rem; /* 12px, to stop line before text */
+        }
+        .timeline-dot {
+            position: absolute;
+            left: 0;
+            top: 0.25rem; /* 4px */
+            width: 1.25rem; /* 20px */
+            height: 1.25rem; /* 20px */
+            background-color: #3b82f6; /* Medium blue dot */
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+        .timeline-date {
+            font-weight: 700;
+            color: #1e3a8a; /* Dark blue */
+            margin-bottom: 0.25rem; /* 4px */
+        }
+        .quote {
+            font-style: italic;
+            color: #4b5563; /* Medium gray */
+            border-left: 4px solid #fbbf24; /* Amber */
+            padding-left: 1rem; /* 16px */
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-gradient-to-r from-blue-700 to-blue-500 text-white py-12 text-center rounded-b-xl shadow-xl">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl md:text-5xl font-bold mb-2">Reconstruction: Rebuilding a Divided Nation</h1>
+            <p class="text-xl md:text-2xl opacity-90">1865 - 1877</p>
+            <p class="mt-4 text-lg max-w-3xl mx-auto opacity-80">
+                An overview of the turbulent era following the American Civil War, focusing on the challenges of reunification, the struggle for civil rights, and the eventual end of federal oversight in the South.
+            </p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+
+        <section id="devastated-south" class="mb-12">
+            <h2 class="section-title">1. The Devastated South & A Nation Transformed</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="card">
+                    <h3>The South in Ruins</h3>
+                    <img src="https://placehold.co/600x300/7f1d1d/ffffff?text=Ruined+Southern+City" alt="Ruined Southern City" class="w-full h-48 object-cover rounded-md mb-4">
+                    <ul>
+                        <li>The Civil War (1861-1865) left the South physically and economically devastated.</li>
+                        <li>Over 1/5 of adult white Southern men died.</li>
+                        <li>Cities, bridges, and railroads were destroyed (e.g., Richmond).</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>North's Prosperity & Federal Growth</h3>
+                    <img src="https://placehold.co/600x300/166534/ffffff?text=Northern+Industrial+Boom" alt="Northern Industrial Boom" class="w-full h-48 object-cover rounded-md mb-4">
+                    <ul>
+                        <li>The war boosted Northern industries (railroads, textiles).</li>
+                        <li>The <span class="highlight">13th Amendment (1865)</span> abolished slavery, freeing 4 million African Americans.</li>
+                        <li>U.S. Federal budget soared from $63 million (1860) to over $1 billion (1865).</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="freedom-promise" class="mb-12">
+            <h2 class="section-title">2. Freedom's Promise & Harsh Realities</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="card">
+                    <h3>Asserting Freedom</h3>
+                     <img src="https://placehold.co/600x300/065f46/ffffff?text=Freedmen+Seeking+Education" alt="Freedmen Seeking Education" class="w-full h-48 object-cover rounded-md mb-4">
+                    <ul>
+                        <li>Freed African Americans traveled to reunite families.</li>
+                        <li>Demanded respectful address (Mr./Mrs.).</li>
+                        <li>Urgently sought <span class="highlight">education</span>, establishing "Freedmen's Schools."</li>
+                        <li>Formed their own <span class="highlight">churches</span>, which became centers for political activity.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>The Backlash: Black Codes (1865-1866)</h3>
+                    <img src="https://placehold.co/600x300/b91c1c/ffffff?text=Restrictive+Signs" alt="Restrictive Signs" class="w-full h-48 object-cover rounded-md mb-4">
+                    <ul>
+                        <li>Southern states passed <span class="highlight">Black Codes</span> to severely limit freedom.</li>
+                        <li>Restrictions included: job limitations, movement restrictions, curfews, gun ownership bans.</li>
+                        <li>Enforced strict <span class="highlight">segregation</span> in public spaces.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="reconstruction-plans" class="mb-12">
+            <h2 class="section-title">3. Reconstruction Plans & Political Battles</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="card">
+                    <h3>President Andrew Johnson's Plan</h3>
+                    <img src="https://placehold.co/300x200/4a5568/ffffff?text=Andrew+Johnson" alt="Andrew Johnson" class="w-full h-32 object-contain rounded-md mb-4">
+                    <ul>
+                        <li>Offered amnesty to most Southerners who swore loyalty.</li>
+                        <li>Opposed black equality and voting rights for most freedmen.</li>
+                        <li>Vetoed key civil rights bills; Congress overrode him.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Radical Republicans' Vision</h3>
+                    <img src="https://placehold.co/300x200/4a5568/ffffff?text=Thaddeus+Stevens" alt="Thaddeus Stevens" class="w-full h-32 object-contain rounded-md mb-4">
+                    <ul>
+                        <li>Demanded harsher terms for the South and protection for freedmen.</li>
+                        <li>Insisted on full citizenship, voting rights, and economic opportunity.</li>
+                        <li>Pushed for the <span class="highlight">14th Amendment (ratified 1868)</span>: citizenship and "equal protection."</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card mt-6">
+                <h3>Key Legislation</h3>
+                <ul>
+                    <li><span class="highlight">Civil Rights Act of 1866:</span> Granted basic citizenship rights to African Americans.</li>
+                    <li><span class="highlight">Freedmen's Bureau Bill:</span> Extended agency helping former slaves and poor whites.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="radical-reconstruction" class="mb-12">
+            <h2 class="section-title">4. Radical Reconstruction in Action (1867-1877)</h2>
+            <div class="card">
+                <img src="https://placehold.co/800x300/1d4ed8/ffffff?text=African+Americans+Voting" alt="African Americans Voting" class="w-full h-56 object-cover rounded-md mb-4">
+                <ul>
+                    <li><span class="highlight">Reconstruction Acts of 1867:</span> Divided South into five military districts.</li>
+                    <li>Required Southern states to ratify 14th Amendment and grant <span class="highlight">voting rights to black men</span>.</li>
+                    <li>Approximately <span class="highlight">2,000 African Americans held public office</span>.</li>
+                    <li>14 served in U.S. House, 2 in U.S. Senate (1869-1880).</li>
+                    <li>Republican Coalition (African Americans, "Carpetbaggers," "Scalawags") established South's first state-funded public schools.</li>
+                    <li><span class="highlight">15th Amendment (ratified 1870):</span> Prohibited denying voting rights based on race (for men).</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="undoing-reconstruction" class="mb-12">
+            <h2 class="section-title">5. The Undoing of Reconstruction</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="card">
+                    <h3>White Resistance & Violence</h3>
+                    <img src="https://placehold.co/400x250/991b1b/ffffff?text=KKK+Symbol" alt="KKK Symbol" class="w-full h-40 object-cover rounded-md mb-4">
+                    <ul>
+                        <li>The <span class="highlight">Ku Klux Klan (KKK)</span> used terror to intimidate blacks and allies.</li>
+                        <li>Ku Klux Klan Act of 1871 aimed to counter this violence.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Economic Hardship</h3>
+                    <img src="https://placehold.co/400x250/854d0e/ffffff?text=Sharecropper" alt="Sharecropper" class="w-full h-40 object-cover rounded-md mb-4">
+                    <ul>
+                        <li>Most former slaves did not receive land.</li>
+                        <li><span class="highlight">Sharecropping system</span> often trapped families in debt.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Political Shifts & End</h3>
+                    <img src="https://placehold.co/400x250/1e3a8a/ffffff?text=Political+Compromise" alt="Political Compromise" class="w-full h-40 object-cover rounded-md mb-4">
+                    <ul>
+                        <li>Grant's administration scandals weakened Republican resolve.</li>
+                        <li>Supreme Court rulings narrowed 14th Amendment protections.</li>
+                        <li>"Redeemer" Democrats regained control in the South.</li>
+                        <li><span class="highlight">Compromise of 1877:</span> Hayes becomes president, federal troops leave South, ending Reconstruction.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="legacy-reconstruction" class="mb-12">
+            <h2 class="section-title">6. Legacy of Reconstruction</h2>
+            <div class="card">
+                <img src="https://placehold.co/800x200/ca8a04/ffffff?text=Scales+of+Justice" alt="Scales of Justice" class="w-full h-40 object-cover rounded-md mb-4">
+                <p class="quote">"The slave went free; stood a brief moment in the sun; then moved back to slavery again." - W.E.B. Du Bois</p>
+                <div class="grid md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                        <h3 class="text-xl font-semibold text-green-600">Achievements</h3>
+                        <ul>
+                            <li>The Union was preserved.</li>
+                            <li>13th, 14th, and 15th Amendments laid constitutional foundation for future civil rights.</li>
+                            <li>Brief, unprecedented experiment in interracial democracy.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-red-600">Failures</h3>
+                        <ul>
+                            <li>Most Southern blacks remained in poverty and faced discrimination.</li>
+                            <li>White supremacist ("Redeemer") governments restored.</li>
+                            <li>African Americans largely disenfranchised and lost many rights.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="timeline" class="mb-12">
+            <h2 class="section-title">Timeline of Key Events</h2>
+            <div class="card">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <p class="timeline-date">1865</p>
+                    <p>Civil War ends; Lincoln assassinated; Johnson becomes President; 13th Amendment abolishes slavery.</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <p class="timeline-date">1866</p>
+                    <p>Civil Rights Act passed over Johnson's veto; 14th Amendment proposed.</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <p class="timeline-date">1867</p>
+                    <p>Reconstruction Acts begin Radical Reconstruction.</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <p class="timeline-date">1868</p>
+                    <p>Johnson impeached and acquitted; Grant elected President.</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <p class="timeline-date">1870</p>
+                    <p>15th Amendment grants black men the right to vote.</p>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <p class="timeline-date">1877</p>
+                    <p>Compromise of 1877; federal troops leave the South, ending Reconstruction.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-8 bg-gray-800 text-gray-300 rounded-t-xl shadow-inner">
+        <p>&copy; Reconstruction Era Infographic. Content based on provided historical text.</p>
+    </footer>
+
+</body>
+</html>
