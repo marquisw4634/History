@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The French and Indian War: An Interactive Exploration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .active-nav {
+            border-bottom: 2px solid #b45309; /* amber-700 */
+            color: #b45309; /* amber-700 */
+            font-weight: 600;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #b45309; /* amber-700 */
+        }
+        .timeline-item-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        .timeline-item-content.expanded {
+            max-height: 500px; /* Adjust as needed */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Default max-width */
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px; 
+            max-height: 350px;
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+            .chart-container {
+                height: 350px;
+                max-height: 400px;
+            }
+        }
+        .section-fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .section-fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-stone-100 text-stone-800">
+
+    <header class="bg-stone-200 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <h1 class="text-xl sm:text-2xl font-bold text-amber-700">The French and Indian War</h1>
+                <nav class="hidden md:flex space-x-4">
+                    <a href="#overview" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700">Overview</a>
+                    <a href="#timeline" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700">Timeline</a>
+                    <a href="#figures" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700">Key Figures</a>
+                    <a href="#treaty" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-stone-700">Treaty & Aftermath</a>
+                </nav>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-stone-700 hover:text-amber-700 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden bg-stone-200 border-t border-stone-300">
+            <a href="#overview" class="block nav-link px-4 py-3 text-base font-medium text-stone-700 hover:bg-stone-300">Overview</a>
+            <a href="#timeline" class="block nav-link px-4 py-3 text-base font-medium text-stone-700 hover:bg-stone-300">Timeline</a>
+            <a href="#figures" class="block nav-link px-4 py-3 text-base font-medium text-stone-700 hover:bg-stone-300">Key Figures</a>
+            <a href="#treaty" class="block nav-link px-4 py-3 text-base font-medium text-stone-700 hover:bg-stone-300">Treaty & Aftermath</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <section id="overview" class="pt-16 -mt-16 mb-12 section-fade-in">
+            <h2 class="text-3xl font-bold text-amber-700 mb-6 text-center">Overview of the Conflict</h2>
+            <p class="text-lg text-stone-700 mb-8 leading-relaxed text-center max-w-3xl mx-auto">
+                The French and Indian War, a North American theater of the larger Seven Years' War, was a pivotal struggle for continental dominance between Great Britain and France. This section provides foundational context: who was involved, why they fought, and the general timeframe of this transformative period. Understanding these basics is key to appreciating the war's complex events and far-reaching consequences.
+            </p>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold text-amber-600 mb-4">What Was It?</h3>
+                    <ul class="space-y-3 text-stone-700">
+                        <li><strong class="font-semibold">Another Name:</strong> Known as the "Seven Years' War" in Europe (1756-1763), highlighting its global nature.</li>
+                        <li><strong class="font-semibold">Duration:</strong> 1754-1763 (9 years of conflict in North America).</li>
+                        <li><strong class="font-semibold">Main Cause:</strong> Fierce competition between Great Britain and France for control over vast North American territories, especially the strategically important Ohio River Valley, rich in resources and crucial for trade routes.</li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold text-amber-600 mb-4">Key Players</h3>
+                    <div class="space-y-3 text-stone-700">
+                        <div>
+                            <h4 class="font-semibold text-lg text-stone-800 mb-1">🇬🇧 Great Britain & Allies:</h4>
+                            <ul class="list-disc list-inside ml-4">
+                                <li>British American Colonies</li>
+                                <li>British Army (Redcoats)</li>
+                                <li>Iroquois Confederacy (a powerful Native American alliance)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-lg text-stone-800 mb-1">🇫🇷 France & Allies:</h4>
+                            <ul class="list-disc list-inside ml-4">
+                                <li>New France (French colonies)</li>
+                                <li>French Army</li>
+                                <li>Huron, Algonquin, and other Native American allies</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="timeline" class="pt-16 -mt-16 mb-12 section-fade-in">
+            <h2 class="text-3xl font-bold text-amber-700 mb-6 text-center">Interactive Timeline of Events</h2>
+            <p class="text-lg text-stone-700 mb-8 leading-relaxed text-center max-w-3xl mx-auto">
+                The French and Indian War unfolded over nine years, marked by significant battles, strategic shifts, and pivotal moments. This interactive timeline allows you to explore these key events chronologically. Click on each year or event title to reveal more details and understand the progression of the conflict from its initial sparks to its major turning points.
+            </p>
+            <div class="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-stone-400 before:to-transparent">
+                
+                <div class="timeline-item relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-amber-600 bg-stone-100 text-amber-700 group-hover:bg-amber-600 group-hover:text-white shadow-md md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 transition-colors duration-300">
+                        <span class="font-semibold">1</span>
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded-lg shadow-lg cursor-pointer" onclick="toggleTimelineItem(this)">
+                        <h4 class="font-semibold text-lg text-amber-600">1754: The Spark</h4>
+                        <div class="timeline-item-content">
+                            <p class="text-sm text-stone-600 mt-2">George Washington's skirmish at Jumonville Glen and subsequent surrender at Fort Necessity. These events are widely considered the opening shots of the war, escalating tensions between French and British forces in the Ohio Valley.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-amber-600 bg-stone-100 text-amber-700 group-hover:bg-amber-600 group-hover:text-white shadow-md md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 transition-colors duration-300">
+                        <span class="font-semibold">2</span>
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded-lg shadow-lg cursor-pointer" onclick="toggleTimelineItem(this)">
+                        <h4 class="font-semibold text-lg text-amber-600">1755: Braddock's Defeat</h4>
+                        <div class="timeline-item-content">
+                            <p class="text-sm text-stone-600 mt-2">British General Edward Braddock's forces are ambushed and decisively defeated near Fort Duquesne (modern-day Pittsburgh). This major setback for the British highlighted the effectiveness of French and Native American guerilla tactics.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                     <div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-amber-600 bg-stone-100 text-amber-700 group-hover:bg-amber-600 group-hover:text-white shadow-md md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 transition-colors duration-300">
+                        <span class="font-semibold">3</span>
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded-lg shadow-lg cursor-pointer" onclick="toggleTimelineItem(this)">
+                        <h4 class="font-semibold text-lg text-amber-600">1756: War Declared Globally</h4>
+                        <div class="timeline-item-content">
+                           <p class="text-sm text-stone-600 mt-2">Formal declaration of war between Great Britain and France, marking the official start of the Seven Years' War in Europe and other parts of the world. The conflict in North America was now part of a wider global struggle.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-amber-600 bg-stone-100 text-amber-700 group-hover:bg-amber-600 group-hover:text-white shadow-md md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 transition-colors duration-300">
+                        <span class="font-semibold">4</span>
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded-lg shadow-lg cursor-pointer" onclick="toggleTimelineItem(this)">
+                        <h4 class="font-semibold text-lg text-amber-600">1757: Fort William Henry</h4>
+                        <div class="timeline-item-content">
+                             <p class="text-sm text-stone-600 mt-2">French forces under Montcalm capture Fort William Henry. The events following the surrender, where Native American allies of the French attacked the retreating British column, became infamous and were later fictionalized in "The Last of the Mohicans."</p>
+                        </div>
+                    </div>
+                </div>
+                 <div class="timeline-item relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-amber-600 bg-stone-100 text-amber-700 group-hover:bg-amber-600 group-hover:text-white shadow-md md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 transition-colors duration-300">
+                        <span class="font-semibold">5</span>
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded-lg shadow-lg cursor-pointer" onclick="toggleTimelineItem(this)">
+                        <h4 class="font-semibold text-lg text-amber-600">1758: Tide Turns for Britain</h4>
+                        <div class="timeline-item-content">
+                             <p class="text-sm text-stone-600 mt-2">British forces achieve significant victories, including the capture of the strategic fortress of Louisbourg on Cape Breton Island and Fort Duquesne, which they renamed Fort Pitt (later Pittsburgh). William Pitt the Elder's increased commitment to the war effort began to pay off.</p>
+                        </div>
+                    </div>
+                </div>
+                 <div class="timeline-item relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-amber-600 bg-stone-100 text-amber-700 group-hover:bg-amber-600 group-hover:text-white shadow-md md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 transition-colors duration-300">
+                        <span class="font-semibold">6</span>
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded-lg shadow-lg cursor-pointer" onclick="toggleTimelineItem(this)">
+                        <h4 class="font-semibold text-lg text-amber-600">1759: Battle of Quebec</h4>
+                        <div class="timeline-item-content">
+                           <p class="text-sm text-stone-600 mt-2">The pivotal Battle of the Plains of Abraham results in a British victory and the capture of Quebec City. Both commanding generals, Wolfe (British) and Montcalm (French), were mortally wounded. This battle was a critical turning point, severely weakening French control in Canada.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="timeline-item relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-2 border-amber-600 bg-stone-100 text-amber-700 group-hover:bg-amber-600 group-hover:text-white shadow-md md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 transition-colors duration-300">
+                        <span class="font-semibold">7</span>
+                    </div>
+                    <div class="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded-lg shadow-lg cursor-pointer" onclick="toggleTimelineItem(this)">
+                        <h4 class="font-semibold text-lg text-amber-600">1760: Fall of Montreal</h4>
+                        <div class="timeline-item-content">
+                             <p class="text-sm text-stone-600 mt-2">British forces capture Montreal, the last major French stronghold in Canada. This event effectively ended major military operations in the North American theater of the war, securing British dominance.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-10 chart-container">
+                <canvas id="conflictYearsChart"></canvas>
+            </div>
+            <p class="text-sm text-stone-600 mt-2 text-center">Conceptual Doughnut Chart: Distribution of key events over phases of the war.</p>
+
+        </section>
+
+        <section id="figures" class="pt-16 -mt-16 mb-12 section-fade-in">
+            <h2 class="text-3xl font-bold text-amber-700 mb-6 text-center">Key Figures</h2>
+            <p class="text-lg text-stone-700 mb-8 leading-relaxed text-center max-w-3xl mx-auto">
+                The French and Indian War was shaped by the decisions and actions of numerous individuals on all sides. This section introduces some of the most influential military commanders, political leaders, and Native American figures who played crucial roles in the conflict. Use the filters to explore figures by their allegiance.
+            </p>
+            <div class="flex justify-center mb-6 space-x-2 sm:space-x-4">
+                <button class="filter-btn bg-amber-600 text-white py-2 px-4 rounded-md hover:bg-amber-700 transition-colors" data-filter="all">All</button>
+                <button class="filter-btn bg-stone-500 text-white py-2 px-4 rounded-md hover:bg-stone-600 transition-colors" data-filter="british">🇬🇧 British</button>
+                <button class="filter-btn bg-sky-600 text-white py-2 px-4 rounded-md hover:bg-sky-700 transition-colors" data-filter="french">🇫🇷 French</button>
+                <button class="filter-btn bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors" data-filter="native">🏹 Native American</button>
+            </div>
+            <div id="figuresGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                </div>
+        </section>
+
+        <section id="treaty" class="pt-16 -mt-16 mb-12 section-fade-in">
+            <h2 class="text-3xl font-bold text-amber-700 mb-6 text-center">Treaty of Paris & Long-Term Consequences</h2>
+            <p class="text-lg text-stone-700 mb-8 leading-relaxed text-center max-w-3xl mx-auto">
+                The war concluded with the Treaty of Paris in 1763, dramatically reshaping the map of North America. This section details the major territorial changes stipulated by the treaty and explores the profound and lasting consequences of the war, many of which set the stage for future conflicts, including the American Revolution.
+            </p>
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold text-amber-600 mb-4">The Treaty of Paris (1763) - Outcome</h3>
+                    <p class="text-stone-700 mb-3">This treaty formally ended the Seven Years' War globally and had massive implications for North America:</p>
+                    <ul class="space-y-2 text-stone-700">
+                        <li><strong class="font-semibold text-stone-800">France Cedes to Great Britain:</strong>
+                            <ul class="list-disc list-inside ml-4 mt-1">
+                                <li>All territory in mainland North America east of the Mississippi River (including the Ohio Valley).</li>
+                                <li>Canada.</li>
+                                <li>Most of its Caribbean islands.</li>
+                            </ul>
+                        </li>
+                        <li><strong class="font-semibold text-stone-800">Spain Cedes to Great Britain:</strong>
+                            <ul class="list-disc list-inside ml-4 mt-1">
+                                <li>Florida (in exchange for Britain returning Cuba, which it had captured).</li>
+                            </ul>
+                        </li>
+                        <li><strong class="font-semibold text-stone-800">France Cedes to Spain:</strong>
+                            <ul class="list-disc list-inside ml-4 mt-1">
+                                <li>The vast Louisiana Territory (west of the Mississippi River) as compensation for Spain's loss of Florida.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <p class="mt-4 text-lg font-semibold text-amber-700">Impact: Great Britain emerged as the dominant colonial power in North America, its territory massively expanded.</p>
+                </div>
+                 <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-2xl font-semibold text-amber-600 mb-4">Long-Term Consequences</h3>
+                    <ul id="consequencesList" class="space-y-3 text-stone-700">
+                        <li class="p-3 border border-stone-200 rounded-md hover:shadow-md transition-shadow cursor-pointer" onclick="showConsequenceDetail(this, 'Increased British Debt', 'The war was incredibly expensive for Britain. To pay off this massive debt, the British government sought new revenue sources, leading directly to attempts to tax the American colonies.')">
+                            <strong class="font-semibold text-stone-800">Increased British Debt:</strong> Led to new taxes on American colonies.
+                        </li>
+                        <li class="p-3 border border-stone-200 rounded-md hover:shadow-md transition-shadow cursor-pointer" onclick="showConsequenceDetail(this, 'Growing Colonial Resentment', 'New British policies, such as the Proclamation of 1763 (restricting westward expansion) and various tax acts (Stamp Act, Townshend Acts), were seen by colonists as infringements on their rights and liberties, fueling widespread discontent.')">
+                            <strong class="font-semibold text-stone-800">Growing Colonial Resentment:</strong> British policies angered colonists.
+                        </li>
+                         <li class="p-3 border border-stone-200 rounded-md hover:shadow-md transition-shadow cursor-pointer" onclick="showConsequenceDetail(this, 'Training for Colonial Leaders', 'Colonial officers like George Washington gained valuable military and leadership experience fighting alongside the British. This experience would prove crucial during the American Revolution.')">
+                            <strong class="font-semibold text-stone-800">Training for Colonial Leaders:</strong> Figures like Washington gained military experience.
+                        </li>
+                        <li class="p-3 border border-stone-200 rounded-md hover:shadow-md transition-shadow cursor-pointer" onclick="showConsequenceDetail(this, 'Native American Dispossession', 'The British victory led to increased encroachment on Native American lands. Native tribes, no longer able to play French and British interests against each other, faced greater pressure. This contributed to Pontiac\'s Rebellion (1763-1766).')">
+                            <strong class="font-semibold text-stone-800">Native American Dispossession:</strong> Further encroachment on Native lands and uprisings like Pontiac's Rebellion.
+                        </li>
+                        <li class="p-3 border border-stone-200 rounded-md hover:shadow-md transition-shadow cursor-pointer" onclick="showConsequenceDetail(this, 'Pathway to Revolution', 'The combination of debt, new taxes, restrictions on expansion, and a growing sense of separate identity among colonists directly contributed to the escalating tensions that ignited the American Revolution in 1775.')">
+                            <strong class="font-semibold text-stone-800">Pathway to Revolution:</strong> Directly contributed to the tensions leading to the American Revolution.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="chart-container mt-10">
+                <canvas id="consequencesChart"></canvas>
+            </div>
+            <p class="text-sm text-stone-600 mt-2 text-center">Conceptual Bar Chart: Perceived impact of long-term consequences.</p>
+        </section>
+    </main>
+
+    <footer class="bg-stone-800 text-stone-300 py-8 text-center">
+        <p>&copy; <span id="currentYear"></span> Interactive French and Indian War. All information for educational purposes.</p>
+    </footer>
+
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modalTitle" class="text-xl font-semibold text-amber-700"></h3>
+                <button id="closeModal" class="text-stone-500 hover:text-stone-700">&times;</button>
+            </div>
+            <p id="modalContent" class="text-stone-700"></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+
+        function toggleTimelineItem(element) {
+            const content = element.querySelector('.timeline-item-content');
+            content.classList.toggle('expanded');
+        }
+        
+        const figuresData = [
+            { name: "George Washington", role: "Young colonial officer (British), gained early military experience.", category: "british", icon: "🇬🇧" },
+            { name: "William Pitt the Elder", role: "British Prime Minister, increased funding and military commitment to the war.", category: "british", icon: "🇬🇧" },
+            { name: "General James Wolfe", role: "British General, led the capture of Quebec, died in battle.", category: "british", icon: "🇬🇧" },
+            { name: "Marquis de Montcalm", role: "French commander in North America, died defending Quebec.", category: "french", icon: "🇫🇷" },
+            { name: "Duquesne de Menneville", role: "Governor-General of New France in the early stages of the war.", category: "french", icon: "🇫🇷" },
+            { name: "Pontiac", role: "Ottawa chief, led a major post-war rebellion against British rule.", category: "native", icon: "🏹" },
+            { name: "Hendrick (Theyanoguin)", role: "Mohawk leader, influential ally of the British, died in battle.", category: "native", icon: "🏹" }
+        ];
+
+        const figuresGrid = document.getElementById('figuresGrid');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+
+        function displayFigures(filter = 'all') {
+            figuresGrid.innerHTML = '';
+            const filteredFigures = figuresData.filter(figure => filter === 'all' || figure.category === filter);
+            
+            if (filteredFigures.length === 0) {
+                figuresGrid.innerHTML = `<p class="text-stone-600 col-span-full text-center">No figures found for this category.</p>`;
+                return;
+            }
+
+            filteredFigures.forEach(figure => {
+                const figureCard = `
+                    <div class="bg-white p-6 rounded-lg shadow-lg transition-transform hover:scale-105 figure-card" data-category="${figure.category}">
+                        <h4 class="text-xl font-semibold text-amber-600 mb-2">${figure.icon} ${figure.name}</h4>
+                        <p class="text-stone-700 text-sm">${figure.role}</p>
+                    </div>
+                `;
+                figuresGrid.insertAdjacentHTML('beforeend', figureCard);
+            });
+        }
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('bg-amber-600', 'hover:bg-amber-700'));
+                filterBtns.forEach(b => {
+                    if (b.dataset.filter === 'british') b.classList.add('bg-stone-500', 'hover:bg-stone-600');
+                    else if (b.dataset.filter === 'french') b.classList.add('bg-sky-600', 'hover:bg-sky-700');
+                    else if (b.dataset.filter === 'native') b.classList.add('bg-green-600', 'hover:bg-green-700');
+                    else if (b.dataset.filter === 'all') b.classList.add('bg-amber-600', 'hover:bg-amber-700');
+                });
+
+                if (btn.dataset.filter === 'all') {
+                     btn.classList.add('bg-amber-600', 'hover:bg-amber-700');
+                     btn.classList.remove('bg-stone-500', 'bg-sky-600', 'bg-green-600', 'hover:bg-stone-600', 'hover:bg-sky-700', 'hover:bg-green-700');
+                } else {
+                    btn.classList.remove('bg-stone-500', 'bg-sky-600', 'bg-green-600', 'hover:bg-stone-600', 'hover:bg-sky-700', 'hover:bg-green-700');
+                    if(btn.dataset.filter === 'british') btn.classList.add('bg-amber-600', 'hover:bg-amber-700');
+                    if(btn.dataset.filter === 'french') btn.classList.add('bg-amber-600', 'hover:bg-amber-700');
+                    if(btn.dataset.filter === 'native') btn.classList.add('bg-amber-600', 'hover:bg-amber-700');
+                }
+                displayFigures(btn.dataset.filter);
+            });
+        });
+        
+        displayFigures();
+
+
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+        const closeModalBtn = document.getElementById('closeModal');
+
+        function showConsequenceDetail(element, title, detail) {
+            modalTitle.textContent = title;
+            modalContent.textContent = detail;
+            modal.classList.remove('hidden');
+        }
+
+        closeModalBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+            }
+        });
+
+        const navLinks = document.querySelectorAll('nav a[href^="#"], #mobile-menu a[href^="#"]');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    // targetElement.scrollIntoView({ behavior: 'smooth' });
+                    // Manual scroll with offset for sticky header
+                    const headerOffset = document.querySelector('header').offsetHeight;
+                    const elementPosition = targetElement.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+
+                    // Update active nav link styling
+                    navLinks.forEach(nav => nav.classList.remove('active-nav'));
+                    // For desktop nav
+                    document.querySelectorAll('header nav a').forEach(nav => {
+                        if(nav.getAttribute('href') === targetId) nav.classList.add('active-nav');
+                    });
+                     // For mobile nav, style slightly differently or ensure consistency
+                    document.querySelectorAll('#mobile-menu a').forEach(nav => {
+                        if(nav.getAttribute('href') === targetId) {
+                            nav.classList.add('text-amber-700', 'font-semibold', 'bg-stone-300'); // Example active style for mobile
+                        } else {
+                            nav.classList.remove('text-amber-700', 'font-semibold', 'bg-stone-300');
+                        }
+                    });
+
+                }
+            });
+        });
+        
+        const sections = document.querySelectorAll('.section-fade-in');
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1 
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    // Update active nav link based on visible section
+                    const visibleSectionId = entry.target.id;
+                    navLinks.forEach(link => {
+                        link.classList.remove('active-nav');
+                        if (link.getAttribute('href') === `#${visibleSectionId}`) {
+                            link.classList.add('active-nav');
+                        }
+                    });
+                     document.querySelectorAll('#mobile-menu a').forEach(nav => {
+                        if(nav.getAttribute('href') === `#${visibleSectionId}`) {
+                            nav.classList.add('text-amber-700', 'font-semibold', 'bg-stone-300');
+                        } else {
+                            nav.classList.remove('text-amber-700', 'font-semibold', 'bg-stone-300');
+                        }
+                    });
+
+                    // observer.unobserve(entry.target); // Optional: stop observing once visible
+                }
+            });
+        }, observerOptions);
+
+        sections.forEach(section => {
+            observer.observe(section);
+        });
+
+
+        const conflictYearsData = {
+            labels: ['Early Years (1754-56)', 'Mid-War (1757-59)', 'Late War (1760-63)'],
+            datasets: [{
+                label: 'Key Events',
+                data: [2, 3, 2], // 1754, 1755 | 1756, 1757, 1758 | 1759, 1760
+                backgroundColor: [
+                    'rgba(217, 119, 6, 0.7)',  // amber-500
+                    'rgba(202, 138, 4, 0.7)',  // amber-600
+                    'rgba(180, 83, 9, 0.7)'   // amber-700
+                ],
+                borderColor: [
+                    'rgba(217, 119, 6, 1)',
+                    'rgba(202, 138, 4, 1)',
+                    'rgba(180, 83, 9, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+        const conflictYearsConfig = {
+            type: 'doughnut',
+            data: conflictYearsData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: '#44403c' } // stone-700
+                    },
+                    title: {
+                        display: true,
+                        text: 'Concentration of Key Events by War Phase',
+                        color: '#b45309', // amber-700
+                        font: { size: 16 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += context.parsed;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        new Chart(
+            document.getElementById('conflictYearsChart'),
+            conflictYearsConfig
+        );
+
+        const consequencesData = {
+            labels: ['Increased British Debt', 'Growing Colonial Resentment', 'Training for Leaders', 'Native Dispossession', 'Pathway to Revolution'],
+            datasets: [{
+                label: 'Conceptual Impact Score (out of 10)',
+                data: [8, 9, 7, 8, 10], // Conceptual scores
+                backgroundColor: [
+                    'rgba(217, 119, 6, 0.6)', 
+                    'rgba(202, 138, 4, 0.6)', 
+                    'rgba(180, 83, 9, 0.6)',
+                    'rgba(154, 52, 18, 0.6)', // A darker amber/brown
+                    'rgba(124, 45, 18, 0.6)'  // A very dark amber/brown
+                ],
+                borderColor: [
+                    'rgba(217, 119, 6, 1)',
+                    'rgba(202, 138, 4, 1)',
+                    'rgba(180, 83, 9, 1)',
+                    'rgba(154, 52, 18, 1)',
+                    'rgba(124, 45, 18, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+        const consequencesConfig = {
+            type: 'bar',
+            data: consequencesData,
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Conceptual Impact of Long-Term Consequences',
+                        color: '#b45309', // amber-700
+                        font: { size: 16 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.x !== null) {
+                                    label += context.parsed.x + ' / 10';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 10,
+                        ticks: { color: '#44403c' } // stone-700
+                    },
+                    y: {
+                        ticks: { 
+                            color: '#44403c', // stone-700
+                             callback: function(value, index, values) { // Wrap long labels
+                                const label = this.getLabelForValue(value);
+                                if (label.length > 16) {
+                                    return label.match(/.{1,16}/g); // Split into lines of 16 chars
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        new Chart(
+            document.getElementById('consequencesChart'),
+            consequencesConfig
+        );
+
+    </script>
+</body>
+</html>
