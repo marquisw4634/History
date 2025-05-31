@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>England and the American Colonies: Economic Story</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1, h2 {
+      color: #2E88C2;
+      text-align: center;
+    }
+    .section {
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .nav-menu {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .nav-menu button {
+      background-color: #36A2EB;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .nav-menu button:hover {
+      background-color: #2E88C2;
+    }
+    canvas {
+      max-width: 600px;
+      margin: 20px auto;
+      display: block;
+    }
+    .tooltip {
+      display: none;
+      position: absolute;
+      background-color: #FFCE56;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      z-index: 10;
+    }
+    .game-container {
+      margin: 20px 0;
+      text-align: center;
+    }
+    .draggable, .dropzone {
+      display: inline-block;
+      padding: 10px;
+      margin: 5px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .draggable {
+      background-color: #4BC0C0;
+      color: white;
+    }
+    .dropzone {
+      background-color: #f9f9f9;
+      min-width: 100px;
+      min-height: 30px;
+    }
+    .dropzone.correct {
+      background-color: #90EE90;
+    }
+    .dropzone.wrong {
+      background-color: #FF9999;
+    }
+    .game-button {
+      background-color: #FF6384;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #map-container {
+      position: relative;
+      text-align: center;
+    }
+    #trade-map {
+      border: 2px solid #2E88C2;
+    }
+  </style>
+</head>
+<body>
+  <h1>England and the American Colonies: An Economic Story</h1>
+  <div class="nav-menu">
+    <button onclick="showSection('mercantilism')">Mercantilism</button>
+    <button onclick="showSection('triangle-trade')">Triangle Trade</button>
+    <button onclick="showSection('tensions')">Tensions</button>
+  </div>
+
+  <div id="mercantilism" class="section">
+    <h2>Mercantilism: England’s Big Plan</h2>
+    <p>England wanted to get rich by controlling trade with the American Colonies. The colonies sent raw stuff like tobacco and wood, and England sent back things like clothes. The <span onmouseover="showTooltip('Navigation Acts: Laws that said colonies could only trade with England.')" onmouseout="hideTooltip()">Navigation Acts</span> made the rules strict.</p>
+    <div class="game-container" id="matching-game">
+      <h3>Matching Game: What Did England Make?</h3>
+      <p>Drag the colonial goods to what England turned them into!</p>
+      <div class="draggable" draggable="true" data-item="Tobacco">Tobacco</div>
+      <div class="draggable" draggable="true" data-item="Timber">Timber</div>
+      <div class="draggable" draggable="true" data-item="Cotton">Cotton</div>
+      <div class="dropzone" data-target="Cigars">Cigars</div>
+      <div class="dropzone" data-target="Ships">Ships</div>
+      <div class="dropzone" data-target="Cloth">Cloth</div>
+      <button class="game-button" onclick="resetMatchingGame()">Reset Game</button>
+    </div>
+  </div>
+
+  <div id="triangle-trade" class="section" style="display: none;">
+    <h2>Triangle Trade: Goods, People, and Ships</h2>
+    <p>The Triangle Trade was a three-way deal between Europe, Africa, and the Americas. England sent cloth to Africa, Africa sent enslaved people to the Americas (this was really sad), and the Americas sent sugar and tobacco to England.</p>
+    <canvas id="tradeChart"></canvas>
+    <div id="map-container">
+      <h3>Explore the Triangle Trade Map</h3>
+      <canvas id="trade-map" width="600" height="400"></canvas>
+    </div>
+  </div>
+
+  <div id="tensions" class="section" style="display: none;">
+    <h2>Trouble Brewing: Why the Colonies Were Upset</h2>
+    <p>England’s rules, like taxes and the Navigation Acts, made colonists mad. They wanted to trade freely and not pay taxes without a say. The Boston Tea Party (1773) was when colonists dumped tea to protest!</p>
+    <div class="game-container" id="protest-game">
+      <h3>Join the Boston Tea Party!</h3>
+      <p>You’re a colonist in 1773. Make choices to see what happens!</p>
+      <div id="game-story"></div>
+      <div id="game-choices"></div>
+      <button class="game-button" onclick="startProtestGame()">Start Game</button>
+    </div>
+  </div>
+
+  <div id="tooltip" class="tooltip"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Chart.js Chart
+    const ctx = document.getElementById('tradeChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Sugar', 'Tobacco', 'Enslaved People', 'Cloth'],
+        datasets: [{
+          label: 'Amount Traded (in Thousands)',
+          data: [50, 30, 20, 15],
+          backgroundColor: ['#36A2EB', '#FFCE56', '#4BC0C0', '#FF6384'],
+          borderColor: ['#2E88C2', '#D4A017', '#3A9D9D', '#D94F70'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: { beginAtZero: true, title: { display: true, text: 'Amount (in Thousands)' } },
+          x: { title: { display: true, text: 'Goods Traded' } }
+        },
+        plugins: {
+          legend: { display: true, position: 'top' },
+          tooltip: {
+            enabled: true,
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (label) label += ': ';
+                label += context.parsed.y + ' thousand tons';
+                return label;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Navigation
+    function showSection(sectionId) {
+      document.querySelectorAll('.section').forEach(section => section.style.display = 'none');
+      document.getElementById(sectionId).style.display = 'block';
+      if (sectionId === 'triangle-trade') drawMap();
+    }
+
+    // Tooltip
+    function showTooltip(text) {
+      const tooltip = document.getElementById('tooltip');
+      tooltip.style.display = 'block';
+      tooltip.innerText = text;
+      tooltip.style.left = event.pageX + 10 + 'px';
+      tooltip.style.top = event.pageY + 10 + 'px';
+    }
+
+    function hideTooltip() {
+      document.getElementById('tooltip').style.display = 'none';
+    }
+
+    // Matching Game
+    const matches = {
+      'Tobacco': 'Cigars',
+      'Timber': 'Ships',
+      'Cotton': 'Cloth'
+    };
+
+    document.querySelectorAll('.draggable').forEach(item => {
+      item.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text', e.target.dataset.item);
+      });
+    });
+
+    document.querySelectorAll('.dropzone').forEach(zone => {
+      zone.addEventListener('dragover', (e) => e.preventDefault());
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const item = e.dataTransfer.getData('text');
+        if (matches[item] === zone.dataset.target) {
+          zone.textContent = item;
+          zone.classList.add('correct');
+          zone.classList.remove('wrong');
+        } else {
+          zone.classList.add('wrong');
+          setTimeout(() => zone.classList.remove('wrong'), 1000);
+        }
+      });
+    });
+
+    function resetMatchingGame() {
+      document.querySelectorAll('.dropzone').forEach(zone => {
+        zone.textContent = zone.dataset.target;
+        zone.classList.remove('correct', 'wrong');
+      });
+    }
+
+    // Interactive Map
+    const mapCanvas = document.getElementById('trade-map');
+    const mapCtx = mapCanvas.getContext('2d');
+    const routes = [
+      { start: { x: 300, y: 100 }, end: { x: 100, y: 300 }, label: 'England to Africa: Cloth, Guns' },
+      { start: { x: 100, y: 300 }, end: { x: 400, y: 300 }, label: 'Africa to Americas: Enslaved People' },
+      { start: { x: 400, y: 300 }, end: { x: 300, y: 100 }, label: 'Americas to England: Sugar, Tobacco' }
+    ];
+
+    function drawMap() {
+      mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+      mapCtx.fillStyle = '#ADD8E6';
+      mapCtx.fillRect(0, 0, mapCanvas.width, mapCanvas.height);
+      mapCtx.fillStyle = '#228B22';
+      mapCtx.fillRect(250, 50, 100, 50); // England
+      mapCtx.fillRect(50, 250, 100, 50); // Africa
+      mapCtx.fillRect(350, 250, 100, 50); // Americas
+      mapCtx.fillStyle = '#000';
+      mapCtx.font = '14px Arial';
+      mapCtx.fillText('England', 270, 80);
+      mapCtx.fillText('Africa', 70, 280);
+      mapCtx.fillText('Americas', 370, 280);
+
+      routes.forEach(route => {
+        mapCtx.beginPath();
+        mapCtx.moveTo(route.start.x, route.start.y);
+        mapCtx.lineTo(route.end.x, route.end.y);
+        mapCtx.strokeStyle = '#2E88C2';
+        mapCtx.lineWidth = 3;
+        mapCtx.stroke();
+      });
+    }
+
+    mapCanvas.addEventListener('click', (e) => {
+      const rect = mapCanvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      routes.forEach(route => {
+        const dist = Math.hypot(x - (route.start.x + route.end.x) / 2, y - (route.start.y + route.end.y) / 2);
+        if (dist < 50) {
+          showTooltip(route.label);
+          setTimeout(hideTooltip, 3000);
+        }
+      });
+    });
+
+    // Choose Your Path Game
+    const story = [
+      {
+        text: 'You’re a Boston merchant in 1773. England’s tea tax makes you mad. Do you...',
+        choices: [
+          { text: 'Join the Boston Tea Party', next: 1 },
+          { text: 'Pay the tax', next: 2 }
+        ]
+      },
+      {
+        text: 'You sneak onto a ship and dump tea into the harbor! England is furious. Do you...',
+        choices: [
+          { text: 'Hide and keep protesting', next: 3 },
+          { text: 'Apologize to England', next: 4 }
+        ]
+      },
+      {
+        text: 'You pay the tax, but your customers are upset and stop buying. Game over!',
+        choices: []
+      },
+      {
+        text: 'You join other colonists and plan the Revolution. You win!',
+        choices: []
+      },
+      {
+        text: 'England forgives you, but colonists call you a traitor. Game over!',
+        choices: []
+      }
+    ];
+
+    function startProtestGame() {
+      currentStep = 0;
+      displayStory();
+    }
+
+    let currentStep = 0;
+    function displayStory() {
+      const storyDiv = document.getElementById('game-story');
+      const choicesDiv = document.getElementById('game-choices');
+      storyDiv.textContent = story[currentStep].text;
+      choicesDiv.innerHTML = '';
+      story[currentStep].choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'game-button';
+        btn.textContent = choice.text;
+        btn.onclick = () => {
+          currentStep = choice.next;
+          displayStory();
+        };
+        choicesDiv.appendChild(btn);
+      });
+    }
+
+    // Initialize
+    drawMap();
+  </script>
+</body>
+</html>
