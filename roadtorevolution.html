@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Road to Revolution: Interactive Infographic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            color: #1e293b; /* Dark slate text */
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 50px;
+            padding-left: 40px; /* Space for the line and dot */
+            border-left: 4px solid #4a5568; /* Darker gray line */
+        }
+        .timeline-item:last-child {
+            border-left: none; /* No line after the last item */
+            padding-bottom: 20px;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -12px; /* Adjust to center the dot on the line */
+            top: 0;
+            height: 20px;
+            width: 20px;
+            background-color: #e53e3e; /* Red dot */
+            border-radius: 50%;
+            border: 3px solid #f0f4f8; /* Match body background for "cutout" effect */
+        }
+        .event-card {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1; /* Lighter gray border */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6); /* Dimmed background */
+        }
+        .modal-content {
+            background-color: #ffffff;
+            margin: 10% auto; /* Adjusted margin for better centering */
+            padding: 25px;
+            border: 1px solid #cbd5e1;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .close-button {
+            color: #aaa;
+            position: absolute; /* Position relative to modal-content */
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #1e293b;
+            text-decoration: none;
+        }
+        .modal-body-container { /* New container for title and body */
+            padding-top: 10px; /* Add some space below the close button if title is long */
+        }
+        .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        .modal-body::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .modal-body::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-red-700">The Road to Revolution</h1>
+            <p class="text-lg text-slate-600 mt-2">An Interactive Timeline of Events Leading to the American Revolution</p>
+        </header>
+
+        <div class="max-w-3xl mx-auto">
+            <div id="timelineContainer">
+                </div>
+        </div>
+    </div>
+
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal()">&times;</span>
+            <div class="modal-body-container">
+                <h2 id="modalTitle" class="text-3xl font-bold text-red-700 mb-4"></h2>
+                <div id="modalBody" class="text-slate-700 space-y-3 max-h-[60vh] overflow-y-auto">
+                    <p id="modalDate" class="text-sm text-slate-500 font-semibold"></p>
+                    <p id="modalDescription" class="text-base"></p>
+                    <div class="mt-4">
+                        <h4 class="font-semibold text-md text-slate-800">Key Impacts & Significance:</h4>
+                        <ul id="modalImpacts" class="list-disc list-inside text-base space-y-1">
+                            </ul>
+                    </div>
+                    <div id="modalTensions" class="mt-4">
+                        <h4 class="font-semibold text-md text-slate-800">How it fueled tensions:</h4>
+                        <p class="text-base"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const events = [
+            {
+                id: 'frenchIndianWar',
+                title: 'French and Indian War',
+                year: '1754-1763',
+                short_desc: 'A conflict between Great Britain and France over North American territory, leading to significant British debt.',
+                description: 'The French and Indian War (part of the larger Seven Years\' War) was fought primarily in North America. Britain and its colonies defeated France and its Native American allies, gaining vast new territories. However, the war was incredibly expensive for Britain.',
+                impacts: [
+                    'Britain accumulated a massive national debt.',
+                    'Led to increased British desire to assert control over the colonies and make them contribute to the costs of their own defense and administration.',
+                    'Removed the French threat, making colonists feel less dependent on British military protection.'
+                ],
+                tensions: 'To pay off war debts, Britain began imposing new taxes on the colonies, which colonists argued were unfair as they had no direct representation in the British Parliament. This marked a shift in British colonial policy.'
+            },
+            {
+                id: 'proclamation1763',
+                title: 'Proclamation of 1763',
+                year: '1763',
+                short_desc: 'British decree prohibiting colonial settlement west of the Appalachian Mountains.',
+                description: 'Issued by King George III, the Proclamation of 1763 aimed to prevent further conflicts with Native Americans by forbidding colonists from settling on lands west of the Appalachian Mountains. It also sought to organize the newly acquired territories from France.',
+                impacts: [
+                    'Angered colonists who saw it as an infringement on their right to expand westward, especially those who had fought in the French and Indian War with the expectation of new land.',
+                    'Many colonists ignored the proclamation and moved west anyway, creating enforcement challenges for Britain.',
+                    'Contributed to a growing sense of resentment against British authority.'
+                ],
+                tensions: 'Colonists felt the British government was siding with Native American interests over their own and limiting their economic opportunities. This was one of the first major policies to cause widespread colonial discontent after the war.'
+            },
+            {
+                id: 'sugarAct',
+                title: 'Sugar Act',
+                year: '1764',
+                short_desc: 'Tax on sugar, molasses, and other goods, with stricter enforcement against smuggling.',
+                description: 'The Sugar Act (officially the American Revenue Act) revised and strengthened the existing Molasses Act of 1733. It lowered the tax on molasses but increased measures to enforce the collection of duties on imported goods like sugar, wine, and coffee. It also established new courts for smugglers tried without a jury.',
+                impacts: [
+                    'Aimed to raise revenue for Britain rather than just regulate trade.',
+                    'Increased British customs presence and cracked down on colonial smuggling, which had been a common practice.',
+                    'Led to protests based on the argument of "no taxation without representation," as colonists had no elected representatives in the British Parliament that passed the tax.'
+                ],
+                tensions: 'The act was seen by many colonists as an abuse of power and an economic burden. The stricter enforcement and trials without juries were particularly alarming, raising concerns about colonial liberties.'
+            },
+            {
+                id: 'stampAct',
+                title: 'Stamp Act',
+                year: '1765',
+                short_desc: 'Direct tax on all printed materials in the colonies, sparking widespread protests.',
+                description: 'The Stamp Act imposed a direct tax on the colonists by requiring that many printed materials in the colonies be produced on stamped paper produced in London, carrying an embossed revenue stamp. This included newspapers, legal documents, playing cards, and almanacs.',
+                impacts: [
+                    'First direct tax levied on the colonies by Parliament.',
+                    'Unified colonial opposition, leading to the formation of groups like the Sons of Liberty.',
+                    'Colonial assemblies passed resolutions condemning the act, and a Stamp Act Congress was convened.',
+                    'Widespread boycotts of British goods were highly effective.',
+                    'The act was repealed in 1766 due to colonial pressure and economic concerns from British merchants.'
+                ],
+                tensions: 'The Stamp Act crisis solidified the "no taxation without representation" argument and demonstrated the power of united colonial action. Though repealed, Parliament also passed the Declaratory Act, asserting its right to legislate for the colonies "in all cases whatsoever," setting the stage for future conflicts.'
+            },
+            {
+                id: 'townshendActs',
+                title: 'Townshend Acts',
+                year: '1767',
+                short_desc: 'Taxes on imported goods like glass, lead, paint, paper, and tea.',
+                description: 'Introduced by Chancellor of the Exchequer Charles Townshend, these acts imposed duties on various goods imported into the American colonies. The revenue was intended to pay the salaries of colonial governors and judges, making them independent of colonial assemblies.',
+                impacts: [
+                    'Renewed colonial boycotts of British goods.',
+                    'Increased smuggling and resistance to customs officials.',
+                    'Led to the deployment of more British troops to Boston to enforce the acts and maintain order.'
+                ],
+                tensions: 'The acts were seen as another attempt to tax the colonies without their consent and to undermine the power of their elected assemblies. The presence of British troops further exacerbated tensions, particularly in Boston.'
+            },
+            {
+                id: 'bostonMassacre',
+                title: 'Boston Massacre',
+                year: '1770',
+                short_desc: 'British soldiers fired into a crowd of colonists, killing five people.',
+                description: 'Amidst ongoing tensions over the Townshend Acts and the presence of British troops, a confrontation occurred between a mob of colonists and British soldiers in Boston. The soldiers fired into the crowd, killing five colonists and injuring others.',
+                impacts: [
+                    'Fueled anti-British sentiment and was heavily publicized by patriots like Paul Revere and Samuel Adams as a symbol of British tyranny.',
+                    'Led to the withdrawal of British troops from Boston to Castle Island.',
+                    'Most of the Townshend Acts were repealed shortly after, except for the tax on tea.'
+                ],
+                tensions: 'The event became a powerful piece of propaganda for the Patriot cause, highlighting the dangers of a standing army and British aggression. It deepened the divide between the colonies and Britain.'
+            },
+            {
+                id: 'teaAct',
+                title: 'Tea Act',
+                year: '1773',
+                short_desc: 'Gave the British East India Company a monopoly on tea sales in the colonies.',
+                description: 'The Tea Act was not designed to raise revenue but to save the financially troubled British East India Company. It allowed the company to ship tea directly to the colonies and sell it at a lower price, even with the existing Townshend tea tax. This undercut colonial merchants and smugglers.',
+                impacts: [
+                    'Colonists saw it as a deceptive attempt to make them accept Parliament\'s right to tax them, as the tea would still be taxed under the Townshend duty.',
+                    'Colonial merchants who smuggled tea or sold legally imported (but more expensive) tea were threatened financially.',
+                    'Led to widespread protests and refusals to allow the tea to be unloaded.'
+                ],
+                tensions: 'The act was perceived as a trick to legitimize parliamentary taxation and to create a monopoly. This led directly to the Boston Tea Party and similar protests in other colonies.'
+            },
+            {
+                id: 'bostonTeaParty',
+                title: 'Boston Tea Party',
+                year: '1773',
+                short_desc: 'Colonists, disguised as Native Americans, dumped tea into Boston Harbor in protest of the Tea Act.',
+                description: 'In response to the Tea Act, a group of colonists from the Sons of Liberty, some disguised as Mohawk Indians, boarded three tea ships in Boston Harbor and dumped 342 chests of tea into the water. This was a direct act of defiance against British authority and the East India Company.',
+                impacts: [
+                    'Demonstrated the colonists\' strong opposition to British taxation policies and their willingness to take direct action.',
+                    'Led to a harsh British response in the form of the Intolerable Acts.',
+                    'Inspired similar "tea parties" in other colonial ports.'
+                ],
+                tensions: 'The Boston Tea Party was a pivotal moment, escalating the conflict from protests and boycotts to direct destruction of property. The British government viewed it as an act of rebellion that required a firm response.'
+            },
+            {
+                id: 'intolerableActs',
+                title: 'Intolerable Acts (Coercive Acts)',
+                year: '1774',
+                short_desc: 'Series of punitive laws passed by Britain in response to the Boston Tea Party.',
+                description: 'Parliament passed these acts, known as the Coercive Acts in Britain, to punish Massachusetts for the Boston Tea Party. They included: the Boston Port Act (closing the harbor until the tea was paid for), the Massachusetts Government Act (restricting town meetings and increasing royal control), the Administration of Justice Act (allowing British officials accused of crimes to be tried in Britain), and an expanded Quartering Act (requiring colonists to house British soldiers).',
+                impacts: [
+                    'Rather than isolating Massachusetts, the acts united the colonies in opposition to what they saw as an overreach of British power.',
+                    'Led directly to the calling of the First Continental Congress.',
+                    'Strengthened colonial resolve and pushed them closer to seeking independence.'
+                ],
+                tensions: 'The Intolerable Acts were seen as a direct assault on colonial liberties and self-government. They convinced many colonists that reconciliation with Britain was becoming impossible and that a coordinated colonial response was necessary.'
+            },
+            {
+                id: 'firstContinentalCongress',
+                title: 'First Continental Congress',
+                year: '1774',
+                short_desc: 'Delegates from 12 colonies met to discuss a response to the Intolerable Acts.',
+                description: 'Delegates from all colonies except Georgia met in Philadelphia to coordinate their response to the Intolerable Acts. They discussed colonial rights, grievances against Britain, and strategies for resistance.',
+                impacts: [
+                    'Issued a Declaration of Rights and Grievances, affirming colonial rights.',
+                    'Called for a complete boycott of British goods (the Continental Association).',
+                    'Agreed to meet again in May 1775 if their grievances were not addressed.',
+                    'Signified a major step towards colonial unity and collective action.'
+                ],
+                tensions: 'The Congress demonstrated that the colonies were capable of organizing and acting together. While still seeking reconciliation, their demands and the call for a boycott further strained relations with Britain, which viewed the Congress as an illegal assembly.'
+            },
+            {
+                id: 'lexingtonConcord',
+                title: 'Lexington and Concord',
+                year: 'April 1775',
+                short_desc: 'The first armed conflicts of the American Revolutionary War.',
+                description: 'British troops marched from Boston to Lexington and Concord to seize colonial military supplies and arrest Patriot leaders Samuel Adams and John Hancock. Colonial militiamen (Minutemen) confronted the British. Shots were fired in Lexington, and a larger battle occurred in Concord as the British retreated to Boston under heavy fire.',
+                impacts: [
+                    'Marked the beginning of the American Revolutionary War.',
+                    'Known as "the shot heard \'round the world," signaling the start of open hostilities.',
+                    'Led to the Siege of Boston by colonial militias.',
+                    'Prompted the Second Continental Congress to convene and create the Continental Army.'
+                ],
+                tensions: 'These battles transformed the political dispute into a military conflict. There was no turning back from war after blood was shed on both sides.'
+            }
+        ];
+
+        const timelineContainer = document.getElementById('timelineContainer');
+        const modal = document.getElementById('eventModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalDate = document.getElementById('modalDate');
+        const modalDescription = document.getElementById('modalDescription');
+        const modalImpacts = document.getElementById('modalImpacts');
+        const modalTensionsParagraph = document.querySelector('#modalTensions p');
+
+        function populateTimeline() {
+            events.forEach((event, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'timeline-item';
+                if (index === events.length -1) {
+                    itemDiv.style.borderLeft = '4px solid transparent'; // Or match background
+                }
+
+                const dotDiv = document.createElement('div');
+                dotDiv.className = 'timeline-dot';
+
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'event-card rounded-lg shadow-md p-5 md:p-6 cursor-pointer';
+                cardDiv.onclick = () => openModal(event.id);
+
+                const titleH2 = document.createElement('h2');
+                titleH2.className = 'text-xl md:text-2xl font-semibold text-red-600 mb-2';
+                titleH2.textContent = `${event.title} (${event.year})`;
+
+                const descP = document.createElement('p');
+                descP.className = 'text-slate-600 text-sm md:text-base';
+                descP.textContent = event.short_desc;
+
+                cardDiv.appendChild(titleH2);
+                cardDiv.appendChild(descP);
+                itemDiv.appendChild(dotDiv);
+                itemDiv.appendChild(cardDiv);
+                timelineContainer.appendChild(itemDiv);
+            });
+        }
+
+        function openModal(eventId) {
+            const eventData = events.find(e => e.id === eventId);
+            if (!eventData) return;
+
+            modalTitle.textContent = eventData.title;
+            modalDate.textContent = `Date: ${eventData.year}`;
+            modalDescription.textContent = eventData.description;
+
+            modalImpacts.innerHTML = ''; // Clear previous impacts
+            eventData.impacts.forEach(impact => {
+                const li = document.createElement('li');
+                li.textContent = impact;
+                modalImpacts.appendChild(li);
+            });
+
+            modalTensionsParagraph.textContent = eventData.tensions;
+
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Disable body scroll
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Re-enable body scroll
+        }
+
+        // Close modal if user clicks outside of the modal content
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+        
+        // Close modal on 'Escape' key press
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeModal();
+            }
+        });
+
+        // Initialize timeline
+        populateTimeline();
+    </script>
+</body>
+</html>
