@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colonial Cash Flow: England, America & The Road to Revolution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+        }
+        .header-font {
+            font-family: 'Montserrat', sans-serif; /* Changed font */
+            font-weight: 700;
+        }
+        .content-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+        .content-card:hover {
+            transform: translateY(-5px);
+        }
+        .question-card {
+            background-color: #eef2ff; /* Light indigo background for questions */
+            border: 1px solid #c7d2fe; /* Indigo border */
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .question-option label {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db; /* Gray border */
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            background-color: #fff;
+            position: relative; /* For feedback text positioning */
+        }
+        .question-option label:hover {
+            background-color: #f3f4f6; /* Lighter gray on hover */
+            border-color: #6366f1; /* Indigo border on hover */
+        }
+        .question-option input[type="radio"] {
+            margin-right: 12px;
+            height: 20px;
+            width: 20px;
+            accent-color: #4f46e5; /* Indigo accent */
+        }
+        .submit-btn {
+            background-color: #4f46e5; /* Indigo */
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .submit-btn:hover {
+            background-color: #4338ca; /* Darker Indigo */
+        }
+        .submit-btn:disabled {
+            background-color: #a5b4fc; /* Lighter indigo when disabled */
+            cursor: not-allowed;
+        }
+        .explanation {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            border-width: 1px; /* Ensure border is visible */
+            border-style: solid;
+        }
+        .correct-answer-label {
+            background-color: #dcfce7 !important; /* Light green */
+            border-color: #22c55e !important; /* Green */
+            color: #166534; /* Dark green text */
+        }
+        .incorrect-answer-label {
+            background-color: #fee2e2 !important; /* Light red */
+            border-color: #ef4444 !important; /* Red */
+            color: #991b1b; /* Dark red text */
+        }
+        .selected-poll-label { /* For Q1 polling option */
+            background-color: #e0e7ff !important; /* Light blue */
+            border-color: #818cf8 !important; /* Indigo lighter */
+        }
+        .feedback-text-span { /* Class for the small text like (Correct Answer) */
+            margin-left: auto;
+            padding-left: 8px; /* Space from radio button text */
+            font-size: 0.8rem; /* Smaller text */
+        }
+        /* Removed section-icon style as icons are removed */
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <header class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-12 text-center shadow-lg">
+        <div class="container mx-auto px-4">
+            <h1 class="header-font text-5xl md:text-6xl font-bold mb-2">Colonial Cash Flow!</h1>
+            <p class="text-lg md:text-xl">England, America & The Economic Road to Revolution</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+
+        <section class="content-card" id="intro">
+            <div class="flex items-center mb-4">
+                <h2 class="header-font text-3xl font-semibold text-indigo-700">What's the Big Deal with Colonies & Cash?</h2>
+            </div>
+            <p class="text-lg leading-relaxed mb-4">
+                Ever wonder why England was so interested in having colonies like America way back when? It wasn't just for new vacation spots! A HUGE part of it came down to <strong class="text-purple-600">MONEY</strong> and <strong class="text-purple-600">POWER</strong>. England, like other big European countries, wanted to be the richest and most powerful. Colonies were like a cheat code to help them get there!
+            </p>
+
+            <div class="question-card">
+                <h4 class="font-semibold text-xl text-indigo-700 mb-3">Quick Poll! 🤔</h4>
+                <p class="mb-3 text-gray-700" id="question-text-q1">Before we dive in, what do you think was the main reason England wanted to establish colonies in America?</p>
+                <form id="form-q1" onsubmit="event.preventDefault(); handleAnswer('q1');">
+                    <div class="space-y-3 mb-4">
+                        <div class="question-option">
+                            <label>
+                                <input type="radio" name="q1" value="a"> To create a place for religious freedom for all.
+                            </label>
+                        </div>
+                        <div class="question-option">
+                            <label>
+                                <input type="radio" name="q1" value="b"> To build a powerful military alliance against other European nations.
+                            </label>
+                        </div>
+                         <div class="question-option">
+                            <label>
+                                <input type="radio" name="q1" value="c"> To gain wealth and resources for England.
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn">Check Answer</button>
+                </form>
+                <div id="feedback-q1" class="mt-3 text-sm"></div>
+                <div id="explanation-q1" class="explanation hidden"></div>
+            </div>
+        </section>
+
+        <section class="content-card" id="mercantilism">
+            <div class="flex items-center mb-4">
+                 <h2 class="header-font text-3xl font-semibold text-indigo-700">Mercantilism: England's Get-Rich Plan!</h2>
+            </div>
+            <p class="text-lg leading-relaxed mb-4">
+                England followed an economic idea called <strong class="text-purple-600">Mercantilism</strong>. Think of it like a national piggy bank: England wanted to sell (export) way more stuff than it bought (imported). Why? More exports = more gold and silver = richer and more powerful country!
+            </p>
+            <p class="text-lg leading-relaxed mb-4">
+                Colonies like America were super important for this plan. They provided:
+                <ul class="list-disc list-inside ml-4 mb-4 space-y-1 text-lg">
+                    <li><strong class="text-green-600">Cheap Raw Materials:</strong> Think wood, cotton, tobacco, furs. England didn't have to buy these from other countries.</li>
+                    <li><strong class="text-blue-600">A Guaranteed Market:</strong> England turned those raw materials into finished goods (like clothes, tools, furniture) and then sold them back to the colonies and other nations. Ka-ching!</li>
+                </ul>
+            </p>
+            <div class="my-6 p-4 bg-yellow-50 border border-yellow-300 rounded-lg text-center">
+                <h3 class="font-semibold text-yellow-700 text-xl mb-2">The Mercantilist Flow:</h3>
+                <p class="text-yellow-600">Colonies send <strong class="text-green-600">Raw Materials</strong> ➔ England makes <strong class="text-blue-600">Finished Goods</strong> ➔ England sells to Colonies & Others for <strong class="text-yellow-500">💰Profit!💰</strong></p>
+            </div>
+            <p class="text-lg leading-relaxed mb-4">
+                To make sure this system worked for them, England passed laws like the <strong class="text-red-600">Navigation Acts</strong>. These laws said colonists HAD to trade many of their key products only with England and use English ships. This kept all the profits flowing towards England.
+            </p>
+
+            <div class="question-card">
+                <h4 class="font-semibold text-xl text-indigo-700 mb-3">Test Your Smarts! 🧐</h4>
+                <p class="mb-3 text-gray-700" id="question-text-q2">Under mercantilism, what was the MAIN economic role of the American colonies for England?</p>
+                <form id="form-q2" onsubmit="event.preventDefault(); handleAnswer('q2');">
+                    <div class="space-y-3 mb-4">
+                        <div class="question-option"><label><input type="radio" name="q2" value="a"> To be a military superpower.</label></div>
+                        <div class="question-option"><label><input type="radio" name="q2" value="b"> To provide raw materials and buy English manufactured goods.</label></div>
+                        <div class="question-option"><label><input type="radio" name="q2" value="c"> To develop their own totally independent economies right away.</label></div>
+                        <div class="question-option"><label><input type="radio" name="q2" value="d"> To create new styles of art and music for England.</label></div>
+                    </div>
+                    <button type="submit" class="submit-btn">Check Answer</button>
+                </form>
+                <div id="feedback-q2" class="mt-3 text-sm"></div>
+                <div id="explanation-q2" class="explanation hidden"></div>
+            </div>
+        </section>
+
+        <section class="content-card" id="triangle-trade">
+            <div class="flex items-center mb-4">
+                <h2 class="header-font text-3xl font-semibold text-indigo-700">The Not-So-Fair Triangle Trade</h2>
+            </div>
+            <p class="text-lg leading-relaxed mb-4">
+                This mercantilist system fueled a massive, complex trade network often called the <strong class="text-purple-600">Triangle Trade</strong>. It connected three main points: Europe (especially England), the West Coast of Africa, and the Americas (including the colonies).
+            </p>
+            <div class="my-6 p-4 bg-blue-50 border border-blue-300 rounded-lg">
+                <h3 class="font-semibold text-blue-700 text-xl mb-3 text-center">Visualizing the Triangle:</h3>
+                <svg viewBox="0 0 350 250" class="w-full max-w-lg mx-auto my-4">
+                    <g id="europe-node">
+                        <rect x="20" y="20" width="100" height="40" rx="5" fill="#a7f3d0" stroke="#059669" stroke-width="2"/>
+                        <text x="70" y="45" text-anchor="middle" font-size="12" fill="#047857" font-weight="bold">EUROPE</text>
+                        <text x="70" y="65" text-anchor="middle" font-size="10" fill="#047857">(England)</text>
+                    </g>
+                    <g id="africa-node">
+                        <rect x="230" y="20" width="100" height="40" rx="5" fill="#fecaca" stroke="#dc2626" stroke-width="2"/>
+                        <text x="280" y="45" text-anchor="middle" font-size="12" fill="#b91c1c" font-weight="bold">AFRICA</text>
+                        <text x="280" y="65" text-anchor="middle" font-size="10" fill="#b91c1c">(West Coast)</text>
+                    </g>
+                    <g id="americas-node">
+                        <rect x="125" y="170" width="100" height="40" rx="5" fill="#bfdbfe" stroke="#2563eb" stroke-width="2"/>
+                        <text x="175" y="195" text-anchor="middle" font-size="12" fill="#1e40af" font-weight="bold">AMERICAS</text>
+                        <text x="175" y="215" text-anchor="middle" font-size="10" fill="#1e40af">(Colonies)</text>
+                    </g>
+
+                    <path d="M125 35 Q 175 0 225 35" stroke="#4b5563" stroke-width="2.5" fill="none" marker-end="url(#arrowhead)"/>
+                    <text x="175" y="20" text-anchor="middle" font-size="10" fill="#4b5563" class="font-semibold">Guns, Cloth, Rum ➔</text>
+
+                    <path d="M250 65 Q 250 120 195 165" stroke="#4b5563" stroke-width="2.5" fill="none" marker-end="url(#arrowhead)"/>
+                    <text x="260" y="115" text-anchor="middle" font-size="10" fill="#b91c1c" class="font-bold" transform="rotate(25 260 115)">Enslaved People 💔➔</text>
+                    <text x="260" y="130" text-anchor="middle" font-size="9" fill="#b91c1c" transform="rotate(25 260 130)">(The Middle Passage)</text>
+
+
+                    <path d="M155 165 Q 70 120 95 65" stroke="#4b5563" stroke-width="2.5" fill="none" marker-end="url(#arrowhead)"/>
+                    <text x="85" y="115" text-anchor="middle" font-size="10" fill="#4b5563" class="font-semibold" transform="rotate(-35 85 115)">Sugar, Cotton, ➔</text>
+                     <text x="80" y="130" text-anchor="middle" font-size="10" fill="#4b5563" class="font-semibold" transform="rotate(-35 80 130)">Tobacco</text>
+
+                    <defs>
+                        <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto" markerUnits="strokeWidth">
+                          <path d="M0,0 L0,6 L8,3 z" fill="#4b5563" />
+                        </marker>
+                    </defs>
+                </svg>
+                <ul class="list-none space-y-2 text-lg">
+                    <li><strong class="text-green-600">Leg 1:</strong> Ships from Europe (England) carried manufactured goods (guns, cloth, alcohol) to West Africa.</li>
+                    <li><strong class="text-red-600">Leg 2 (The Middle Passage):</strong> Tragically, these goods were traded for enslaved Africans, who were then brutally transported across the Atlantic to the Americas under horrific conditions. This was the deadliest part of the journey.</li>
+                    <li><strong class="text-blue-600">Leg 3:</strong> In the Americas, enslaved people were sold, and the ships were loaded with raw materials (sugar, cotton, tobacco, rum) produced by their labor. These goods then sailed back to Europe, completing the triangle and generating huge profits for merchants and England.</li>
+                </ul>
+            </div>
+            <p class="text-lg leading-relaxed mb-4">
+                It's crucial to remember that this system was built on the forced labor and immense suffering of millions of Africans. While it made some people very wealthy, it came at an unimaginable human cost.
+            </p>
+
+            <div class="question-card">
+                <h4 class="font-semibold text-xl text-indigo-700 mb-3">Think About It! 🤔</h4>
+                <p class="mb-3 text-gray-700" id="question-text-q3">Which of these was NOT a primary "good" or resource typically shipped FROM the American colonies TO Europe as part of the Triangle Trade?</p>
+                <form id="form-q3" onsubmit="event.preventDefault(); handleAnswer('q3');">
+                    <div class="space-y-3 mb-4">
+                        <div class="question-option"><label><input type="radio" name="q3" value="a"> Sugar</label></div>
+                        <div class="question-option"><label><input type="radio" name="q3" value="b"> Tobacco</label></div>
+                        <div class="question-option"><label><input type="radio" name="q3" value="c"> Advanced manufactured tools (like complex machinery)</label></div>
+                        <div class="question-option"><label><input type="radio" name="q3" value="d"> Cotton</label></div>
+                    </div>
+                    <button type="submit" class="submit-btn">Check Answer</button>
+                </form>
+                <div id="feedback-q3" class="mt-3 text-sm"></div>
+                <div id="explanation-q3" class="explanation hidden"></div>
+            </div>
+        </section>
+
+        <section class="content-card" id="colonial-economy">
+            <div class="flex items-center mb-4">
+                <h2 class="header-font text-3xl font-semibold text-indigo-700">Colonial Life: Making Stuff & Buying Stuff</h2>
+            </div>
+            <p class="text-lg leading-relaxed mb-4">
+                So, what were the American colonies actually *doing* all day? Their economies were diverse, but largely focused on providing those raw materials England wanted:
+            </p>
+            <div class="grid md:grid-cols-2 gap-6 mb-4">
+                <div class="p-4 bg-green-50 border border-green-300 rounded-lg">
+                    <h3 class="font-semibold text-green-700 text-xl mb-2">Southern Colonies (e.g., Virginia, Carolinas):</h3>
+                    <ul class="list-disc list-inside ml-2 space-y-1 text-lg">
+                        <li>Focused on <strong class="text-green-600">cash crops</strong> like tobacco, rice, and indigo.</li>
+                        <li>Large plantations often relied heavily on the forced labor of <strong class="text-red-600">enslaved Africans</strong>.</li>
+                    </ul>
+                </div>
+                <div class="p-4 bg-sky-50 border border-sky-300 rounded-lg">
+                    <h3 class="font-semibold text-sky-700 text-xl mb-2">Northern Colonies (New England - e.g., Massachusetts):</h3>
+                    <ul class="list-disc list-inside ml-2 space-y-1 text-lg">
+                        <li>More diverse: fishing (especially cod), whaling, shipbuilding, timber.</li>
+                        <li>Smaller farms, more merchants and artisans.</li>
+                        <li>Rum production (using molasses from the Caribbean) was also big.</li>
+                    </ul>
+                </div>
+            </div>
+             <p class="text-lg leading-relaxed mb-4">
+                <strong class="text-purple-600">Middle Colonies</strong> (e.g., New York, Pennsylvania) were a mix, known as the "breadbasket" for growing grains like wheat, but also had trade and some manufacturing.
+            </p>
+            <p class="text-lg leading-relaxed mb-4">
+                But remember, under mercantilism, England often <strong class="text-red-600">discouraged</strong> the colonies from making too many of their *own* finished goods. Why? Because England wanted the colonists to buy English-made products! This kept the economic benefits flowing back to the mother country.
+            </p>
+
+            <div class="question-card">
+                <h4 class="font-semibold text-xl text-indigo-700 mb-3">Quick Check! ✅</h4>
+                <p class="mb-3 text-gray-700" id="question-text-q4">Which colonial region was MOST known for its large plantations growing cash crops like tobacco and rice, heavily relying on enslaved labor?</p>
+                <form id="form-q4" onsubmit="event.preventDefault(); handleAnswer('q4');">
+                    <div class="space-y-3 mb-4">
+                        <div class="question-option"><label><input type="radio" name="q4" value="a"> New England Colonies (Northern)</label></div>
+                        <div class="question-option"><label><input type="radio" name="q4" value="b"> Middle Colonies</label></div>
+                        <div class="question-option"><label><input type="radio" name="q4" value="c"> Southern Colonies</label></div>
+                    </div>
+                    <button type="submit" class="submit-btn">Check Answer</button>
+                </form>
+                <div id="feedback-q4" class="mt-3 text-sm"></div>
+                <div id="explanation-q4" class="explanation hidden"></div>
+            </div>
+        </section>
+
+        <section class="content-card" id="tensions">
+            <div class="flex items-center mb-4">
+                <h2 class="header-font text-3xl font-semibold text-indigo-700">Cracks in the System: Uh Oh, Trouble's Brewing!</h2>
+            </div>
+            <p class="text-lg leading-relaxed mb-4">
+                This whole mercantilist system, while good for England's wallet, started to create BIG problems and <strong class="text-red-600">tensions</strong> with the American colonists. They began to feel like they were getting a raw deal.
+            </p>
+            <ul class="list-disc list-inside ml-4 mb-4 space-y-2 text-lg">
+                <li><strong class="text-orange-600">Limited Trade Freedom:</strong> Colonists were often forced to sell their goods only to England, even if they could get better prices from other countries (like France or Spain). They also had to buy most manufactured goods from England.</li>
+                <li><strong class="text-orange-600">No Free Market:</strong> They couldn't always sell to the highest bidder or buy from the cheapest source. England controlled the game.</li>
+                <li><strong class="text-orange-600">Manufacturing Stifled:</strong> England actively discouraged the colonies from developing their own advanced industries that might compete with English businesses. For example, laws like the Iron Act limited iron production in the colonies.</li>
+                <li><strong class="text-orange-600">Taxes & Duties:</strong> Taxes on imported goods (like sugar and tea) made things more expensive for colonists, and the money went to England.</li>
+            </ul>
+            <p class="text-lg leading-relaxed mb-4">
+                All these restrictions led to widespread <strong class="text-purple-600">resentment</strong>. Many colonists felt their economic growth was being held back just to benefit England. This frustration led to:
+                <ul class="list-disc list-inside ml-4 mb-4 space-y-1 text-lg">
+                    <li><strong class="text-teal-600">Smuggling:</strong> Colonists secretly traded with other countries to get around English rules and taxes. It was risky, but many did it!</li>
+                    <li>A growing desire for more <strong class="text-teal-600">economic independence</strong> and control over their own affairs.</li>
+                </ul>
+            </p>
+
+            <div class="question-card">
+                <h4 class="font-semibold text-xl text-indigo-700 mb-3">What Do You Think? 💡</h4>
+                <p class="mb-3 text-gray-700" id="question-text-q5">Why did many American colonists resort to smuggling goods?</p>
+                <form id="form-q5" onsubmit="event.preventDefault(); handleAnswer('q5');">
+                    <div class="space-y-3 mb-4">
+                        <div class="question-option"><label><input type="radio" name="q5" value="a"> They thought it was a fun and adventurous hobby.</label></div>
+                        <div class="question-option"><label><input type="radio" name="q5" value="b"> To get unique goods that England didn't offer at all.</label></div>
+                        <div class="question-option"><label><input type="radio" name="q5" value="c"> To avoid English trade restrictions and taxes, and to get better prices for their goods or buy cheaper goods.</label></div>
+                        <div class="question-option"><label><input type="radio" name="q5" value="d"> It was part of an important religious festival.</label></div>
+                    </div>
+                    <button type="submit" class="submit-btn">Check Answer</button>
+                </form>
+                <div id="feedback-q5" class="mt-3 text-sm"></div>
+                <div id="explanation-q5" class="explanation hidden"></div>
+            </div>
+        </section>
+
+        <section class="content-card" id="revolution">
+            <div class="flex items-center mb-4">
+                <h2 class="header-font text-3xl font-semibold text-indigo-700">From Trade Wars to Real Wars? 💣</h2>
+            </div>
+            <p class="text-lg leading-relaxed mb-4">
+                These economic frustrations weren't just small complaints; they were a <strong class="text-red-700">HUGE piece of the puzzle</strong> leading to the American Revolution!
+            </p>
+            <p class="text-lg leading-relaxed mb-4">
+                Colonists started to ask some pretty big questions:
+                <ul class="list-disc list-inside ml-4 mb-4 space-y-1 text-lg italic text-gray-600">
+                    <li>"Why should a country an ocean away control our entire economy?"</li>
+                    <li>"Why can't we trade with whomever we want?"</li>
+                    <li>"Why are we being taxed by England when we don't have any say in their government?" (This was the famous <strong class="text-purple-600">"No Taxation Without Representation!"</strong> cry).</li>
+                </ul>
+            </p>
+            <p class="text-lg leading-relaxed mb-4">
+                The desire for <strong class="text-green-600">economic freedom</strong> and control over their own destiny became a powerful force. While there were many causes of the American Revolution, these arguments over trade, taxes, and economic control played a massive role in convincing many colonists that it was time to break away from England and form their own nation.
+            </p>
+
+            <div class="question-card">
+                <h4 class="font-semibold text-xl text-indigo-700 mb-3">Final Thought! 🇺🇸</h4>
+                <p class="mb-3 text-gray-700" id="question-text-q6">True or False: Economic issues, like arguments over trade restrictions and taxes, had very little to do with the American Revolution.</p>
+                <form id="form-q6" onsubmit="event.preventDefault(); handleAnswer('q6');">
+                    <div class="space-y-3 mb-4">
+                        <div class="question-option"><label><input type="radio" name="q6" value="true"> True</label></div>
+                        <div class="question-option"><label><input type="radio" name="q6" value="false"> False</label></div>
+                    </div>
+                    <button type="submit" class="submit-btn">Check Answer</button>
+                </form>
+                <div id="feedback-q6" class="mt-3 text-sm"></div>
+                <div id="explanation-q6" class="explanation hidden"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center py-8 bg-gray-800 text-gray-400">
+        <p>&copy; <span id="currentYear"></span> Interactive History Fun. Keep Exploring!</p>
+    </footer>
+
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        const questionsData = {
+            q1: { // Polling question
+                type: 'poll', 
+                // Correct answer for polling is C, but it's handled as a poll.
+                correctAnswer: 'c', 
+                explanation: "While some colonists sought religious freedom (A), and alliances were part of global politics (B), the primary driver for England establishing and maintaining colonies was economic (C). Colonies provided valuable raw materials England didn't have and a guaranteed market to sell English manufactured goods. This system, as we'll see, was called mercantilism and was all about increasing England's wealth and power!"
+            },
+            q2: {
+                type: 'multiple-choice',
+                correctAnswer: 'b',
+                explanation: "(B) Under mercantilism, colonies were seen as sources of cheap raw materials for England and as markets to buy England's manufactured goods. This setup was designed to make England wealthy."
+            },
+            q3: {
+                type: 'multiple-choice',
+                correctAnswer: 'c',
+                explanation: "(C) The colonies were generally discouraged from producing their own advanced manufactured tools. England wanted to be the manufacturing hub and sell these items TO the colonies. Sugar, tobacco, and cotton were key raw materials sent FROM the colonies."
+            },
+            q4: {
+                type: 'multiple-choice',
+                correctAnswer: 'c',
+                explanation: "(C) The Southern Colonies, with their climate and soil, were ideal for large plantations growing cash crops like tobacco, rice, and indigo. This system tragically relied heavily on the labor of enslaved Africans."
+            },
+            q5: {
+                type: 'multiple-choice',
+                correctAnswer: 'c',
+                explanation: "(C) Smuggling was a way for colonists to get around strict English trade laws (like the Navigation Acts) and taxes. It allowed them to sell their goods to other countries for better prices or buy goods cheaper than what English merchants offered."
+            },
+            q6: {
+                type: 'true-false',
+                correctAnswer: 'false',
+                explanation: "False! Economic issues were a MAJOR cause of the American Revolution. Arguments over 'taxation without representation,' trade restrictions (like the Navigation Acts), and the feeling that England was unfairly controlling the colonial economy fueled a lot of the anger and desire for independence."
+            }
+        };
+
+        function handleAnswer(questionId) {
+            const questionInfo = questionsData[questionId];
+            const form = document.getElementById(`form-${questionId}`);
+            const feedbackEl = document.getElementById(`feedback-${questionId}`);
+            const explanationEl = document.getElementById(`explanation-${questionId}`);
+            
+            const selectedOptionInput = form.querySelector(`input[name="${questionId}"]:checked`);
+
+            if (!selectedOptionInput) {
+                feedbackEl.textContent = "Please select an answer first!";
+                feedbackEl.className = 'mt-3 text-sm text-red-600 font-semibold';
+                return;
+            }
+            
+            feedbackEl.textContent = ""; 
+            const userAnswer = selectedOptionInput.value;
+            const optionLabels = form.querySelectorAll('.question-option label');
+
+            optionLabels.forEach(label => {
+                label.classList.remove('correct-answer-label', 'incorrect-answer-label', 'selected-poll-label');
+                const existingFeedbackSpan = label.querySelector('.feedback-text-span');
+                if (existingFeedbackSpan) {
+                    existingFeedbackSpan.remove();
+                }
+            });
+            
+            explanationEl.classList.remove('hidden');
+            explanationEl.innerHTML = `<strong class="text-indigo-800">Explanation:</strong> ${questionInfo.explanation}`;
+
+
+            if (questionInfo.type === 'poll') { 
+                const selectedLabel = selectedOptionInput.parentElement; 
+                selectedLabel.classList.add('selected-poll-label'); 
+                
+                const feedbackSpan = document.createElement('span');
+                feedbackSpan.className = 'ml-auto text-xs font-semibold feedback-text-span text-blue-700';
+                feedbackSpan.textContent = 'Your Selection';
+                selectedLabel.appendChild(feedbackSpan);
+
+                // For the poll, we still want to show the "correct" context, so highlight C if it wasn't picked
+                if (questionInfo.correctAnswer && userAnswer !== questionInfo.correctAnswer) {
+                    const correctPollLabel = form.querySelector(`input[name="${questionId}"][value="${questionInfo.correctAnswer}"]`).parentElement;
+                    correctPollLabel.classList.add('correct-answer-label'); // Use green for the "most aligned" answer
+                     const correctFeedbackSpan = document.createElement('span');
+                    correctFeedbackSpan.className = 'ml-auto text-xs font-semibold feedback-text-span text-green-700';
+                    correctFeedbackSpan.textContent = 'Main Reason'; // Or similar neutral term
+                    correctPollLabel.appendChild(correctFeedbackSpan);
+                } else if (userAnswer === questionInfo.correctAnswer) {
+                    // If user selected the "main reason" for the poll, also style it as correct
+                     selectedLabel.classList.remove('selected-poll-label'); // remove neutral blue
+                     selectedLabel.classList.add('correct-answer-label'); // add green
+                     const SfeedbackSpan = selectedLabel.querySelector('.feedback-text-span');
+                     if(SfeedbackSpan) SfeedbackSpan.textContent = 'Your Selection (Main Reason)';
+                     if(SfeedbackSpan) SfeedbackSpan.classList.remove('text-blue-700');
+                     if(SfeedbackSpan) SfeedbackSpan.classList.add('text-green-700');
+                }
+
+
+                explanationEl.className = 'explanation bg-blue-50 border-blue-300 text-blue-800'; 
+            
+            } else { 
+                optionLabels.forEach(label => {
+                    const input = label.querySelector('input');
+                    const feedbackSpan = document.createElement('span');
+                    feedbackSpan.className = 'ml-auto text-xs font-semibold feedback-text-span';
+
+                    if (input.value === questionInfo.correctAnswer) {
+                        label.classList.add('correct-answer-label');
+                        if (userAnswer === questionInfo.correctAnswer) {
+                            feedbackSpan.textContent = 'Your Answer (Correct)'; // Removed exclamation
+                            feedbackSpan.classList.add('text-green-700');
+                        } else {
+                            feedbackSpan.textContent = 'Correct Answer';
+                            feedbackSpan.classList.add('text-green-700');
+                        }
+                        label.appendChild(feedbackSpan);
+                    } else if (input.value === userAnswer) { 
+                        label.classList.add('incorrect-answer-label');
+                        feedbackSpan.textContent = 'Your Answer (Incorrect)';
+                        feedbackSpan.classList.add('text-red-700');
+                        label.appendChild(feedbackSpan);
+                    }
+                });
+                explanationEl.className = userAnswer === questionInfo.correctAnswer 
+                    ? 'explanation bg-green-100 border-green-300 text-green-800' 
+                    : 'explanation bg-red-100 border-red-300 text-red-800';
+            }
+
+            const inputs = form.querySelectorAll('input');
+            inputs.forEach(input => input.disabled = true);
+            const button = form.querySelector('button[type="submit"]');
+            button.disabled = true;
+        }
+    </script>
+
+</body>
+</html>
