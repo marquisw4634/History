@@ -3,366 +3,1042 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Road to Revolution: Interactive Infographic</title>
+    <title>The Road to Revolution: Interactive Infographic</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Custom font for a modern look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f0f4f8; /* Light blue-gray background */
-            color: #1e293b; /* Dark slate text */
+            color: #334155; /* Dark slate gray text */
+            line-height: 1.6;
         }
-        .timeline-item {
-            position: relative;
-            padding-bottom: 50px;
-            padding-left: 40px; /* Space for the line and dot */
-            border-left: 4px solid #4a5568; /* Darker gray line */
+        .container {
+            max-width: 1024px; /* Max width for content */
         }
-        .timeline-item:last-child {
-            border-left: none; /* No line after the last item */
-            padding-bottom: 20px;
+        h1, h2, h3 {
+            font-weight: 700; /* Bold headings */
+            color: #1e293b; /* Even darker text for headings */
         }
-        .timeline-dot {
-            position: absolute;
-            left: -12px; /* Adjust to center the dot on the line */
-            top: 0;
-            height: 20px;
-            width: 20px;
-            background-color: #e53e3e; /* Red dot */
-            border-radius: 50%;
-            border: 3px solid #f0f4f8; /* Match body background for "cutout" effect */
+        h1 {
+            font-size: 2.5rem; /* Larger for main title */
+        }
+        h2 {
+            font-size: 2rem;
+        }
+        h3 {
+            font-size: 1.75rem;
         }
         .event-card {
             background-color: #ffffff;
-            border: 1px solid #cbd5e1; /* Lighter gray border */
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 1rem; /* More rounded corners */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* Soft shadow */
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer; /* Indicate clickable */
+            margin-bottom: 2rem; /* Spacing between vertical timeline items */
+            position: relative; /* For timeline line/dot */
         }
         .event-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateY(-5px); /* Subtle lift on hover */
         }
-        .modal {
+        .event-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 1rem;
+        }
+        .event-card-content {
             display: none; /* Hidden by default */
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.6); /* Dimmed background */
         }
-        .modal-content {
-            background-color: #ffffff;
-            margin: 10% auto; /* Adjusted margin for better centering */
-            padding: 25px;
-            border: 1px solid #cbd5e1;
-            width: 80%;
-            max-width: 600px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        .event-card.expanded .event-card-content {
+            display: block; /* Show when expanded */
+        }
+        .event-card .toggle-icon {
+            font-size: 1.5rem;
+            transition: transform 0.2s ease-in-out;
+        }
+        .event-card.expanded .toggle-icon {
+            transform: rotate(90deg); /* Rotate icon when expanded */
+        }
+
+        /* Vertical Timeline Specific Styles */
+        .timeline-container {
             position: relative;
+            padding-left: 20px; /* Space for the line */
         }
-        .close-button {
-            color: #aaa;
-            position: absolute; /* Position relative to modal-content */
-            top: 10px;
-            right: 15px;
-            font-size: 28px;
-            font-weight: bold;
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #94a3b8; /* Slate gray line */
+        }
+        .event-card::before {
+            content: '';
+            position: absolute;
+            left: -10px; /* Position dot on the line */
+            top: 1.5rem; /* Adjust to vertical center of card header */
+            width: 12px;
+            height: 12px;
+            background-color: #3b82f6; /* Blue dot */
+            border-radius: 50%;
+            border: 2px solid #ffffff; /* White border around dot */
+            z-index: 1;
+        }
+
+
+        .question-card {
+            background-color: #e2e8f0; /* Lighter background for questions */
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .answer-reveal {
+            background-color: #dbeafe; /* Light blue for answers */
+            border-left: 4px solid #3b82f6; /* Blue left border */
+            border-radius: 0.5rem;
+            margin-top: 0.75rem;
+            padding: 0.75rem 1rem;
+            display: none; /* Hidden by default */
+        }
+        .answer-button {
+            background-color: #3b82f6; /* Blue button */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
             cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
         }
-        .close-button:hover,
-        .close-button:focus {
-            color: #1e293b;
-            text-decoration: none;
+        .answer-button:hover {
+            background-color: #2563eb; /* Darker blue on hover */
         }
-        .modal-body-container { /* New container for title and body */
-            padding-top: 10px; /* Add some space below the close button if title is long */
+        /* Style for the poll options */
+        .poll-option {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
         }
-        .modal-body::-webkit-scrollbar {
-            width: 8px;
+        .poll-option:hover {
+            background-color: #eff6ff;
+            border-color: #93c5fd;
+            transform: translateY(-2px);
         }
-        .modal-body::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
+        .poll-option.selected {
+            background-color: #bfdbfe;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px #93c5fd;
         }
-        .modal-body::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
+        .poll-results {
+            margin-top: 1.5rem;
+            display: none;
         }
-        .modal-body::-webkit-scrollbar-thumb:hover {
-            background: #555;
+        .result-bar {
+            background-color: #d1d5db;
+            height: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+        }
+        .result-fill {
+            background-color: #3b82f6;
+            height: 100%;
+            width: 0%; /* Will be set by JS */
+            border-radius: 0.5rem;
+            transition: width 0.5s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 0.5rem;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        /* Game specific styles */
+        #gameCanvas {
+            background-color: #a7d9f7; /* Sky blue */
+            border: 4px solid #1e293b;
+            border-radius: 1rem;
+            display: block;
+            margin: 0 auto;
+            touch-action: manipulation; /* Prevent default touch actions */
+        }
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px; /* Max width for game */
+            margin: 2rem auto; /* Centered horizontally */
+            padding: 1rem;
+            text-align: center;
+            display: flex; /* Use flexbox for vertical centering within container */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px; /* Ensure enough height for content and centering */
+        }
+        .game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 1.5rem 2.5rem;
+            border-radius: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: none;
+            z-index: 10;
+        }
+        .game-button {
+            background-color: #10b981; /* Green button */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .game-button:hover {
+            background-color: #059669;
+            transform: translateY(-2px);
+        }
+        .game-button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+        .quote-bubble {
+            position: absolute;
+            background-color: #ffedd5; /* Light orange/cream */
+            border: 2px solid #fbbf24; /* Amber border */
+            border-radius: 1rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #78350f; /* Dark brown text */
+            white-space: nowrap;
+            display: none;
+            z-index: 5;
+            transform: translateX(-50%); /* Center horizontally above player */
+            pointer-events: none; /* Allow clicks to pass through */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .quote-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid #fbbf24; /* Amber border for arrow */
+        }
+        .quote-bubble::before {
+            content: '';
+            position: absolute;
+            bottom: -7px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid #ffedd5; /* Light orange for inner arrow */
+        }
+
+        /* On-screen jump button specific styles */
+        .on-screen-controls {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+        .jump-button {
+            background-color: #3b82f6; /* Blue button */
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            font-size: 1.5rem;
+            font-weight: bold;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            user-select: none; /* Prevent text selection on touch */
+            -webkit-user-select: none; /* For Safari */
+            -ms-user-select: none; /* For Edge */
+        }
+        .jump-button:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+        }
+        .jump-button:active {
+            transform: translateY(0);
+            box-shadow: none;
         }
     </style>
 </head>
-<body class="antialiased">
-    <div class="container mx-auto px-4 py-8">
-        <header class="text-center mb-12">
-            <h1 class="text-4xl md:text-5xl font-bold text-red-700">The Road to Revolution</h1>
-            <p class="text-lg text-slate-600 mt-2">An Interactive Timeline of Events Leading to the American Revolution</p>
-        </header>
+<body class="p-4 sm:p-8">
+    <div class="container mx-auto">
+        <h1 class="text-center text-4xl sm:text-5xl mb-8 leading-tight">The Road to Revolution: Major Events and Tensions 💥</h1>
+        <p class="text-lg text-center mb-12 max-w-3xl mx-auto">The American Revolution wasn't just a sudden spark; it was a slow burn 🔥 fueled by years of growing tension between Great Britain and its North American colonies. After a super expensive war (the French and Indian War, aka Seven Years' War), Britain decided it was time for the colonies to chip in more. This led to a series of laws and reactions that eventually blew up into full-scale conflict!</p>
 
-        <div class="max-w-3xl mx-auto">
-            <div id="timelineContainer">
+        <div class="question-card p-6 mb-12">
+            <h2 class="text-2xl mb-4">🧠 Pre-Reading Poll Question!</h2>
+            <p class="text-lg mb-6">Imagine you're a colonist in 1765. Your favorite newspaper now costs more because of a new tax on paper! 📰 What would be your first reaction? Would you protest loudly, try to ignore it, or find a clever loophole? 🤔</p>
+            <div id="poll-options" class="flex flex-col">
+                <div class="poll-option" data-value="protest">Protest loudly! 🗣️</div>
+                <div class="poll-option" data-value="ignore">Try to ignore it and hope it goes away. 🤷‍♀️</div>
+                <div class="poll-option" data-value="loophole">Find a clever loophole or alternative. 🕵️‍♂️</div>
+            </div>
+            <div id="poll-results" class="poll-results">
+                <h3 class="text-xl mb-4">Poll Results:</h3>
+                <div class="mb-2">
+                    <p class="font-semibold">Protest loudly! <span id="protest-count"></span></p>
+                    <div class="result-bar"><div id="protest-fill" class="result-fill"></div></div>
                 </div>
+                <div class="mb-2">
+                    <p class="font-semibold">Try to ignore it and hope it goes away. <span id="ignore-count"></span></p>
+                    <div class="result-bar"><div id="ignore-fill" class="result-fill"></div></div>
+                </div>
+                <div class="mb-2">
+                    <p class="font-semibold">Find a clever loophole or alternative. <span id="loophole-count"></span></p>
+                    <div class="result-bar"><div id="loophole-fill" class="result-fill"></div></div>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div id="eventModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" onclick="closeModal()">&times;</span>
-            <div class="modal-body-container">
-                <h2 id="modalTitle" class="text-3xl font-bold text-red-700 mb-4"></h2>
-                <div id="modalBody" class="text-slate-700 space-y-3 max-h-[60vh] overflow-y-auto">
-                    <p id="modalDate" class="text-sm text-slate-500 font-semibold"></p>
-                    <p id="modalDescription" class="text-base"></p>
-                    <div class="mt-4">
-                        <h4 class="font-semibold text-md text-slate-800">Key Impacts & Significance:</h4>
-                        <ul id="modalImpacts" class="list-disc list-inside text-base space-y-1">
-                            </ul>
+        <h2 class="text-3xl text-center mb-8">Timeline of Events & Tensions</h2>
+        <div class="timeline-container">
+            <div class="flex flex-col items-start">
+                <div class="event-card p-6 w-full" onclick="toggleEvent(this)">
+                    <div class="event-card-header">
+                        <h3 class="text-xl sm:text-2xl mb-0">1. Proclamation of 1763 🏞️</h3>
+                        <span class="toggle-icon">▶</span>
                     </div>
-                    <div id="modalTensions" class="mt-4">
-                        <h4 class="font-semibold text-md text-slate-800">How it fueled tensions:</h4>
-                        <p class="text-base"></p>
+                    <div class="event-card-content">
+                        <p class="text-sm text-gray-500 mb-4">October 7, 1763</p>
+                        <p class="mb-3">**Description:** Issued by King George III after the French and Indian War, this act prohibited colonial settlement west of the Appalachian Mountains. Its aim was to prevent conflicts with Native American tribes and control westward expansion, but it greatly frustrated land-hungry colonists.</p>
+                        <p class="font-semibold text-red-600 mb-2">Tension:</p>
+                        <p class="mb-3">Colonists felt betrayed and saw it as an infringement on their right to expand into lands they believed they had helped secure. Many had already staked claims or planned to move west.</p>
+                        <p class="font-semibold text-blue-600 mb-2">Colonial Response:</p>
+                        <p class="mb-3">Many simply ignored the proclamation, continuing to move west, while others resented the British interference in their affairs.</p>
+                        <p class="italic text-gray-700 border-l-2 border-gray-400 pl-3">"And We do further strictly enjoin and require all Persons whatever, who have either wilfully or inadvertently seated themselves upon any Lands within the Countries above described... forthwith to remove themselves from such Settlements."</p>
+                        <p class="text-sm text-gray-600 mt-1">-- Proclamation of 1763</p>
+                    </div>
+                </div>
+
+                <div class="event-card p-6 w-full" onclick="toggleEvent(this)">
+                    <div class="event-card-header">
+                        <h3 class="text-xl sm:text-2xl mb-0">2. Sugar Act (Revenue Act of 1764) 🍬</h3>
+                        <span class="toggle-icon">▶</span>
+                    </div>
+                    <div class="event-card-content">
+                        <p class="text-sm text-gray-500 mb-4">April 5, 1764</p>
+                        <p class="mb-3">**Description:** This act lowered the tax on molasses from six pence to three pence per gallon but increased enforcement of smuggling laws and added new duties on foreign goods like sugar, coffee, and wine. It was explicitly designed to raise revenue for the Crown.</p>
+                        <p class="font-semibold text-red-600 mb-2">Tension:</p>
+                        <p class="mb-3">While the tax was lower, the strict enforcement and the very principle of Parliament taxing the colonies directly for revenue (rather than regulating trade) sparked widespread protest under the cry of "taxation without representation."</p>
+                        <p class="font-semibold text-blue-600 mb-2">Colonial Response:</p>
+                        <p class="mb-3">Merchants and assemblies protested, leading to early boycotts of British luxury goods and the articulation of the "no taxation without representation" argument.</p>
+                        <p class="italic text-gray-700 border-l-2 border-gray-400 pl-3">"If Taxes are laid upon us in any shape without ever having a Legal Representative where they are laid, are we not reduced from the Character of Free Subjects to the miserable state of tributary Slaves?"</p>
+                        <p class="text-sm text-gray-600 mt-1">-- Colonial Essayist</p>
+                    </div>
+                </div>
+
+                <div class="event-card p-6 w-full" onclick="toggleEvent(this)">
+                    <div class="event-card-header">
+                        <h3 class="text-xl sm:text-2xl mb-0">3. Stamp Act 📜</h3>
+                        <span class="toggle-icon">▶</span>
+                    </div>
+                    <div class="event-card-content">
+                        <p class="text-sm text-gray-500 mb-4">March 22, 1765</p>
+                        <p class="mb-3">**Description:** This act required colonists to pay a tax on almost all printed materials, including newspapers, legal documents, playing cards, and pamphlets, by purchasing a special stamp to be affixed to them. It was the first direct tax on the colonies.</p>
+                        <p class="font-semibold text-red-600 mb-2">Tension:</p>
+                        <p class="mb-3">This act ignited widespread fury. Colonists viewed it as a blatant attempt to raise revenue without their consent and a direct attack on their liberties and economic well-being.</p>
+                        <p class="font-semibold text-blue-600 mb-2">Colonial Response: (HUGE moment for unity!)</p>
+                        <ul class="list-disc list-inside space-y-1 mb-3">
+                            <li>**Sons of Liberty:** Formed underground to organize protests, intimidate stamp distributors, and enforce boycotts.</li>
+                            <li>**Boycotts:** Colonists refused to buy British goods, severely impacting British merchants.</li>
+                            <li>**Stamp Act Congress:** Delegates from nine colonies met in New York, issuing a Declaration of Rights and Grievances, a major step towards inter-colonial cooperation and unified protest.</li>
+                        </ul>
+                        <p class="italic text-gray-700 border-l-2 border-gray-400 pl-3">"That it is inseparably essential to the Freedom of a People, and the undoubted Right of Englishmen, that no Taxes be imposed on them, but with their own Consent, given personally, or by their Representatives."</p>
+                        <p class="text-sm text-gray-600 mt-1">-- Resolutions of the Stamp Act Congress</p>
+                    </div>
+                </div>
+
+                <div class="event-card p-6 w-full" onclick="toggleEvent(this)">
+                    <div class="event-card-header">
+                        <h3 class="text-xl sm:text-2xl mb-0">4. Quartering Act 🏠</h3>
+                        <span class="toggle-icon">▶</span>
+                    </div>
+                    <div class="event-card-content">
+                        <p class="text-sm text-gray-500 mb-4">May 15, 1765</p>
+                        <p class="mb-3">**Description:** This act required colonial assemblies to provide housing, food, and supplies for British troops stationed in the colonies. If barracks were insufficient, soldiers could be housed in public buildings, inns, or even private homes (though this was a contentious interpretation).</p>
+                        <p class="font-semibold text-red-600 mb-2">Tension:</p>
+                        <p class="mb-3">Colonists viewed this as an infringement on their privacy, a financial burden, and a standing army in peacetime, which was seen as a threat to liberty. New York's assembly, in particular, resisted compliance.</p>
+                        <p class="font-semibold text-blue-600 mb-2">Colonial Response:</p>
+                        <p class="mb-3">Colonial assemblies often dragged their feet or outright refused to fully comply, leading to disputes with royal governors and eventually the suspension of the New York Assembly.</p>
+                        <p class="italic text-gray-700 border-l-2 border-gray-400 pl-3">"We beg Leave, further, to represent to your Excellency that, by the Act of Parliament, it appears to be the Intention of the Legislature to provide for the quartering Soldiers only on a March; but according to the Construction put on it here, it is required that all the Forces which shall at any Time..."</p>
+                        <p class="text-sm text-gray-600 mt-1">-- New York Assembly Petition, 1766</p>
+                    </div>
+                </div>
+
+                <div class="event-card p-6 w-full" onclick="toggleEvent(this)">
+                    <div class="event-card-header">
+                        <h3 class="text-xl sm:text-2xl mb-0">5. Declaratory Act 👑</h3>
+                        <span class="toggle-icon">▶</span>
+                    </div>
+                    <div class="event-card-content">
+                        <p class="text-sm text-gray-500 mb-4">March 18, 1766</p>
+                        <p class="mb-3">**Description:** Passed on the same day the Stamp Act was repealed, this act asserted Parliament's absolute authority to make laws binding the colonies "in all cases whatsoever." It was a direct response to colonial claims of "no taxation without representation."</p>
+                        <p class="font-semibold text-red-600 mb-2">Tension:</p>
+                        <p class="mb-3">While colonists celebrated the Stamp Act's repeal, the Declaratory Act made it clear that Britain had not backed down on the principle of its sovereignty, setting the stage for future conflicts over legislative power.</p>
+                        <p class="font-semibold text-blue-600 mb-2">Colonial Response:</p>
+                        <p class="mb-3">Many colonists initially overlooked its implications in their joy over the Stamp Act repeal, but its assertion of parliamentary supremacy would become a major point of contention later.</p>
+                        <p class="italic text-gray-700 border-l-2 border-gray-400 pl-3">"...had, hath, and of right ought to have, full power and authority to make laws and statutes of sufficient force and validity to bind the colonies and people of America, subjects of the crown of Great Britain, in all cases whatsoever."</p>
+                        <p class="text-sm text-gray-600 mt-1">-- The Declaratory Act of 1766</p>
+                    </div>
+                </div>
+
+                <div class="event-card p-6 w-full" onclick="toggleEvent(this)">
+                    <div class="event-card-header">
+                        <h3 class="text-xl sm:text-2xl mb-0">6. Townshend Acts ☕</h3>
+                        <span class="toggle-icon">▶</span>
+                    </div>
+                    <div class="event-card-content">
+                        <p class="text-sm text-gray-500 mb-4">June 29, 1767</p>
+                        <p class="mb-3">**Description:** A series of acts imposing new duties on imports like glass, lead, paper, paint, and tea. They also established a new American Board of Customs Commissioners and allowed for "Writs of Assistance" (general search warrants) to combat smuggling.</p>
+                        <p class="font-semibold text-red-600 mb-2">Tension:</p>
+                        <p class="mb-3">Colonists saw these as another attempt to raise revenue without their consent and to suppress smuggling through invasive means, violating their rights as Englishmen to secure property.</p>
+                        <p class="font-semibold text-blue-600 mb-2">Colonial Response:</p>
+                        <ul class="list-disc list-inside space-y-1 mb-3">
+                            <li>**Renewed Boycotts:** Especially of tea, leading to a significant drop in British imports.</li>
+                            <li>**"Letters from a Farmer in Pennsylvania":** John Dickinson's widely read pamphlets argued against the constitutionality of the acts.</li>
+                            <li>**Non-Importation Agreements:** Merchants across colonies agreed not to import British goods, strengthening colonial unity.</li>
+                        </ul>
+                        <p class="italic text-gray-700 border-l-2 border-gray-400 pl-3">"...such writs of assistance, [...] shall and may be granted by the said superior or supreme court of justice having jurisdiction within such colony or plantation respectively."</p>
+                        <p class="text-sm text-gray-600 mt-1">-- The Townshend Revenue Act of 1767</p>
+                    </div>
+                </div>
+
+                <div class="event-card p-6 w-full" onclick="toggleEvent(this)">
+                    <div class="event-card-header">
+                        <h3 class="text-xl sm:text-2xl mb-0">7. Boston Massacre 🩸</h3>
+                        <span class="toggle-icon">▶</span>
+                    </div>
+                    <div class="event-card-content">
+                        <p class="text-sm text-gray-500 mb-4">March 5, 1770</p>
+                        <p class="mb-3">**Description:** A street brawl between British soldiers and a crowd of Bostonians escalated when soldiers fired into the crowd, killing five colonists, including Crispus Attucks. The soldiers were largely acquitted in a subsequent trial, defended by John Adams.</p>
+                        <p class="font-semibold text-red-600 mb-2">Tension:</p>
+                        <p class="mb-3">This event became a powerful symbol of British tyranny and military brutality, fueling anti-British sentiment and deepening mistrust between colonists and occupying forces.</p>
+                        <p class="font-semibold text-blue-600 mb-2">Colonial Response:</p>
+                        <ul class="list-disc list-inside space-y-1 mb-3">
+                            <li>**Propaganda:** Paul Revere's famous (and dramatic) engraving, "The Bloody Massacre," spread widely, depicting the British as aggressors.</li>
+                            <li>**Committees of Correspondence:** Began forming in earnest across the colonies, creating a vital network to share news and coordinate resistance efforts.</li>
+                        </ul>
+                        <p class="italic text-gray-700 border-l-2 border-gray-400 pl-3">"On my asking the soldiers why they fired without orders, they said they heard the word fire and supposed it came from me."</p>
+                        <p class="text-sm text-gray-600 mt-1">-- Captain Thomas Preston's Account, 1770</p>
+                    </div>
+                </div>
+
+                <div class="event-card p-6 w-full" onclick="toggleEvent(this)">
+                    <div class="event-card-header">
+                        <h3 class="text-xl sm:text-2xl mb-0">8. Tea Act 🫖</h3>
+                        <span class="toggle-icon">▶</span>
+                    </div>
+                    <div class="event-card-content">
+                        <p class="text-sm text-gray-500 mb-4">May 10, 1773</p>
+                        <p class="mb-3">**Description:** This act granted the struggling British East India Company a monopoly on tea sales in the colonies, allowing it to sell tea directly at a lower price, even with the existing Townshend tax. The goal was to bail out the company and indirectly get colonists to accept the tea tax.</p>
+                        <p class="font-semibold text-red-600 mb-2">Tension:</p>
+                        <p class="mb-3">Colonists saw through the cheaper price, viewing it as a deceptive tactic to force them to acknowledge Parliament's right to tax them. It also threatened colonial merchants who smuggled cheaper Dutch tea.</p>
+                        <p class="font-semibold text-blue-600 mb-2">Colonial Response:</p>
+                        <p class="mb-3">Widespread outrage and organized resistance against the landing of tea ships in several ports, most famously leading to the Boston Tea Party.</p>
+                        <p class="italic text-gray-700 border-l-2 border-gray-400 pl-3">"Pray, have you heard, whether they, and the Ministry, have not made a Property of US, and whether We, our Wives, and Children, together with the hard-earned Fruits of our Labour, are not made over to this, almost bankrupt Company, to augment their Stock, and to repair their ruined Fortune?"</p>
+                        <p class="text-sm text-gray-600 mt-1">-- John Dickinson, "Letters from a Farmer in Pennsylvania," 1773</p>
+                    </div>
+                </div>
+
+                <div class="event-card p-6 w-full" onclick="toggleEvent(this)">
+                    <div class="event-card-header">
+                        <h3 class="text-xl sm:text-2xl mb-0">9. Boston Tea Party 🥳</h3>
+                        <span class="toggle-icon">▶</span>
+                    </div>
+                    <div class="event-card-content">
+                        <p class="text-sm text-gray-500 mb-4">December 16, 1773</p>
+                        <p class="mb-3">**Description:** In a daring act of defiance, members of the Sons of Liberty, disguised as Native Americans, boarded three British tea ships in Boston Harbor and dumped 342 chests of tea into the water, protesting the Tea Act.</p>
+                        <p class="font-semibold text-red-600 mb-2">Tension:</p>
+                        <p class="mb-3">This was a direct and destructive challenge to British authority, prompting severe retaliation from Parliament and escalating the crisis significantly.</p>
+                        <p class="font-semibold text-blue-600 mb-2">Colonial Response:</p>
+                        <p class="mb-3">While some found the destruction of property extreme, many colonists celebrated it as a heroic act of resistance, solidifying their resolve against British taxation.</p>
+                        <p class="italic text-gray-700 border-l-2 border-gray-400 pl-3">"The Dye is cast: The People have passed the River and cutt away the Bridge: last Night Three Cargoes of Tea, were emptied into the Harbour. This is the grandest, Event, which has ever yet happened Since, the Controversy, with Britain, opened!"</p>
+                        <p class="text-sm text-gray-600 mt-1">-- John Adams, Letter to James Warren, December 17, 1773</p>
+                    </div>
+                </div>
+
+                <div class="event-card p-6 w-full" onclick="toggleEvent(this)">
+                    <div class="event-card-header">
+                        <h3 class="text-xl sm:text-2xl mb-0">10. Intolerable Acts (Coercive Acts) 😡</h3>
+                        <span class="toggle-icon">▶</span>
+                    </div>
+                    <div class="event-card-content">
+                        <p class="text-sm text-gray-500 mb-4">March-June 1774</p>
+                        <p class="mb-3">**Description:** A series of punitive laws passed by Parliament in response to the Boston Tea Party, designed to punish Massachusetts and assert British authority. Key acts included:
+                        <ul class="list-disc list-inside space-y-1 mb-3">
+                            <li>**Boston Port Act:** Closed Boston Harbor until the destroyed tea was paid for. 🚫🚢</li>
+                            <li>**Massachusetts Government Act:** Severely curtailed local self-government in Massachusetts.</li>
+                            <li>**Administration of Justice Act:** Allowed British officials accused of crimes in the colonies to be tried in Britain.</li>
+                            <li>**New Quartering Act:** Expanded requirements for housing British troops.</li>
+                        </ul>
+                        <p class="font-semibold text-red-600 mb-2">Tension:</p>
+                        <p class="mb-3">These acts were viewed as an attack on colonial liberties and self-governance, not just in Massachusetts, but across all colonies, leading to widespread outrage and a sense of shared grievance.</p>
+                        <p class="font-semibold text-blue-600 mb-2">Colonial Response:</p>
+                        <p class="mb-3">The acts had the opposite effect of their intention; they united the colonies in sympathy with Massachusetts and solidified opposition to British rule, leading directly to the First Continental Congress.</p>
+                        <p class="italic text-gray-700 border-l-2 border-gray-400 pl-3">"This Town has received the Copy of an Act of the British Parliament, wherein it appears that we have been tried and condemned, and are to be punished, by the shutting up of the harbor and other marks of revenge..."</p>
+                        <p class="text-sm text-gray-600 mt-1">-- Boston Town Meeting Response, 1774</p>
+                    </div>
+                </div>
+
+                <div class="event-card p-6 w-full" onclick="toggleEvent(this)">
+                    <div class="event-card-header">
+                        <h3 class="text-xl sm:text-2xl mb-0">11. First Continental Congress 🇺🇸</h3>
+                        <span class="toggle-icon">▶</span>
+                    </div>
+                    <div class="event-card-content">
+                        <p class="text-sm text-gray-500 mb-4">September 5 - October 26, 1774</p>
+                        <p class="mb-3">**Description:** Delegates from twelve colonies (Georgia was absent) met in Philadelphia to discuss a unified response to the Intolerable Acts. They issued a Declaration of Rights, called for a complete boycott of British goods (the Continental Association), and urged colonies to form militias.</p>
+                        <p class="font-semibold text-red-600 mb-2">Tension:</p>
+                        <p class="mb-3">This gathering demonstrated a significant step towards colonial unity and a serious commitment to organized resistance, though independence was not yet the universal goal. It was a direct challenge to Parliament's authority.</p>
+                        <p class="font-semibold text-blue-600 mb-2">Colonial Response:</p>
+                        <p class="mb-3">The Congress's resolutions were widely adopted, strengthening colonial resolve and setting the stage for direct confrontation.</p>
+                        <p class="italic text-gray-700 border-l-2 border-gray-400 pl-3">"That the inhabitants of the English colonies in North-America, by the immutable laws of nature, the principles of the English constitution, and the several charters or compacts, have the following RIGHTS: That they are entitled to life, liberty and property: and they have never ceded to any foreign power whatever, a right to dispose of either without their consent."</p>
+                        <p class="text-sm text-gray-600 mt-1">-- Declaration and Resolves of the First Continental Congress, 1774</p>
+                    </div>
+                </div>
+
+                <div class="event-card p-6 w-full" onclick="toggleEvent(this)">
+                    <div class="event-card-header">
+                        <h3 class="text-xl sm:text-2xl mb-0">12. Battles of Lexington and Concord ⚔️</h3>
+                        <span class="toggle-icon">▶</span>
+                    </h3>
+                    <div class="event-card-content">
+                        <p class="text-sm text-gray-500 mb-4">April 19, 1775</p>
+                        <p class="mb-3">**Description:** British troops marched from Boston to seize colonial military supplies in Concord and arrest Patriot leaders John Hancock and Samuel Adams. Skirmishes broke out at Lexington Green and later at Concord's North Bridge, marking the first armed conflicts of the American Revolutionary War.</p>
+                        <p class="font-semibold text-red-600 mb-2">Tension:</p>
+                        <p class="mb-3">These battles turned the political dispute into an open military struggle. The "shot heard 'round the world" at Lexington signaled the irreversible start of the war for independence.</p>
+                        <p class="font-semibold text-blue-600 mb-2">Colonial Response:</p>
+                        <p class="mb-3">Colonial militias (minutemen) bravely engaged the British, demonstrating their willingness to fight for their rights and leading to the siege of Boston.</p>
+                        <p class="italic text-gray-700 border-l-2 border-gray-400 pl-3">"By the rude bridge that arched the flood, Their flag to April's breeze unfurled, Here once the embattled farmers stood, And fired the shot heard round the world."</p>
+                        <p class="text-sm text-gray-600 mt-1">-- Ralph Waldo Emerson, "Concord Hymn"</p>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="question-card p-6 mb-12">
+            <h2 class="text-2xl mb-4">Colonial Resistance & Unity Strategies: How They Fought Back (Without Guns... at first!)</h2>
+            <p class="text-lg mb-6">Colonists didn't just sit around and complain! They developed clever ways to protest and unite:</p>
+
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-xl mb-2">Economic Pressure (Boycotts & Non-Importation Agreements): 💰</h3>
+                    <p class="mb-1"><span class="font-semibold">How it worked:</span> Colonists refused to buy British goods. This hit British merchants where it hurt – their wallets!</p>
+                    <p><span class="font-semibold">Unity Factor:</span> Required widespread cooperation among merchants and consumers across different colonies. "If we all do it, they'll listen!"</p>
+                </div>
+                <div>
+                    <h3 class="text-xl mb-2">Petitions & Resolutions: ✍️</h3>
+                    <p class="mb-1"><span class="font-semibold">How it worked:</span> Formal written appeals sent to Parliament and the King, clearly stating their grievances.</p>
+                    <p><span class="font-semibold">Unity Factor:</span> Drafted by colonial assemblies or congresses, showing a united front of political leaders.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl mb-2">Propaganda & Persuasion: 📣</h3>
+                    <p class="mb-1"><span class="font-semibold">How it worked:</span> Pamphlets, newspapers, engravings (like Paul Revere's Boston Massacre print), and speeches used to rally public opinion against British policies.</p>
+                    <p><span class="font-semibold">Unity Factor:</span> Created a shared narrative and sense of injustice, spreading the message of resistance far and wide.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl mb-2">Committees of Correspondence: 🗣️✉️</h3>
+                    <p class="mb-1"><span class="font-semibold">How it worked:</span> Networks of colonial leaders who exchanged letters and information about British actions and colonial responses.</p>
+                    <p><span class="font-semibold">Unity Factor:</span> Crucial for coordinating actions, sharing strategies, and building a sense of common purpose across vast distances. They were the "internet" of their time!</p>
+                </div>
+                <div>
+                    <h3 class="text-xl mb-2">Organized Groups (Sons & Daughters of Liberty): 💪</h3>
+                    <p class="mb-1"><span class="font-semibold">How it worked:</span> Secret societies that organized protests, enforced boycotts (sometimes through intimidation), and spread revolutionary ideas.</p>
+                    <p><span class="font-semibold">Unity Factor:</span> Provided a grassroots structure for resistance and a way for ordinary citizens to participate.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl mb-2">Inter-Colonial Congresses: 🤝</h3>
+                    <p class="mb-1"><span class="font-semibold">How it worked:</span> Meetings like the Stamp Act Congress and the First Continental Congress brought delegates from different colonies together to discuss unified responses.</p>
+                    <p><span class="font-semibold">Unity Factor:</span> The ultimate expression of colonial unity, demonstrating a willingness to act as a collective body against British authority.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="question-card p-6 mb-12">
+            <h2 class="text-2xl mb-4">✅ Check for Understanding! (Instant Feedback!)</h2>
+
+            <div class="mb-6">
+                <p class="text-lg mb-3">1. Which act was a direct response to the Boston Tea Party, designed to punish Massachusetts?</p>
+                <button class="answer-button" onclick="toggleAnswer('q1-answer')">Reveal Answer</button>
+                <div id="q1-answer" class="answer-reveal">
+                    The **Intolerable Acts** (also known as the Coercive Acts).
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <p class="text-lg mb-3">2. What was the primary reason colonists protested "taxation without representation"?</p>
+                <button class="answer-button" onclick="toggleAnswer('q2-answer')">Reveal Answer</button>
+                <div id="q2-answer" class="answer-reveal">
+                    They believed that only their own elected colonial assemblies had the right to levy taxes on them, not the British Parliament where they had no direct voice.
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <p class="text-lg mb-3">3. Name one significant way colonists united to protest British policies *before* the Revolutionary War officially began.</p>
+                <button class="answer-button" onclick="toggleAnswer('q3-answer')">Reveal Answer</button>
+                <div id="q3-answer" class="answer-reveal">
+                    Any of these are great answers: **Boycotts/Non-Importation Agreements**, the formation of **Committees of Correspondence**, the **Stamp Act Congress**, or the **First Continental Congress**.
+                </div>
+            </div>
+        </div>
+
+        <div class="game-container">
+            <h2 class="text-3xl mb-4">Paul Revere's Midnight Ride! 🐎💨</h2>
+            <p class="mb-4">Help Paul Revere warn the colonists! Press <kbd>SPACE</kbd> to jump over obstacles. Watch out for warning messages!</p>
+            <canvas id="gameCanvas" width="800" height="300"></canvas>
+            <div id="gameMessage" class="game-message">
+                Game Over! Score: <span id="finalScore">0</span><br>
+                <button id="restartButton" class="game-button">Restart Ride!</button>
+            </div>
+            <div id="quoteBubble" class="quote-bubble"></div>
+            <p class="text-xl font-bold mt-4">Score: <span id="scoreDisplay">0</span></p>
+            <button id="startButton" class="game-button mt-4">Start Ride!</button>
+
+            <div class="on-screen-controls">
+                <button id="jumpButton" class="jump-button">JUMP!</button>
+            </div>
+
+            <div class="mt-6 flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+                <input type="text" id="customHorseImageUrl" placeholder="Paste custom image URL (e.g., .png, .jpg)" class="p-2 border border-gray-300 rounded-lg w-full sm:w-80 text-sm">
+                <button id="loadCustomImageButton" class="game-button !bg-blue-600 hover:!bg-blue-700">Load Custom Horse Image</button>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        const events = [
-            {
-                id: 'frenchIndianWar',
-                title: 'French and Indian War',
-                year: '1754-1763',
-                short_desc: 'A conflict between Great Britain and France over North American territory, leading to significant British debt.',
-                description: 'The French and Indian War (part of the larger Seven Years\' War) was fought primarily in North America. Britain and its colonies defeated France and its Native American allies, gaining vast new territories. However, the war was incredibly expensive for Britain.',
-                impacts: [
-                    'Britain accumulated a massive national debt.',
-                    'Led to increased British desire to assert control over the colonies and make them contribute to the costs of their own defense and administration.',
-                    'Removed the French threat, making colonists feel less dependent on British military protection.'
-                ],
-                tensions: 'To pay off war debts, Britain began imposing new taxes on the colonies, which colonists argued were unfair as they had no direct representation in the British Parliament. This marked a shift in British colonial policy.'
-            },
-            {
-                id: 'proclamation1763',
-                title: 'Proclamation of 1763',
-                year: '1763',
-                short_desc: 'British decree prohibiting colonial settlement west of the Appalachian Mountains.',
-                description: 'Issued by King George III, the Proclamation of 1763 aimed to prevent further conflicts with Native Americans by forbidding colonists from settling on lands west of the Appalachian Mountains. It also sought to organize the newly acquired territories from France.',
-                impacts: [
-                    'Angered colonists who saw it as an infringement on their right to expand westward, especially those who had fought in the French and Indian War with the expectation of new land.',
-                    'Many colonists ignored the proclamation and moved west anyway, creating enforcement challenges for Britain.',
-                    'Contributed to a growing sense of resentment against British authority.'
-                ],
-                tensions: 'Colonists felt the British government was siding with Native American interests over their own and limiting their economic opportunities. This was one of the first major policies to cause widespread colonial discontent after the war.'
-            },
-            {
-                id: 'sugarAct',
-                title: 'Sugar Act',
-                year: '1764',
-                short_desc: 'Tax on sugar, molasses, and other goods, with stricter enforcement against smuggling.',
-                description: 'The Sugar Act (officially the American Revenue Act) revised and strengthened the existing Molasses Act of 1733. It lowered the tax on molasses but increased measures to enforce the collection of duties on imported goods like sugar, wine, and coffee. It also established new courts for smugglers tried without a jury.',
-                impacts: [
-                    'Aimed to raise revenue for Britain rather than just regulate trade.',
-                    'Increased British customs presence and cracked down on colonial smuggling, which had been a common practice.',
-                    'Led to protests based on the argument of "no taxation without representation," as colonists had no elected representatives in the British Parliament that passed the tax.'
-                ],
-                tensions: 'The act was seen by many colonists as an abuse of power and an economic burden. The stricter enforcement and trials without juries were particularly alarming, raising concerns about colonial liberties.'
-            },
-            {
-                id: 'stampAct',
-                title: 'Stamp Act',
-                year: '1765',
-                short_desc: 'Direct tax on all printed materials in the colonies, sparking widespread protests.',
-                description: 'The Stamp Act imposed a direct tax on the colonists by requiring that many printed materials in the colonies be produced on stamped paper produced in London, carrying an embossed revenue stamp. This included newspapers, legal documents, playing cards, and almanacs.',
-                impacts: [
-                    'First direct tax levied on the colonies by Parliament.',
-                    'Unified colonial opposition, leading to the formation of groups like the Sons of Liberty.',
-                    'Colonial assemblies passed resolutions condemning the act, and a Stamp Act Congress was convened.',
-                    'Widespread boycotts of British goods were highly effective.',
-                    'The act was repealed in 1766 due to colonial pressure and economic concerns from British merchants.'
-                ],
-                tensions: 'The Stamp Act crisis solidified the "no taxation without representation" argument and demonstrated the power of united colonial action. Though repealed, Parliament also passed the Declaratory Act, asserting its right to legislate for the colonies "in all cases whatsoever," setting the stage for future conflicts.'
-            },
-            {
-                id: 'townshendActs',
-                title: 'Townshend Acts',
-                year: '1767',
-                short_desc: 'Taxes on imported goods like glass, lead, paint, paper, and tea.',
-                description: 'Introduced by Chancellor of the Exchequer Charles Townshend, these acts imposed duties on various goods imported into the American colonies. The revenue was intended to pay the salaries of colonial governors and judges, making them independent of colonial assemblies.',
-                impacts: [
-                    'Renewed colonial boycotts of British goods.',
-                    'Increased smuggling and resistance to customs officials.',
-                    'Led to the deployment of more British troops to Boston to enforce the acts and maintain order.'
-                ],
-                tensions: 'The acts were seen as another attempt to tax the colonies without their consent and to undermine the power of their elected assemblies. The presence of British troops further exacerbated tensions, particularly in Boston.'
-            },
-            {
-                id: 'bostonMassacre',
-                title: 'Boston Massacre',
-                year: '1770',
-                short_desc: 'British soldiers fired into a crowd of colonists, killing five people.',
-                description: 'Amidst ongoing tensions over the Townshend Acts and the presence of British troops, a confrontation occurred between a mob of colonists and British soldiers in Boston. The soldiers fired into the crowd, killing five colonists and injuring others.',
-                impacts: [
-                    'Fueled anti-British sentiment and was heavily publicized by patriots like Paul Revere and Samuel Adams as a symbol of British tyranny.',
-                    'Led to the withdrawal of British troops from Boston to Castle Island.',
-                    'Most of the Townshend Acts were repealed shortly after, except for the tax on tea.'
-                ],
-                tensions: 'The event became a powerful piece of propaganda for the Patriot cause, highlighting the dangers of a standing army and British aggression. It deepened the divide between the colonies and Britain.'
-            },
-            {
-                id: 'teaAct',
-                title: 'Tea Act',
-                year: '1773',
-                short_desc: 'Gave the British East India Company a monopoly on tea sales in the colonies.',
-                description: 'The Tea Act was not designed to raise revenue but to save the financially troubled British East India Company. It allowed the company to ship tea directly to the colonies and sell it at a lower price, even with the existing Townshend tea tax. This undercut colonial merchants and smugglers.',
-                impacts: [
-                    'Colonists saw it as a deceptive attempt to make them accept Parliament\'s right to tax them, as the tea would still be taxed under the Townshend duty.',
-                    'Colonial merchants who smuggled tea or sold legally imported (but more expensive) tea were threatened financially.',
-                    'Led to widespread protests and refusals to allow the tea to be unloaded.'
-                ],
-                tensions: 'The act was perceived as a trick to legitimize parliamentary taxation and to create a monopoly. This led directly to the Boston Tea Party and similar protests in other colonies.'
-            },
-            {
-                id: 'bostonTeaParty',
-                title: 'Boston Tea Party',
-                year: '1773',
-                short_desc: 'Colonists, disguised as Native Americans, dumped tea into Boston Harbor in protest of the Tea Act.',
-                description: 'In response to the Tea Act, a group of colonists from the Sons of Liberty, some disguised as Mohawk Indians, boarded three tea ships in Boston Harbor and dumped 342 chests of tea into the water. This was a direct act of defiance against British authority and the East India Company.',
-                impacts: [
-                    'Demonstrated the colonists\' strong opposition to British taxation policies and their willingness to take direct action.',
-                    'Led to a harsh British response in the form of the Intolerable Acts.',
-                    'Inspired similar "tea parties" in other colonial ports.'
-                ],
-                tensions: 'The Boston Tea Party was a pivotal moment, escalating the conflict from protests and boycotts to direct destruction of property. The British government viewed it as an act of rebellion that required a firm response.'
-            },
-            {
-                id: 'intolerableActs',
-                title: 'Intolerable Acts (Coercive Acts)',
-                year: '1774',
-                short_desc: 'Series of punitive laws passed by Britain in response to the Boston Tea Party.',
-                description: 'Parliament passed these acts, known as the Coercive Acts in Britain, to punish Massachusetts for the Boston Tea Party. They included: the Boston Port Act (closing the harbor until the tea was paid for), the Massachusetts Government Act (restricting town meetings and increasing royal control), the Administration of Justice Act (allowing British officials accused of crimes to be tried in Britain), and an expanded Quartering Act (requiring colonists to house British soldiers).',
-                impacts: [
-                    'Rather than isolating Massachusetts, the acts united the colonies in opposition to what they saw as an overreach of British power.',
-                    'Led directly to the calling of the First Continental Congress.',
-                    'Strengthened colonial resolve and pushed them closer to seeking independence.'
-                ],
-                tensions: 'The Intolerable Acts were seen as a direct assault on colonial liberties and self-government. They convinced many colonists that reconciliation with Britain was becoming impossible and that a coordinated colonial response was necessary.'
-            },
-            {
-                id: 'firstContinentalCongress',
-                title: 'First Continental Congress',
-                year: '1774',
-                short_desc: 'Delegates from 12 colonies met to discuss a response to the Intolerable Acts.',
-                description: 'Delegates from all colonies except Georgia met in Philadelphia to coordinate their response to the Intolerable Acts. They discussed colonial rights, grievances against Britain, and strategies for resistance.',
-                impacts: [
-                    'Issued a Declaration of Rights and Grievances, affirming colonial rights.',
-                    'Called for a complete boycott of British goods (the Continental Association).',
-                    'Agreed to meet again in May 1775 if their grievances were not addressed.',
-                    'Signified a major step towards colonial unity and collective action.'
-                ],
-                tensions: 'The Congress demonstrated that the colonies were capable of organizing and acting together. While still seeking reconciliation, their demands and the call for a boycott further strained relations with Britain, which viewed the Congress as an illegal assembly.'
-            },
-            {
-                id: 'lexingtonConcord',
-                title: 'Lexington and Concord',
-                year: 'April 1775',
-                short_desc: 'The first armed conflicts of the American Revolutionary War.',
-                description: 'British troops marched from Boston to Lexington and Concord to seize colonial military supplies and arrest Patriot leaders Samuel Adams and John Hancock. Colonial militiamen (Minutemen) confronted the British. Shots were fired in Lexington, and a larger battle occurred in Concord as the British retreated to Boston under heavy fire.',
-                impacts: [
-                    'Marked the beginning of the American Revolutionary War.',
-                    'Known as "the shot heard \'round the world," signaling the start of open hostilities.',
-                    'Led to the Siege of Boston by colonial militias.',
-                    'Prompted the Second Continental Congress to convene and create the Continental Army.'
-                ],
-                tensions: 'These battles transformed the political dispute into a military conflict. There was no turning back from war after blood was shed on both sides.'
+        // --- Infographic & Poll Logic ---
+
+        // Function to toggle the visibility of answers
+        function toggleAnswer(id) {
+            const answerDiv = document.getElementById(id);
+            if (answerDiv.style.display === 'block') {
+                answerDiv.style.display = 'none';
+            } else {
+                answerDiv.style.display = 'block';
             }
-        ];
+        }
 
-        const timelineContainer = document.getElementById('timelineContainer');
-        const modal = document.getElementById('eventModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalDate = document.getElementById('modalDate');
-        const modalDescription = document.getElementById('modalDescription');
-        const modalImpacts = document.getElementById('modalImpacts');
-        const modalTensionsParagraph = document.querySelector('#modalTensions p');
+        // Function to toggle event card expansion
+        function toggleEvent(card) {
+            card.classList.toggle('expanded');
+            const content = card.querySelector('.event-card-content');
+            const icon = card.querySelector('.toggle-icon');
+            if (card.classList.contains('expanded')) {
+                content.style.display = 'block';
+                icon.textContent = '▼'; // Down arrow
+                card.setAttribute('aria-expanded', 'true');
+            } else {
+                content.style.display = 'none';
+                icon.textContent = '▶'; // Right arrow
+                card.setAttribute('aria-expanded', 'false');
+            }
+        }
 
-        function populateTimeline() {
-            events.forEach((event, index) => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'timeline-item';
-                if (index === events.length -1) {
-                    itemDiv.style.borderLeft = '4px solid transparent'; // Or match background
+        // Poll logic
+        const pollOptions = document.querySelectorAll('.poll-option');
+        const pollResultsDiv = document.getElementById('poll-results');
+        const pollData = {
+            protest: 0,
+            ignore: 0,
+            loophole: 0,
+            total: 0
+        };
+        let hasVoted = false; // To prevent multiple votes
+
+        pollOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                if (!hasVoted) {
+                    const value = option.dataset.value;
+                    pollData[value]++;
+                    pollData.total++;
+                    hasVoted = true;
+
+                    // Update UI to show selected option
+                    pollOptions.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+
+                    // Show results
+                    displayPollResults();
                 }
-
-                const dotDiv = document.createElement('div');
-                dotDiv.className = 'timeline-dot';
-
-                const cardDiv = document.createElement('div');
-                cardDiv.className = 'event-card rounded-lg shadow-md p-5 md:p-6 cursor-pointer';
-                cardDiv.onclick = () => openModal(event.id);
-
-                const titleH2 = document.createElement('h2');
-                titleH2.className = 'text-xl md:text-2xl font-semibold text-red-600 mb-2';
-                titleH2.textContent = `${event.title} (${event.year})`;
-
-                const descP = document.createElement('p');
-                descP.className = 'text-slate-600 text-sm md:text-base';
-                descP.textContent = event.short_desc;
-
-                cardDiv.appendChild(titleH2);
-                cardDiv.appendChild(descP);
-                itemDiv.appendChild(dotDiv);
-                itemDiv.appendChild(cardDiv);
-                timelineContainer.appendChild(itemDiv);
             });
-        }
+        });
 
-        function openModal(eventId) {
-            const eventData = events.find(e => e.id === eventId);
-            if (!eventData) return;
+        function displayPollResults() {
+            pollResultsDiv.style.display = 'block';
 
-            modalTitle.textContent = eventData.title;
-            modalDate.textContent = `Date: ${eventData.year}`;
-            modalDescription.textContent = eventData.description;
+            for (const key in pollData) {
+                if (key !== 'total') {
+                    const countSpan = document.getElementById(`${key}-count`);
+                    const fillDiv = document.getElementById(`${key}-fill`);
 
-            modalImpacts.innerHTML = ''; // Clear previous impacts
-            eventData.impacts.forEach(impact => {
-                const li = document.createElement('li');
-                li.textContent = impact;
-                modalImpacts.appendChild(li);
-            });
+                    const percentage = pollData.total > 0 ? (pollData[key] / pollData.total) * 100 : 0;
 
-            modalTensionsParagraph.textContent = eventData.tensions;
-
-            modal.style.display = 'block';
-            document.body.style.overflow = 'hidden'; // Disable body scroll
-        }
-
-        function closeModal() {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto'; // Re-enable body scroll
-        }
-
-        // Close modal if user clicks outside of the modal content
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                closeModal();
+                    countSpan.textContent = `(${pollData[key]} votes)`;
+                    fillDiv.style.width = `${percentage}%`;
+                    fillDiv.textContent = `${percentage.toFixed(0)}%`; // Display percentage inside the bar
+                }
             }
         }
-        
-        // Close modal on 'Escape' key press
-        document.addEventListener('keydown', function(event) {
-            if (event.key === "Escape") {
-                closeModal();
+
+        // --- Paul Revere Game Logic ---
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameMessage = document.getElementById('gameMessage');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const restartButton = document.getElementById('restartButton');
+        const startButton = document.getElementById('startButton');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const quoteBubble = document.getElementById('quoteBubble');
+        const gameContainer = document.querySelector('.game-container');
+        const customHorseImageUrlInput = document.getElementById('customHorseImageUrl');
+        const loadCustomImageButton = document.getElementById('loadCustomImageButton');
+        const jumpButton = document.getElementById('jumpButton'); // On-screen jump button
+
+
+        let gameRunning = false;
+        let score = 0;
+        let animationFrameId;
+
+        // Player (Paul Revere)
+        const player = {
+            x: 50,
+            y: canvas.height - 70, // Ground level
+            width: 100, // Adjusted width for the image
+            height: 80, // Adjusted height for the image
+            velocityY: 0,
+            gravity: 0.8,
+            jumpStrength: -16, // Adjusted jump strength
+            isJumping: false,
+            image: new Image(), // Create image object
+            // Draw function for Paul Revere using the image
+            draw: function() {
+                // Only draw if the image is loaded
+                if (this.image.complete && this.image.naturalHeight !== 0) {
+                    ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+                } else {
+                    // Fallback if image not loaded (e.g., draw a simple rect)
+                    ctx.fillStyle = '#8B4513';
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }
+            },
+            jump: function() {
+                if (!this.isJumping) {
+                    this.velocityY = this.jumpStrength;
+                    this.isJumping = true;
+                }
+            },
+            update: function() {
+                this.y += this.velocityY;
+                this.velocityY += this.gravity;
+
+                // Prevent falling through ground
+                if (this.y + this.height > canvas.height) {
+                    this.y = canvas.height - this.height;
+                    this.velocityY = 0;
+                    this.isJumping = false;
+                }
+            }
+        };
+
+        // Set the initial image source and handle loading
+        // This is the line where the horse image URL is set.
+        // If 'Untitled design (4).png' is uploaded, its URL will be similar to the previous one.
+        // You might need to replace 'YOUR_IMAGE_ID_HERE' with the actual ID from content-fetcher.
+        player.image.src = 'https://content-fetcher.web.app/uploaded:Untitled%20design%20(4).png-e7d07b44-ccf3-4219-bfb4-907d4ef87736'; // Placeholder for new image
+        player.image.onerror = () => {
+            console.error("Failed to load player image. Using fallback.");
+            // Fallback image if the provided URL fails
+            player.image.src = 'https://placehold.co/100x80/cccccc/000000?text=Horse+Error';
+        };
+
+        // Event listener for loading custom image
+        loadCustomImageButton.addEventListener('click', () => {
+            const newImageUrl = customHorseImageUrlInput.value.trim();
+            if (newImageUrl) {
+                player.image.src = newImageUrl;
+                player.image.onload = () => {
+                    // Redraw the initial state with the new image
+                    drawInitialMessage();
+                };
+                player.image.onerror = () => {
+                    console.error("Failed to load custom player image:", newImageUrl);
+                    alert("Could not load custom image. Please check the URL.");
+                    // Revert to default or display a placeholder if custom image fails
+                    player.image.src = 'https://placehold.co/100x80/cccccc/000000?text=Image+Error';
+                    drawInitialMessage();
+                };
+            } else {
+                alert("Please enter a valid image URL.");
             }
         });
 
-        // Initialize timeline
-        populateTimeline();
+
+        // Obstacles
+        let obstacles = [];
+        const obstacleSpeed = 5;
+        const obstacleMinGap = 200;
+        const obstacleMaxGap = 400;
+        let lastObstacleX = canvas.width;
+
+        // Function to draw a British Redcoat
+        function drawRedcoat(x, y, width, height) {
+            ctx.fillStyle = '#B22222'; // Firebrick red for coat
+            ctx.fillRect(x, y + height * 0.2, width, height * 0.8); // Body
+            ctx.fillStyle = '#000000'; // Black for hat
+            ctx.fillRect(x + width * 0.1, y, width * 0.8, height * 0.2); // Hat
+            ctx.fillStyle = '#FFFFFF'; // White for cross belt
+            ctx.beginPath();
+            ctx.moveTo(x, y + height * 0.2);
+            ctx.lineTo(x + width, y + height);
+            ctx.lineTo(x + width - 5, y + height);
+            ctx.lineTo(x - 5, y + height * 0.2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(x + width, y + height * 0.2);
+            ctx.lineTo(x, y + height);
+            ctx.lineTo(x + 5, y + height);
+            ctx.lineTo(x + width + 5, y + height * 0.2);
+            ctx.fill();
+        }
+
+        // Function to draw a Fence
+        function drawFence(x, y, width, height) {
+            ctx.fillStyle = '#8B4513'; // Saddle Brown
+            const postWidth = width / 5;
+            const railHeight = height / 5;
+            // Vertical posts
+            ctx.fillRect(x, y, postWidth, height);
+            ctx.fillRect(x + width - postWidth, y, postWidth, height);
+            // Horizontal rails
+            ctx.fillRect(x, y + railHeight, width, railHeight);
+            ctx.fillRect(x, y + height - railHeight * 2, width, railHeight);
+        }
+
+        function createObstacle() {
+            const obstacleType = Math.random() < 0.5 ? 'redcoat' : 'fence';
+            let height, width;
+
+            if (obstacleType === 'redcoat') {
+                height = 50 + Math.random() * 20; // Redcoat height
+                width = 30; // Redcoat width
+            } else { // fence
+                height = 40 + Math.random() * 30; // Fence height
+                width = 60 + Math.random() * 40; // Fence width
+            }
+
+            obstacles.push({
+                x: canvas.width,
+                y: canvas.height - height,
+                width: width,
+                height: height,
+                type: obstacleType
+            });
+        }
+
+        // Quotes
+        const quotes = [
+            "The British are coming!",
+            "To arms, to arms!",
+            "One if by land, and two if by sea!",
+            "The regulars are out!",
+            "Wake up, ye sleeping citizens!"
+        ];
+        let currentQuote = '';
+        let quoteTimer = 0;
+        const quoteDisplayDuration = 180; // frames (approx 3 seconds)
+        const quoteInterval = 300; // frames between potential quotes
+
+        function showRandomQuote() {
+            if (gameRunning) {
+                currentQuote = quotes[Math.floor(Math.random() * quotes.length)];
+                quoteBubble.textContent = currentQuote;
+                quoteBubble.style.display = 'block';
+                quoteTimer = quoteDisplayDuration;
+            }
+        }
+
+        function hideQuote() {
+            quoteBubble.style.display = 'none';
+        }
+
+        // Game Loop
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw ground
+            ctx.fillStyle = '#654321'; // Dark brown
+            ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+
+            // Update and draw player
+            player.update();
+            player.draw();
+
+            // Update and draw obstacles
+            for (let i = 0; i < obstacles.length; i++) {
+                obstacles[i].x -= obstacleSpeed;
+                if (obstacles[i].type === 'redcoat') {
+                    drawRedcoat(obstacles[i].x, obstacles[i].y, obstacles[i].width, obstacles[i].height);
+                } else { // fence
+                    drawFence(obstacles[i].x, obstacles[i].y, obstacles[i].width, obstacles[i].height);
+                }
+
+                // Collision detection (simple AABB)
+                if (player.x < obstacles[i].x + obstacles[i].width &&
+                    player.x + player.width > obstacles[i].x &&
+                    player.y < obstacles[i].y + obstacles[i].height &&
+                    player.y + player.height > obstacles[i].y) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            // Remove off-screen obstacles
+            obstacles = obstacles.filter(obstacle => obstacle.x + obstacle.width > 0);
+
+            // Generate new obstacles
+            if (obstacles.length === 0 || canvas.width - obstacles[obstacles.length - 1].x > obstacleMinGap) {
+                if (Math.random() < 0.02) { // Chance to create a new obstacle
+                    createObstacle();
+                }
+            }
+
+            // Update score
+            score += 1;
+            scoreDisplay.textContent = score;
+
+            // Quote management
+            if (quoteTimer > 0) {
+                quoteTimer--;
+                // Position quote bubble above player
+                const playerRect = canvas.getBoundingClientRect();
+                const gameRect = gameContainer.getBoundingClientRect();
+                quoteBubble.style.left = `${playerRect.left - gameRect.left + player.x + player.width / 2}px`;
+                quoteBubble.style.top = `${playerRect.top - gameRect.top + player.y - 60}px`; // 60px above player
+            } else if (quoteBubble.style.display === 'block') {
+                hideQuote();
+            }
+
+            // Periodically show a new quote
+            if (score % quoteInterval === 0 && score > 0 && quoteTimer === 0) {
+                showRandomQuote();
+            }
+
+
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function startGame() {
+            gameRunning = true;
+            score = 0;
+            obstacles = [];
+            player.y = canvas.height - player.height;
+            player.velocityY = 0;
+            player.isJumping = false;
+            gameMessage.style.display = 'none';
+            startButton.style.display = 'none';
+            hideQuote();
+            scoreDisplay.textContent = score;
+            gameLoop();
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            cancelAnimationFrame(animationFrameId);
+            finalScoreDisplay.textContent = score;
+            gameMessage.style.display = 'block';
+            hideQuote(); // Ensure quote bubble is hidden on game over
+        }
+
+        // Event Listeners for Game
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && gameRunning) {
+                player.jump();
+            }
+        });
+
+        // On-screen jump button click listener
+        jumpButton.addEventListener('click', () => {
+            if (gameRunning) {
+                player.jump();
+            }
+        });
+
+        // Touch event for jumping on mobile (canvas itself)
+        canvas.addEventListener('touchstart', (e) => {
+            if (gameRunning) {
+                e.preventDefault(); // Prevent scrolling
+                player.jump();
+            }
+        });
+
+        restartButton.addEventListener('click', startGame);
+        startButton.addEventListener('click', startGame);
+
+        // Initial message on canvas
+        function drawInitialMessage() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#654321'; // Dark brown ground
+            ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+            ctx.fillStyle = '#1e293b';
+            ctx.font = '24px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText('Click "Start Ride!" to begin', canvas.width / 2, canvas.height / 2);
+            player.draw(); // Draw player at start
+        }
+
+        // Ensure canvas is drawn when window loads
+        window.onload = function() {
+            drawInitialMessage();
+        };
+
+        // Handle canvas resizing
+        window.addEventListener('resize', () => {
+            // No need to set canvas width/height directly if it's controlled by CSS width:100%
+            // However, for game logic, we might need to adjust internal coordinates or redraw.
+            // For this simple game, we'll keep fixed canvas dimensions for simplicity
+            // or ensure the game elements scale if canvas dimensions change dynamically.
+            // For now, the game canvas has fixed pixel dimensions for consistent gameplay.
+            // If the parent container resizes, the canvas will scale via CSS.
+            // If the game needs to adapt its internal logic to new canvas dimensions,
+            // we would re-initialize player/obstacle positions relative to new canvas.width/height.
+            // For this example, we'll assume the canvas dimensions remain fixed for game logic.
+        });
+
     </script>
 </body>
 </html>
