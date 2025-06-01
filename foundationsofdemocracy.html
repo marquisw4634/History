@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roots of US Democracy: An Interactive Infographic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .fun-font {
+            font-family: 'Patrick Hand', cursive;
+        }
+        .content-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease-in-out;
+        }
+        .content-card:hover {
+            transform: translateY(-5px);
+        }
+        .button-style {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .button-primary {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+        }
+        .button-primary:hover {
+            background-color: #2563eb; /* blue-600 */
+            transform: scale(1.05);
+        }
+        .button-secondary {
+            background-color: #6b7280; /* gray-500 */
+            color: white;
+        }
+        .button-secondary:hover {
+            background-color: #4b5563; /* gray-600 */
+        }
+        .question-option {
+            display: block;
+            padding: 10px;
+            border: 1px solid #d1d5db; /* gray-300 */
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .question-option:hover {
+            background-color: #f3f4f6; /* gray-100 */
+        }
+        .question-option input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 1000;
+        }
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        }
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .correct {
+            color: #10b981; /* green-500 */
+        }
+        .incorrect {
+            color: #ef4444; /* red-500 */
+        }
+        .nav-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #10b981; /* emerald-500 */
+            color: white;
+            padding: 12px;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 999;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .nav-button:hover {
+            background-color: #059669; /* emerald-600 */
+        }
+        .nav-menu {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 10px;
+            z-index: 998;
+            display: none; /* Hidden by default */
+        }
+        .nav-menu a {
+            display: block;
+            padding: 8px 12px;
+            color: #374151; /* gray-700 */
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .nav-menu a:hover {
+            background-color: #f3f4f6; /* gray-100 */
+        }
+
+        /* Header styling */
+        .header-gradient {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); /* blue-400 to blue-500 */
+        }
+
+        /* Icon styling */
+        .icon-style {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 16px auto;
+            fill: #3b82f6; /* blue-500 */
+        }
+
+        /* Game Styles */
+        #gameCanvas {
+            background-color: #dbeafe; /* lighter sky blue for game background */
+            border-radius: 8px;
+            display: block; 
+            margin: 0 auto; 
+            cursor: pointer; 
+        }
+        .game-container {
+            background-color: #eff6ff; /* even lighter blue for container */
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .jump-info {
+            color: #4b5563; 
+            font-size: 0.9em;
+        }
+        .health-bar-container {
+            display: flex;
+            align-items: center;
+            justify-content: center; 
+            gap: 4px; 
+            margin-top: 5px;
+        }
+        .health-segment {
+            width: 22px; 
+            height: 18px; 
+            background-color: #f87171; 
+            border: 1px solid #dc2626; 
+            border-radius: 4px; 
+            box-shadow: inset 0 -2px 2px rgba(0,0,0,0.1); 
+        }
+        .health-segment.empty {
+            background-color: #e5e7eb; 
+            border-color: #d1d5db; 
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div id="navButton" class="nav-button">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        </svg>
+    </div>
+    <div id="navMenu" class="nav-menu">
+        <a href="#pollSection">Start Here: Poll</a>
+        <a href="#greeceSection">Ancient Greece</a>
+        <a href="#romeSection">Roman Republic</a>
+        <a href="#magnaCartaSection">Magna Carta</a>
+        <a href="#englishBORSection">English Bill of Rights</a>
+        <a href="#conclusionSection">Conclusion</a>
+        <a href="#gameSection">Liberty Leap Game!</a>
+    </div>
+
+    <header class="header-gradient text-white p-8 text-center shadow-lg">
+        <h1 class="text-4xl md:text-5xl font-bold fun-font tracking-wide">Journey to US Democracy!</h1>
+        <p class="mt-2 text-lg md:text-xl">Discover the Big Ideas That Shaped a Nation</p>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8 max-w-4xl">
+
+        <section id="pollSection" class="content-card text-center">
+            <svg class="icon-style" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v2h-2zm0 4h2v6h-2z"/></svg>
+            <h2 class="text-2xl font-semibold mb-4 text-blue-600">Quick Poll: What's Key for a Fair Government?</h2>
+            <p class="mb-4">Before we dive in, let's hear your thoughts! What do YOU believe is the most important ingredient for a fair government?</p>
+            <form id="preReadingPoll">
+                <label class="question-option"><input type="radio" name="poll" value="vote"> Everyone gets a say (vote)</label>
+                <label class="question-option"><input type="radio" name="poll" value="leaders"> Strong leaders make all decisions</label>
+                <label class="question-option"><input type="radio" name="poll" value="laws"> Laws apply equally to everyone</label>
+                <label class="question-option"><input type="radio" name="poll" value="rights"> People have protected rights</label>
+                <button type="submit" class="button-style button-primary mt-4">Submit My Thought!</button>
+            </form>
+        </section>
+        <section id="greeceSection" class="content-card">
+             <svg class="icon-style" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L2 9.07V10.5h20V9.07L12 3zm0 16.5c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm-8-6h16v-2H4v2zM3 21h18v-2H3v2z"/></svg> <h2 class="text-2xl font-semibold mb-3 text-blue-600">🏛️ Ancient Greece: Power to the People! (Sort of...)</h2>
+            <p class="mb-2">Way back in ancient Athens (around 500 BCE), they cooked up an idea called <strong class="text-blue-500">"democracy,"</strong> which means "rule by the people."</p>
+            <ul class="list-disc list-inside mb-3 pl-4 space-y-1">
+                <li><strong>Direct Democracy:</strong> Citizens (mostly free adult men born in Athens) gathered in an assembly to vote directly on laws and government decisions. Imagine a giant town hall meeting!</li>
+                <li><strong>Citizen Juries:</strong> They also had large juries of citizens to decide court cases.</li>
+            </ul>
+            <p class="font-semibold mb-1">How it influenced the US:</p>
+            <p class="mb-4">The Greek idea that citizens should participate in their government was a biggie! While the US is too large for everyone to vote on every single law (we have a representative democracy), the spirit of citizen involvement, like in local town halls or voting for officials, echoes these ancient ideals.</p>
+            
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <h3 class="text-lg font-semibold mb-2">🧠 Check Your Understanding!</h3>
+                <p class="mb-2">In ancient Athens, how did citizens primarily make laws?</p>
+                <form id="quizGreece">
+                    <label class="question-option"><input type="radio" name="greece" value="representatives"> A) By electing representatives who made laws for them.</label>
+                    <label class="question-option"><input type="radio" name="greece" value="direct_vote"> B) By voting directly on laws in an assembly.</label>
+                    <label class="question-option"><input type="radio" name="greece" value="king_decided"> C) The king or a small group of nobles decided all laws.</label>
+                    <label class="question-option"><input type="radio" name="greece" value="generals_made"> D) Military generals made the laws after battles.</label>
+                    <button type="submit" class="button-style button-primary mt-3">Check Answer</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="romeSection" class="content-card">
+            <svg class="icon-style" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M4 10v воспалениеv-2zm16 0v7h2v-7zm-8-7L2 9v2h20V9L12 3zm0 16.5c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zM6 18h12v-2H6v2z"/></svg> <h2 class="text-2xl font-semibold mb-3 text-teal-600">🏛️ Roman Republic: Electing the Leaders!</h2>
+            <p class="mb-2">After Greece, the Romans (around 509 BCE - 27 BCE) created a <strong class="text-teal-500">republic</strong>. This wasn't direct democracy, but a system where citizens elected officials to represent them and make laws.</p>
+            <ul class="list-disc list-inside mb-3 pl-4 space-y-1">
+                <li><strong>Representative Government:</strong> Citizens voted for people to go to assemblies (like their Senate) and make decisions. Sound familiar?</li>
+                <li><strong>Written Laws:</strong> They had the "Twelve Tables" – a set of written laws displayed publicly. This meant everyone knew the rules, and leaders couldn't just make things up!</li>
+                <li><strong>Checks and Balances (kinda):</strong> They had different branches of government (like Consuls who were like presidents) that could sometimes limit each other's power.</li>
+            </ul>
+            <p class="font-semibold mb-1">How it influenced the US:</p>
+            <p class="mb-4">The US founders LOVED the Roman Republic model! The idea of electing representatives (Senators, House members), having a Senate, and the importance of a written constitution all have Roman roots. The concept of different branches of government also inspired the US system.</p>
+
+            <div class="bg-teal-50 p-4 rounded-lg">
+                <h3 class="text-lg font-semibold mb-2">🧠 Check Your Understanding!</h3>
+                <p class="mb-2">A key idea the US adopted from the Roman Republic was:</p>
+                <form id="quizRome">
+                    <label class="question-option"><input type="radio" name="rome" value="king"> A) That a powerful king is the most effective form of government.</label>
+                    <label class="question-option"><input type="radio" name="rome" value="representatives"> B) Citizens electing representatives to make laws on their behalf.</label>
+                    <label class="question-option"><input type="radio" name="rome" value="no_written_laws"> C) That laws don't need to be written down for everyone to see.</label>
+                    <label class="question-option"><input type="radio" name="rome" value="direct_democracy"> D) All citizens voting directly on every single law.</label>
+                    <button type="submit" class="button-style button-primary mt-3" style="background-color: #0d9488;">Check Answer</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="magnaCartaSection" class="content-card">
+            <svg class="icon-style" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 14H8v-2h8v2zm0-4H8v-2h8v2zm-3-4H8V6h5v2z"/></svg> <h2 class="text-2xl font-semibold mb-3 text-amber-600">📜 Magna Carta (1215): Not So Fast, Mr. King!</h2>
+            <p class="mb-2">Fast forward to England in 1215. King John was being a bit of a bully – taxing unfairly and throwing people in jail without good reason. The nobles had enough and forced him to sign the <strong class="text-amber-500">Magna Carta</strong> (Great Charter).</p>
+            <ul class="list-disc list-inside mb-3 pl-4 space-y-1">
+                <li><strong>Limited Royal Power:</strong> It established the idea that the king was NOT above the law. Even the ruler had to follow the rules!</li>
+                <li><strong>Due Process:</strong> It included rights like a trial by jury (for nobles at first) and protection against illegal imprisonment. This is a forerunner to "due process of law."</li>
+                <li><strong>Rule of Law:</strong> It emphasized that laws should govern the nation, not just the whims of a king.</li>
+            </ul>
+            <p class="font-semibold mb-1">How it influenced the US:</p>
+            <p class="mb-4">The Magna Carta was a HUGE step towards limited government. The US Constitution reflects this in things like: the idea that government power isn't absolute, the right to a fair trial (6th Amendment), and protection against unfair punishment (due process in the 5th and 14th Amendments).</p>
+
+            <div class="bg-amber-50 p-4 rounded-lg">
+                <h3 class="text-lg font-semibold mb-2">🧠 Check Your Understanding!</h3>
+                <p class="mb-2">What was a groundbreaking principle from the Magna Carta?</p>
+                <form id="quizMagnaCarta">
+                    <label class="question-option"><input type="radio" name="magna" value="king_absolute"> A) The king could do whatever he wanted, no questions asked.</label>
+                    <label class="question-option"><input type="radio" name="magna" value="ruler_under_law"> B) Even the ruler must obey the law.</label>
+                    <label class="question-option"><input type="radio" name="magna" value="no_trials"> C) People could be jailed without a trial if the king suspected them.</label>
+                    <label class="question-option"><input type="radio" name="magna" value="only_nobles_rights"> D) Only nobles had any rights at all.</label>
+                    <button type="submit" class="button-style button-primary mt-3" style="background-color: #d97706;">Check Answer</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="englishBORSection" class="content-card">
+            <svg class="icon-style" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M13 12h7v2h-7v-2zm0-4h7v2h-7V8zm0 8h7v2h-7v-2zM4 4v16h5V4H4zm2 14H5V6h1v12zM19.99 2H13v2h6.99V2zm0 18H13v2h6.99v-2z"/></svg> <h2 class="text-2xl font-semibold mb-3 text-rose-600">📜 English Bill of Rights (1689): More Rights for the People!</h2>
+            <p class="mb-2">Over 400 years after the Magna Carta, England took another big step. After some royal drama (the "Glorious Revolution"), Parliament passed the <strong class="text-rose-500">English Bill of Rights</strong> in 1689. This further limited the monarch's power and gave more rights to Parliament and the people.</p>
+            <ul class="list-disc list-inside mb-3 pl-4 space-y-1">
+                <li><strong>Parliamentary Power:</strong> It stated Parliament had more power than the monarch in certain areas, like making laws and levying taxes.</li>
+                <li><strong>Individual Rights:</strong> It protected rights such as:
+                    <ul class="list-disc list-inside ml-6">
+                        <li>Freedom to petition the monarch (ask the government to fix things).</li>
+                        <li>Freedom of speech *in Parliament*.</li>
+                        <li>No cruel and unusual punishments.</li>
+                        <li>Right to bear arms (for Protestants, for self-defense).</li>
+                    </ul>
+                </li>
+            </ul>
+            <p class="font-semibold mb-1">How it influenced the US:</p>
+            <p class="mb-4">The US Bill of Rights (the first 10 Amendments to the Constitution) is heavily inspired by this! Think about it: freedom of speech (1st Amendment), right to petition (1st), protection from cruel and unusual punishment (8th), and the right to bear arms (2nd) – many of these ideas were strengthened by the English Bill of Rights.</p>
+
+            <div class="bg-rose-50 p-4 rounded-lg">
+                <h3 class="text-lg font-semibold mb-2">🧠 Check Your Understanding!</h3>
+                <p class="mb-2">Many protections in the US Bill of Rights, like freedom from cruel punishment, were also found in:</p>
+                <form id="quizEnglishBOR">
+                    <label class="question-option"><input type="radio" name="engbor" value="roman_law"> A) The Roman Twelve Tables.</label>
+                    <label class="question-option"><input type="radio" name="engbor" value="greek_assembly"> B) The rules of the Athenian Assembly.</label>
+                    <label class="question-option"><input type="radio" name="engbor" value="english_bor"> C) The English Bill of Rights.</label>
+                    <label class="question-option"><input type="radio" name="engbor" value="king_decree"> D) A special decree from the English King.</label>
+                    <button type="submit" class="button-style button-primary mt-3" style="background-color: #e11d48;">Check Answer</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="conclusionSection" class="content-card text-center">
+            <svg class="icon-style" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> <h2 class="text-3xl font-bold mb-4 text-green-600 fun-font">Awesome Job, History Explorer!</h2>
+            <p class="text-lg mb-3">You've journeyed through thousands of years of ideas that helped build the foundation of democracy in the United States!</p>
+            <p class="mb-4">From ancient Greeks voting directly, to Romans electing representatives, to English nobles and citizens demanding their rights and limiting the power of kings – each step was crucial. The US founders didn't invent democracy from scratch; they stood on the shoulders of these giants!</p>
+            <p class="font-semibold">Remember: Understanding the past helps us understand the present and shape a better future. Keep asking questions and exploring!</p>
+        </section>
+
+
+        <section id="gameSection" class="content-card text-center">
+            <svg class="icon-style text-purple-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-16 h-16">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 4.006 4.006 0 00-3.663-.138 4.006 4.006 0 00-3.7 3.7c-.091 1.21-.137 2.43-.137 3.662s.046 2.453.138 3.662c.173.994.598 1.915 1.225 2.688.628.772 1.529 1.333 2.575 1.625C14.437 19.954 16.977 20 19.5 20c2.523 0 5.063-.046 7.162-.138a4.006 4.006 0 002.575-1.625 4.006 4.006 0 001.226-2.688c.091-1.21.137-2.43.137-3.662s-.046-2.453-.138-3.662a4.006 4.006 0 00-1.226-2.688 4.006 4.006 0 00-2.575-1.625C24.563 4.046 22.023 4 19.5 4c-2.523 0-5.063.046-7.162.138a4.006 4.006 0 00-2.575 1.625 4.006 4.006 0 00-1.226 2.688A41.029 41.029 0 004.5 12c0 1.232.046 2.453.138 3.662a4.006 4.006 0 001.225 2.688 4.006 4.006 0 002.575 1.625C10.437 19.954 12.977 20 15.5 20c.994 0 1.954-.014 2.882-.042M4.5 12c0-1.232.046-2.453.138-3.662m0 7.324c.092 1.21.138 2.43.138 3.662M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 0115 0m0 0H4.5m15 0a7.5 7.5 0 01-7.5 7.5M12 19.5a7.5 7.5 0 01-7.5-7.5m0 0v.001M12 4.5a7.5 7.5 0 010 15" />
+            </svg>
+
+            <h2 class="text-3xl font-bold mb-2 text-purple-600 fun-font">Bonus: Liberty Leap!</h2>
+            <p class="mb-1 text-gray-700">Leap for Liberty! Press <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Spacebar</kbd> or <kbd class="px-2 py-1.5 text-xs font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg">Tap</kbd> to jump.</p>
+            <p class="mb-2 text-gray-700 jump-info">Triple jump to clear spiky platforms like 'Tyranny' and 'Monarchy'. Land on good ideas!</p>
+            <div class="game-container">
+                <canvas id="gameCanvas" width="600" height="400"></canvas>
+                <div id="gameInfo" class="mt-3 flex justify-around items-center">
+                    <p class="text-lg font-semibold">Score: <span id="scoreDisplay">0</span></p>
+                    <div>
+                        <span class="text-lg font-semibold mr-2">Health:</span>
+                        <span id="healthDisplay" class="health-bar-container"></span>
+                    </div>
+                    <p class="text-lg font-semibold jump-info">Jumps: <span id="jumpsDisplay">3</span></p>
+                </div>
+                <button id="restartGameButton" class="button-style button-primary mt-4" style="background-color: #7c3aed; display:none;">Play Again?</button>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="feedbackModal" class="modal">
+        <div class="modal-content">
+            <div id="modalIcon" class="modal-icon"></div>
+            <h3 id="modalTitle" class="text-2xl font-semibold mb-3"></h3>
+            <p id="modalMessage" class="mb-4"></p>
+            <button id="modalCloseButton" class="button-style button-secondary">Got it!</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Navigation Menu, Modal, Poll, Quiz Logic (remains the same) ---
+        const navButton = document.getElementById('navButton');
+        const navMenu = document.getElementById('navMenu');
+
+        navButton.addEventListener('click', () => {
+            if (navMenu.style.display === 'block') {
+                navMenu.style.display = 'none';
+            } else {
+                navMenu.style.display = 'block';
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            if (!navButton.contains(event.target) && !navMenu.contains(event.target)) {
+                navMenu.style.display = 'none';
+            }
+        });
+
+        const feedbackModal = document.getElementById('feedbackModal');
+        const modalIcon = document.getElementById('modalIcon');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalCloseButton = document.getElementById('modalCloseButton');
+
+        function showModal(isCorrect, title, message) {
+            modalTitle.textContent = title;
+            modalMessage.innerHTML = message;
+            if (isCorrect) {
+                modalIcon.innerHTML = '✔️';
+                modalIcon.className = 'modal-icon correct';
+                modalTitle.className = 'text-2xl font-semibold mb-3 correct';
+            } else {
+                modalIcon.innerHTML = '❌';
+                modalIcon.className = 'modal-icon incorrect';
+                modalTitle.className = 'text-2xl font-semibold mb-3 incorrect';
+            }
+            feedbackModal.classList.add('active');
+        }
+
+        modalCloseButton.addEventListener('click', () => {
+            feedbackModal.classList.remove('active');
+        });
+        
+        feedbackModal.addEventListener('click', (event) => {
+            if (event.target === feedbackModal) {
+                 feedbackModal.classList.remove('active');
+            }
+        });
+
+        const preReadingPoll = document.getElementById('preReadingPoll');
+        preReadingPoll.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(preReadingPoll);
+            const answer = formData.get('poll');
+            if (answer) {
+                showModal(true, "Thanks for your input!", "It's great to think about these important ideas! As you go through this infographic, see how your choice connects with these historical concepts.");
+            } else {
+                showModal(false, "Oops!", "Please select an option before submitting.");
+            }
+        });
+
+        function setupQuiz(formId, correctAnswerValue, correctFeedback, incorrectFeedbackBase) {
+            const quizForm = document.getElementById(formId);
+            quizForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                const formData = new FormData(quizForm);
+                const radioGroupName = quizForm.querySelector('input[type="radio"]').name; 
+                const selectedAnswer = formData.get(radioGroupName); 
+
+                if (!selectedAnswer) {
+                    showModal(false, "Hold on!", "Please select an answer first.");
+                    return;
+                }
+
+                if (selectedAnswer === correctAnswerValue) {
+                    showModal(true, "Correct!", correctFeedback);
+                } else {
+                    const explanation = correctFeedback
+                        .replace(/^That's right! /i, '')
+                        .replace(/^Exactly! /i, '')
+                        .replace(/^You got it! /i, '')
+                        .replace(/^Spot on! /i, '');
+                    showModal(false, "Not Quite!", `${incorrectFeedbackBase} The correct idea is: <strong>${explanation}</strong>`);
+                }
+            });
+        }
+
+        setupQuiz('quizGreece', 'direct_vote', "That's right! In Athens, citizens gathered to vote directly on laws.", "Good try! Athenian democracy was known for its direct citizen participation.");
+        setupQuiz('quizRome', 'representatives', "Exactly! The Roman Republic's system of electing representatives was a major influence on the US.", "Close! While they had written laws, their key contribution to US thought was representative government.");
+        setupQuiz('quizMagnaCarta', 'ruler_under_law', "You got it! The Magna Carta established the crucial idea that even the king had to obey the law.", "Almost! The Magna Carta was revolutionary because it limited the king's power.");
+        setupQuiz('quizEnglishBOR', 'english_bor', "Spot on! The English Bill of Rights listed many protections that are echoed in the US Bill of Rights.", "Think about direct influences on the US Bill of Rights. Many specific rights were outlined in the English Bill of Rights.");
+
+
+        // --- Liberty Leap Game Logic ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const healthDisplayContainer = document.getElementById('healthDisplay'); 
+        const jumpsDisplay = document.getElementById('jumpsDisplay'); 
+        const restartGameButton = document.getElementById('restartGameButton');
+
+        let player, platforms = [], score, gravity, jumpStrength, platformSpeed, gameRequestId, gameState, gameOverReason;
+        let lastPlatformType = 'good'; 
+        let consecutiveBadPlatforms = 0; 
+
+        const MAX_JUMPS = 3; // Changed to Triple Jump
+        const MAX_HP = 4;
+        const GOOD_PLATFORM_COLOR = '#22c55e'; 
+        const BAD_PLATFORM_BASE_COLOR = '#a855f7'; 
+        const BAD_PLATFORM_DAMAGED_COLOR = '#ef4444'; 
+        const SPIKE_COLOR = '#7e22ce'; 
+        const BAD_PLATFORM_PENALTY = 1;
+
+        const goodPlatformLabels = ["Vote!", "Rights", "Fair Trial", "Speech", "Republic", "Democracy", "Rule of Law", "Liberty!", "Justice", "Equality", "Voice"];
+        const negativePlatformLabels = ["Tyranny", "Monarchy", "Oppress", "No Rights", "Unfair Law", "Despotism", "Chaos"];
+
+        function initGameVariables() {
+            console.log("Game Initializing...");
+            player = {
+                x: 50,
+                y: canvas.height - 80, 
+                width: 28, 
+                height: 42,
+                dy: 0, 
+                onPlatform: true,
+                jumpsRemaining: MAX_JUMPS,
+                hp: MAX_HP,
+                color: '#3b82f6', 
+                borderColor: '#1d4ed8' 
+            };
+            platforms = []; 
+            score = 0;
+            gravity = 0.65; 
+            jumpStrength = -12; 
+            platformSpeed = 3; 
+            gameState = 'playing'; 
+            gameOverReason = '';
+            lastPlatformType = 'good'; 
+            consecutiveBadPlatforms = 0;
+            
+            if(scoreDisplay) scoreDisplay.textContent = score;
+            if(jumpsDisplay) jumpsDisplay.textContent = player.jumpsRemaining;
+            updateHealthDisplay();
+            if(restartGameButton) restartGameButton.style.display = 'none';
+            console.log("Game Variables Initialized. Player HP:", player.hp, "Max Jumps:", MAX_JUMPS);
+        }
+
+        function createPlatform(x, y, width, height, label, type) {
+            let platformColor = type === 'good' ? GOOD_PLATFORM_COLOR : BAD_PLATFORM_BASE_COLOR;
+            return { 
+                x, y, width, height, label, type, 
+                color: platformColor, 
+                baseColor: platformColor, 
+                isScored: false, 
+                hasDamaged: false 
+            };
+        }
+        
+        function updateHealthDisplay() {
+            if (!healthDisplayContainer) return;
+            healthDisplayContainer.innerHTML = ''; 
+            for (let i = 0; i < MAX_HP; i++) {
+                const segment = document.createElement('div');
+                segment.classList.add('health-segment');
+                if (i >= player.hp) {
+                    segment.classList.add('empty');
+                }
+                healthDisplayContainer.appendChild(segment);
+            }
+        }
+        
+        function generateInitialPlatforms() {
+            console.log("Generating initial platforms...");
+            platforms = []; 
+            platforms.push(createPlatform(player.x - 10, canvas.height - 20, 90, 20, "Start!", 'good'));
+            lastPlatformType = 'good';
+            consecutiveBadPlatforms = 0;
+            let currentX = player.x + 120 + Math.random() * 30;  
+            for (let i = 0; i < 7; i++) {
+                addSinglePlatform(currentX, true); 
+                if (platforms.length > i + 1) { 
+                     currentX = platforms[platforms.length - 1].x + platforms[platforms.length - 1].width + (65 + Math.random() * 55); 
+                } else { 
+                    console.error("Failed to add a platform during initial generation loop.");
+                    break; 
+                }
+            }
+            console.log("Initial platforms generated:", platforms.length);
+        }
+        
+        function addPlatformIfNeeded() {
+            if (!platforms) platforms = []; 
+            if (platforms.length === 0 || platforms[platforms.length - 1].x + platforms[platforms.length - 1].width < canvas.width + 150) { 
+                const lastP = (platforms && platforms.length > 0) ? platforms[platforms.length - 1] : { x: player.x - 100, width: 0, type: 'good' }; 
+                let nextX = lastP.x + lastP.width + (70 + Math.random() * 60); 
+                if (platforms.length === 0) nextX = player.x + 150; 
+                addSinglePlatform(nextX, false);
+            }
+        }
+
+        function addSinglePlatform(currentX, isInitial) {
+            let type;
+            let attempt = 0;
+            const maxAttempts = 3; 
+
+            do {
+                const randomChance = isInitial ? 0.30 : 0.38; 
+                if (lastPlatformType === 'bad' && consecutiveBadPlatforms >= 1) { 
+                    type = Math.random() < 0.30 ? 'bad' : 'good'; 
+                } else {
+                    type = Math.random() < randomChance ? 'bad' : 'good';
+                }
+                attempt++;
+            } while (type === 'bad' && consecutiveBadPlatforms >= 2 && attempt < maxAttempts) 
+            
+            if (attempt >= maxAttempts && type === 'bad') type = 'good'; 
+
+            const label = type === 'good' ? goodPlatformLabels[Math.floor(Math.random() * goodPlatformLabels.length)] : negativePlatformLabels[Math.floor(Math.random() * negativePlatformLabels.length)];
+            
+            let y = canvas.height - 60 - Math.random() * (canvas.height / 2.6); 
+            let width = 55 + Math.random() * 40; 
+            width = type === 'bad' ? Math.max(50, width - 10) : width; 
+
+            if (type === 'bad' && lastPlatformType === 'good' && platforms.length > 0) {
+                const prevGoodPlatform = platforms[platforms.length -1]; 
+                if (prevGoodPlatform && prevGoodPlatform.type === 'good') {
+                    if (currentX - (prevGoodPlatform.x + prevGoodPlatform.width) < 120) { 
+                         y = Math.min(y, prevGoodPlatform.y + 20); 
+                         y = Math.max(y, prevGoodPlatform.y - 70); 
+                    }
+                }
+            }
+            y = Math.max(100, Math.min(y, canvas.height - 60)); 
+
+            platforms.push(createPlatform(currentX, y, width, 20, label, type));
+            lastPlatformType = type; 
+            if (type === 'bad') {
+                consecutiveBadPlatforms++;
+            } else {
+                consecutiveBadPlatforms = 0;
+            }
+        }
+
+        function drawPlayer() {
+            if (!player || !ctx) return;
+            ctx.fillStyle = player.color;
+            ctx.strokeStyle = player.borderColor;
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.moveTo(player.x + player.width / 2, player.y); 
+            ctx.lineTo(player.x + player.width, player.y + player.height * 0.25); 
+            ctx.lineTo(player.x + player.width * 0.85, player.y + player.height); 
+            ctx.lineTo(player.x + player.width * 0.15, player.y + player.height); 
+            ctx.lineTo(player.x, player.y + player.height * 0.25); 
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = 'white';
+            const eyeRadius = 3;
+            ctx.beginPath();
+            ctx.arc(player.x + player.width * 0.35, player.y + player.height * 0.3, eyeRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(player.x + player.width * 0.65, player.y + player.height * 0.3, eyeRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = 'black'; 
+            ctx.beginPath();
+            ctx.arc(player.x + player.width * 0.35, player.y + player.height * 0.3, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(player.x + player.width * 0.65, player.y + player.height * 0.3, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawPlatforms() {
+            if (!platforms || !ctx) return; 
+            platforms.forEach(platform => {
+                ctx.fillStyle = platform.color;
+                ctx.strokeStyle = '#4b5563'; 
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(platform.x + 5, platform.y); 
+                ctx.lineTo(platform.x + platform.width - 5, platform.y);
+                ctx.quadraticCurveTo(platform.x + platform.width, platform.y, platform.x + platform.width, platform.y + 5);
+                ctx.lineTo(platform.x + platform.width, platform.y + platform.height - 5);
+                ctx.quadraticCurveTo(platform.x + platform.width, platform.y + platform.height, platform.x + platform.width - 5, platform.y + platform.height);
+                ctx.lineTo(platform.x + 5, platform.y + platform.height);
+                ctx.quadraticCurveTo(platform.x, platform.y + platform.height, platform.x, platform.y + platform.height - 5);
+                ctx.lineTo(platform.x, platform.y + 5);
+                ctx.quadraticCurveTo(platform.x, platform.y, platform.x + 5, platform.y);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                if (platform.type === 'bad') {
+                    const spikeHeight = 8;
+                    const numSpikes = Math.max(3, Math.floor(platform.width / 10)); 
+                    const spikeBaseWidth = platform.width / numSpikes;
+                    ctx.fillStyle = SPIKE_COLOR;
+                    for (let i = 0; i < numSpikes; i++) {
+                        ctx.beginPath(); 
+                        const spikeTipX = platform.x + i * spikeBaseWidth + spikeBaseWidth / 2;
+                        ctx.moveTo(spikeTipX - spikeBaseWidth * 0.4, platform.y); 
+                        ctx.lineTo(spikeTipX, platform.y - spikeHeight);           
+                        ctx.lineTo(spikeTipX + spikeBaseWidth * 0.4, platform.y); 
+                        ctx.closePath(); 
+                        ctx.fill(); 
+                    }
+                }
+                
+                ctx.fillStyle = platform.color === BAD_PLATFORM_DAMAGED_COLOR ? '#ffffff' : '#1f2937'; 
+                ctx.font = 'bold 10px Inter'; 
+                ctx.textAlign = 'center';
+                const textY = platform.y + platform.height / 2 + 4; 
+                ctx.fillText(platform.label, platform.x + platform.width / 2, textY);
+            });
+        }
+
+        function updatePlayer() {
+            if (!player) return;
+            player.dy += gravity;
+            player.y += player.dy;
+            
+            let onAnyPlatformThisFrame = false;
+
+            if (platforms) { 
+                for (let i = 0; i < platforms.length; i++) {
+                    const p = platforms[i];
+                    if (player.x < p.x + p.width && player.x + player.width > p.x) {
+                        if (player.y + player.height >= p.y && player.y + player.height <= p.y + p.height / 2 + player.dy && player.dy >= 0) { 
+                            player.y = p.y - player.height;
+                            player.dy = 0;
+                            
+                            if (!player.onPlatform) { 
+                                 player.jumpsRemaining = MAX_JUMPS;
+                                 if(jumpsDisplay) jumpsDisplay.textContent = player.jumpsRemaining;
+                            }
+                            player.onPlatform = true;
+                            onAnyPlatformThisFrame = true;
+
+                            if (p.type === 'good' && !p.isScored) {
+                                score += 10; 
+                                if(scoreDisplay) scoreDisplay.textContent = score;
+                                p.isScored = true;
+                            } else if (p.type === 'bad' && !p.hasDamaged) {
+                                player.hp -= BAD_PLATFORM_PENALTY;
+                                p.color = BAD_PLATFORM_DAMAGED_COLOR; 
+                                p.hasDamaged = true; 
+                                updateHealthDisplay();
+                                if (player.hp <= 0) {
+                                    gameState = 'gameOver';
+                                    gameOverReason = 'Out of health!';
+                                }
+                            }
+                            break; 
+                        }
+                    }
+                }
+            }
+            
+            if (!onAnyPlatformThisFrame) {
+                player.onPlatform = false;
+            }
+
+            if (player.y > canvas.height + player.height / 2) { 
+                gameState = 'gameOver';
+                gameOverReason = 'Fell into the void!';
+                if (player.hp > 0) player.hp = 0; 
+                updateHealthDisplay();
+            }
+        }
+
+        function updatePlatforms() {
+            if (!platforms) return; 
+            for (let i = 0; i < platforms.length; i++) {
+                platforms[i].x -= platformSpeed;
+            }
+            platforms = platforms.filter(p => p.x + p.width > -50); 
+        }
+        
+        function jump() {
+            if (!player) return;
+            if (player.jumpsRemaining > 0 && gameState === 'playing') {
+                player.dy = jumpStrength;
+                player.onPlatform = false; 
+                player.jumpsRemaining--;
+                if(jumpsDisplay) jumpsDisplay.textContent = player.jumpsRemaining;
+            }
+        }
+
+        function handleInput(event) {
+            if (gameState === 'playing' && (event.code === 'Space' || event.type === 'touchstart' || event.type === 'click')) {
+                event.preventDefault(); 
+                jump();
+            } else if (gameState === 'gameOver' && (event.code === 'Space' || event.type === 'touchstart' || event.type === 'click')) {
+                event.preventDefault();
+                startGame(); 
+            }
+        }
+        
+        document.addEventListener('keydown', handleInput);
+        canvas.addEventListener('touchstart', handleInput);
+        canvas.addEventListener('click', handleInput); 
+
+        function gameLoop() {
+            if (gameState === 'gameOver') {
+                if(ctx) {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.font = 'bold 44px "Patrick Hand", cursive';
+                    ctx.fillStyle = 'white';
+                    ctx.textAlign = 'center';
+                    ctx.shadowColor = 'black';
+                    ctx.shadowBlur = 5;
+                    ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 40);
+                    ctx.font = '22px Inter';
+                    ctx.fillText(gameOverReason || "Try Again!", canvas.width / 2, canvas.height / 2);
+                    ctx.font = '26px Inter';
+                    ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 40);
+                    ctx.font = '18px Inter';
+                    ctx.fillText('Tap or Space to Play Again', canvas.width / 2, canvas.height / 2 + 80);
+                    ctx.shadowBlur = 0; 
+                }
+                if(restartGameButton) restartGameButton.style.display = 'inline-block'; 
+                if(gameRequestId) cancelAnimationFrame(gameRequestId); 
+                gameRequestId = null; 
+                return;
+            }
+
+            if (!ctx || !canvas) {
+                console.error("Canvas or context missing in gameLoop");
+                if(gameRequestId) cancelAnimationFrame(gameRequestId);
+                gameRequestId = null;
+                return;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            addPlatformIfNeeded();
+            updatePlatforms();
+            updatePlayer();
+            
+            drawPlatforms();
+            drawPlayer();
+
+            gameRequestId = requestAnimationFrame(gameLoop);
+        }
+
+        function startGame() {
+            console.log("Attempting to start game...");
+            if (!canvas || !ctx) {
+                console.error("Cannot start game: canvas or context not ready.");
+                return;
+            }
+            initGameVariables();
+            generateInitialPlatforms(); 
+            
+            if (gameRequestId) {
+                cancelAnimationFrame(gameRequestId);
+                gameRequestId = null;
+            }
+            
+            if (platforms && platforms.length > 0) {
+                console.log("Platforms ready, starting game loop.");
+                gameLoop();
+            } else {
+                console.error("Platforms not generated correctly. Cannot start game loop.");
+            }
+        }
+        
+        if(restartGameButton) restartGameButton.addEventListener('click', startGame);
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            console.log("DOM Content Loaded.");
+            if(canvas && ctx) { 
+                 startGame();
+            } else {
+                console.error("Liberty Leap Game: Canvas or context not found on DOMContentLoaded. Canvas:", canvas, "Ctx:", ctx);
+            }
+        });
+
+    </script>
+</body>
+</html>
+```
