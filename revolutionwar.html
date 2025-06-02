@@ -15,8 +15,8 @@
             background-color: #f0f4f8; 
             color: #1e293b; 
         }
-        .header-title-font { /* Changed from title-font to be more specific */
-            font-family: 'Kalam', cursive; /* Keeping this for the main header for a bit of style */
+        .header-title-font { 
+            font-family: 'Kalam', cursive; 
         }
         .card {
             background-color: white;
@@ -549,63 +549,63 @@
             timelineContainer.appendChild(item);
         });
 
-        // --- Dynamic Content: Figures (UPDATED INFORMATION) ---
+        // --- Dynamic Content: Figures (Updated image URLs) ---
         const figuresData = [
             { 
                 name: "George Washington", 
                 role: "Commander-in-Chief of the Continental Army throughout the war. His leadership, resilience, and strategic vision were crucial in holding the army together during immense hardships and achieving ultimate victory. He later became the first President of the United States (1789-1797).", 
                 additionalInfo: "Presided over the Constitutional Convention in 1787, which drafted the U.S. Constitution. Often referred to as the 'Father of His Country.' His voluntary relinquishment of power after two presidential terms set a precedent for peaceful transitions.", 
                 imgPlaceholder: "GW", 
-                imageUrl: "" 
+                imageUrl: "Revolutionimages/GW.png" 
             },
             { 
                 name: "Thomas Jefferson", 
                 role: "Principal author of the Declaration of Independence (1776), a document that articulated the philosophical underpinnings of American independence based on natural rights and popular sovereignty. Served as Governor of Virginia during the war.", 
                 additionalInfo: "Later became the third U.S. President (1801-1809), orchestrated the Louisiana Purchase, and founded the University of Virginia. He was also a diplomat, architect, inventor, and scholar.", 
-                 
-                imageUrl: "/Revolutionimages/TJ.png" 
+                imgPlaceholder: "TJ", 
+                imageUrl: "Revolutionimages/TJ.png" 
             },
             { 
                 name: "Benjamin Franklin", 
                 role: "A leading statesman, diplomat, scientist, and writer. As a diplomat in France, he was instrumental in securing the Franco-American Alliance of 1778, which provided critical military and financial support to the American cause. He also served on the committee that drafted the Declaration of Independence.", 
                 additionalInfo: "His contributions extended beyond diplomacy; he was a renowned inventor (bifocals, lightning rod), author (Poor Richard's Almanack), and civic leader in Philadelphia. He is the only Founding Father to have signed all four key documents establishing the U.S.: the Declaration of Independence, the Treaty of Alliance with France, the Treaty of Paris, and the Constitution.", 
                 imgPlaceholder: "BF", 
-                imageUrl: "" 
+                imageUrl: "Revolutionimages/BF.png" 
             },
             { 
                 name: "John Adams", 
                 role: "A prominent lawyer, diplomat, and a leading voice for independence in the Continental Congress. He played a crucial role in persuading Congress to declare independence and was part of the committee that drafted the Declaration. He also secured vital loans from Dutch bankers during the war.", 
                 additionalInfo: "Served as the first Vice President and later the second U.S. President (1797-1801). His defense of British soldiers after the Boston Massacre, despite personal risk, underscored his commitment to the rule of law. He was a key negotiator of the Treaty of Paris.", 
                 imgPlaceholder: "JA", 
-                imageUrl: "" 
+                imageUrl: "Revolutionimages/JA.png" 
             },
             { 
                 name: "Samuel Adams", 
                 role: "A Massachusetts politician, writer, and a fervent organizer of colonial resistance against British policies. He was a leader of the Sons of Liberty and played a significant role in events like the Boston Tea Party. He was a delegate to the Continental Congress.", 
                 additionalInfo: "Known for his powerful oratory and writings that fueled revolutionary sentiment. He was instrumental in establishing committees of correspondence, which facilitated communication and coordination among the colonies. He later served as Governor of Massachusetts.", 
                 imgPlaceholder: "SA", 
-                imageUrl: "" 
+                imageUrl: "Revolutionimages/SA.png" 
             },
             { 
                 name: "King George III", 
                 role: "The monarch of Great Britain and Ireland during the American Revolution. He was determined to maintain British authority over the colonies and supported policies that ultimately led to the conflict.", 
                 additionalInfo: "His reign (1760-1820) was one of the longest in British history and saw Britain emerge victorious in the Napoleonic Wars, though it lost its American colonies. He suffered from recurrent, and eventually permanent, mental illness later in his life.", 
                 imgPlaceholder: "KG", 
-                imageUrl: "" 
+                imageUrl: "Revolutionimages/KG.png" 
             },
             { 
                 name: "Lord Cornwallis (Charles Cornwallis)", 
                 role: "A prominent British general who served in several campaigns during the Revolutionary War. He achieved notable victories, particularly in the Southern theater (e.g., Battle of Camden).", 
                 additionalInfo: "His surrender at the Siege of Yorktown in 1781 effectively ended major hostilities in the war. Despite this defeat, he later had a distinguished career as Governor-General of India and Lord Lieutenant of Ireland.", 
                 imgPlaceholder: "LC", 
-                imageUrl: "" 
+                imageUrl: "Revolutionimages/LC.png" 
             },
             { 
                 name: "Marquis de Lafayette", 
                 role: "A young French aristocrat and military officer who volunteered his services to the Continental Army. He became a close confidant of George Washington and served as a Major General, playing a crucial role in several battles, including the Siege of Yorktown.", 
                 additionalInfo: "His involvement symbolized French support for the American cause even before the formal alliance. He was a passionate advocate for liberty and later played a significant role in the French Revolution of 1789. He is celebrated as a hero in both France and the United States.", 
                 imgPlaceholder: "ML", 
-                imageUrl: "" 
+                imageUrl: "Revolutionimages/ML.png" 
             }
         ];
 
@@ -635,7 +635,7 @@
                 `<p>${figure.role}</p>`, 
                 `<p class="mt-2"><strong>Further Details:</strong> ${figure.additionalInfo || 'N/A'}</p>`, 
                 figure.imageUrl, 
-               
+                figure.imgPlaceholder 
             ));
             figuresGrid.appendChild(card);
         });
