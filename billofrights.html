@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Federalists vs. Anti-Federalists & The Bill of Rights</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            cursor: pointer;
+        }
+        .button-primary {
+            background-color: #4F46E5; /* Indigo */
+            color: white;
+        }
+        .button-primary:hover {
+            background-color: #4338CA;
+            transform: scale(1.05);
+        }
+        .button-secondary {
+            background-color: #EC4899; /* Pink */
+            color: white;
+        }
+        .button-secondary:hover {
+            background-color: #DB2777;
+            transform: scale(1.05);
+        }
+        .feedback-correct {
+            color: #10B981; /* Emerald */
+            font-weight: 600;
+        }
+        .feedback-incorrect {
+            color: #EF4444; /* Red */
+            font-weight: 600;
+        }
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .subsection-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #374151; /* Cool Gray 700 */
+        }
+        .accent-text-federalist {
+            color: #4F46E5; /* Indigo */
+        }
+        .accent-text-antifederalist {
+            color: #EC4899; /* Pink */
+        }
+        .bg-federalist-light {
+            background-color: #EEF2FF; /* Indigo 50 */
+        }
+        .bg-antifederalist-light {
+            background-color: #FCE7F3; /* Pink 50 */
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -110px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.875rem;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        /* Accordion styles */
+        .accordion-item {
+            border: 1px solid #e5e7eb; /* Cool Gray 200 */
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .accordion-header {
+            background-color: #f3f4f6; /* Cool Gray 100 */
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+        .accordion-header:hover {
+            background-color: #e5e7eb; /* Cool Gray 200 */
+        }
+        .accordion-content {
+            padding: 15px;
+            display: none; /* Hidden by default */
+            border-top: 1px solid #e5e7eb;
+        }
+        .accordion-content.active {
+            display: block;
+        }
+        .icon-rotate {
+            transition: transform 0.3s ease;
+        }
+        .active .icon-rotate {
+            transform: rotate(180deg);
+        }
+        /* Modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 50;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5); /* Dim background */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .modal-close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-close:hover,
+        .modal-close:focus {
+            color: black;
+            text-decoration: none;
+        }
+        /* Trivia Game Styles */
+        .trivia-question-container {
+            background-color: #f9fafb; /* Cool Gray 50 */
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #e5e7eb; /* Cool Gray 200 */
+        }
+        .trivia-options button {
+            display: block;
+            width: 100%;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+        .trivia-feedback {
+            margin-top: 10px;
+            font-size: 1.1rem;
+            min-height: 50px; /* Ensure space for feedback text */
+        }
+        #triviaScoreDisplay {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937; /* Cool Gray 800 */
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: #e0e7ff; /* Indigo 100 */
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-gradient-to-r from-indigo-600 to-pink-500 text-white py-12 shadow-lg">
+        <div class="container mx-auto px-6 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">The Great Debate!</h1>
+            <p class="text-xl md:text-2xl">Federalists vs. Anti-Federalists & the Fight for the Bill of Rights</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+
+        <section id="poll" class="card mb-12">
+            <h2 class="subsection-title text-center mb-6">Quick Poll: Your Thoughts?</h2>
+            <p class="text-center mb-6 text-lg">How important do you think it is for a country's constitution to specifically list out freedoms like "freedom of speech"?</p>
+            <div id="pollOptions" class="grid md:grid-cols-2 gap-6 mb-4">
+                <button onclick="recordPoll('essential')" class="button bg-green-500 hover:bg-green-600 text-white p-6 rounded-lg shadow-md text-lg">
+                    <i class="fas fa-check-double mr-2"></i> Absolutely Essential! These rights need to be clearly written down to protect citizens.
+                </button>
+                <button onclick="recordPoll('implied')" class="button bg-blue-500 hover:bg-blue-600 text-white p-6 rounded-lg shadow-md text-lg">
+                    <i class="fas fa-lightbulb mr-2"></i> Important, but maybe not strictly necessary to list *every* right if the government is already limited.
+                </button>
+            </div>
+            <div id="pollResult" class="text-center text-xl font-semibold hidden">
+                Thanks for sharing your perspective! This kind of thinking was central to the debates about the Constitution and the Bill of Rights.
+            </div>
+        </section>
+
+        <section class="card mb-12">
+            <h2 class="subsection-title text-center mb-6">Setting the Scene: A New Nation's Big Questions</h2>
+            <p class="text-lg mb-4">After winning the Revolutionary War, the newly independent United States faced a huge challenge: how to govern itself. The first attempt, the <span class="tooltip font-semibold text-blue-600">Articles of Confederation<span class="tooltiptext">The first government of the U.S. (1781-1789). It created a weak central government with most powers held by the states.</span></span>, wasn't working out too well. The national government was too weak to solve big problems like paying off war debts or dealing with national security.</p>
+            <p class="text-lg">So, in 1787, leaders gathered for the <span class="tooltip font-semibold text-blue-600">Constitutional Convention<span class="tooltiptext">A meeting in Philadelphia in 1787 where delegates from 12 of the 13 states wrote the U.S. Constitution.</span></span> to create a new plan for government – the U.S. Constitution. But not everyone agreed on what this new government should look like. This disagreement led to two main groups emerging: the Federalists and the Anti-Federalists.</p>
+        </section>
+
+        <section class="mb-12">
+            <h2 class="section-title mb-8">Federalists <span class="text-gray-400">vs.</span> Anti-Federalists</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="card bg-federalist-light p-6">
+                    <h3 class="text-3xl font-bold mb-4 text-center accent-text-federalist"><i class="fas fa-landmark mr-2"></i>The Federalists</h3>
+                    <p class="text-lg mb-4"><strong>Who were they?</strong> Supporters of the new Constitution and a strong national government.</p>
+                    <p class="text-lg mb-4"><strong>What did they want?</strong></p>
+                    <ul class="list-disc list-inside mb-4 text-lg space-y-1">
+                        <li>A powerful central government to unite the states.</li>
+                        <li>The Constitution to be ratified (approved) AS IS.</li>
+                        <li>Believed a strong government would bring stability, protect the nation, and help the economy.</li>
+                    </ul>
+                    <p class="text-lg mb-4"><strong>Key Arguments:</strong></p>
+                    <ul class="list-disc list-inside mb-4 text-lg space-y-1">
+                        <li>A strong national government is needed to prevent chaos (like <span class="tooltip font-semibold">Shays' Rebellion<span class="tooltiptext">An uprising of farmers in Massachusetts (1786-1787) protesting high taxes and debt. It highlighted the weakness of the Articles of Confederation.</span></span>).</li>
+                        <li>The Constitution already had built-in protections (like separation of powers and checks and balances) to prevent tyranny.</li>
+                        <li>A Bill of Rights wasn't necessary because the government only had the powers specifically given to it.</li>
+                    </ul>
+                     <p class="text-lg mb-4"><strong>Famous Federalists:</strong> Alexander Hamilton, James Madison, John Jay (who together wrote <span class="tooltip font-semibold">The Federalist Papers<span class="tooltiptext">A series of 85 essays written to persuade New Yorkers to ratify the Constitution. They are a classic explanation of American government.</span></span>).</p>
+                </div>
+
+                <div class="card bg-antifederalist-light p-6">
+                    <h3 class="text-3xl font-bold mb-4 text-center accent-text-antifederalist"><i class="fas fa-users mr-2"></i>The Anti-Federalists</h3>
+                    <p class="text-lg mb-4"><strong>Who were they?</strong> Opponents of the new Constitution, or those who wanted major changes before approving it.</p>
+                    <p class="text-lg mb-4"><strong>What did they want?</strong></p>
+                    <ul class="list-disc list-inside mb-4 text-lg space-y-1">
+                        <li>Stronger state governments and a weaker national government.</li>
+                        <li>Feared the new government would be too powerful and become like a monarchy.</li>
+                        <li>Demanded a <span class="font-bold">Bill of Rights</span> to protect individual freedoms.</li>
+                    </ul>
+                     <p class="text-lg mb-4"><strong>Key Arguments:</strong></p>
+                    <ul class="list-disc list-inside mb-4 text-lg space-y-1">
+                        <li>The Constitution gave too much power to the national government at the expense of the states.</li>
+                        <li>The President might become like a king.</li>
+                        <li>There were no specific guarantees of individual rights (like freedom of speech or religion). This was their BIGGEST concern!</li>
+                    </ul>
+                    <p class="text-lg mb-4"><strong>Famous Anti-Federalists:</strong> Patrick Henry ("Give me liberty, or give me death!"), George Mason, Samuel Adams.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="quiz1" class="card mb-12">
+            <h3 class="subsection-title text-center mb-6">Pop Quiz! <i class="fas fa-question-circle"></i></h3>
+            <p class="text-lg mb-4 text-center">Which group was MOST concerned that the new Constitution didn't include specific protections for individual freedoms?</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <button onclick="checkAnswer('quiz1', 'federalists', 'q1Feedback')" class="button bg-indigo-200 hover:bg-indigo-300 text-indigo-800 p-4 rounded-lg">The Federalists</button>
+                <button onclick="checkAnswer('quiz1', 'antifederalists', 'q1Feedback')" class="button bg-pink-200 hover:bg-pink-300 text-pink-800 p-4 rounded-lg">The Anti-Federalists</button>
+            </div>
+            <div id="q1Feedback" class="text-center text-lg mt-4"></div>
+        </section>
+
+        <section class="card mb-12">
+            <h2 class="subsection-title text-center mb-6"><i class="fas fa-file-signature mr-2"></i>The Path to Ratification: Adding the Bill of Rights</h2>
+            <p class="text-lg mb-4">The debate between Federalists and Anti-Federalists was intense! Several states were hesitant to ratify the Constitution without a guarantee of individual rights.</p>
+            <p class="text-lg mb-4">To get the Constitution approved, the Federalists eventually promised that a <span class="font-bold accent-text-federalist">Bill of Rights</span> would be added as the very first amendments. This promise was a crucial compromise.</p>
+            <p class="text-lg">This convinced enough states, including reluctant ones like Virginia and New York, to ratify the Constitution. The new government was officially formed in 1789, and true to their word, James Madison (originally a Federalist who saw the wisdom in compromise) spearheaded the effort to draft the Bill of Rights.</p>
+        </section>
+
+        <section id="billOfRights" class="card mb-12">
+            <h2 class="section-title mb-2">The Bill of Rights: Your Freedoms!</h2>
+            <p class="text-center text-lg mb-8">The first 10 Amendments to the Constitution, adopted in 1791.</p>
+            
+            <div id="accordionContainer" class="space-y-3">
+                </div>
+        </section>
+
+        <section id="quiz2" class="card mb-12">
+            <h3 class="subsection-title text-center mb-6">Knowledge Check! <i class="fas fa-lightbulb"></i></h3>
+            <p class="text-lg mb-4 text-center">True or False: The Bill of Rights was part of the original Constitution written in 1787.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <button onclick="checkAnswer('quiz2', 'true', 'q2Feedback')" class="button bg-green-400 hover:bg-green-500 text-white p-4 rounded-lg">True</button>
+                <button onclick="checkAnswer('quiz2', 'false', 'q2Feedback')" class="button bg-red-400 hover:bg-red-500 text-white p-4 rounded-lg">False</button>
+            </div>
+            <div id="q2Feedback" class="text-center text-lg mt-4"></div>
+        </section>
+        
+        <section id="triviaGame" class="card mb-12">
+            <h2 class="section-title mb-6"><i class="fas fa-trophy mr-2 text-yellow-500"></i>Bill of Rights Trivia Challenge!</h2>
+            <p class="text-center text-lg mb-4">Test your knowledge of these important amendments. Good luck!</p>
+            <div id="triviaScoreDisplay" class="text-center mb-6 hidden">Score: 0/0</div>
+            
+            <div id="triviaQuestionsContainer">
+                </div>
+            <div id="triviaResultContainer" class="text-center mt-8">
+                </div>
+        </section>
+
+
+        <section class="card text-center">
+            <h2 class="subsection-title mb-6">Why Does This Still Matter?</h2>
+            <p class="text-lg mb-4">The debates between the Federalists and Anti-Federalists and the creation of the Bill of Rights shaped the United States into the country it is today. These arguments about the balance of power between the national government, state governments, and individual citizens continue to be discussed and debated!</p>
+            <p class="text-lg font-semibold">Understanding these early disagreements helps us understand how American democracy works and why protecting our rights is so important.</p>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8 text-center">
+        <p>&copy; <span id="currentYear"></span> Interactive Infographic. All rights reserved (for educational purposes!).</p>
+    </footer>
+
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal('infoModal')">&times;</span>
+            <p id="modalText" class="text-lg"></p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Pre-Reading Poll
+        function recordPoll(choice) {
+            const pollOptions = document.getElementById('pollOptions');
+            const pollResult = document.getElementById('pollResult');
+            pollOptions.classList.add('hidden');
+            pollResult.classList.remove('hidden');
+            console.log('Poll choice:', choice);
+        }
+
+        // Check for Understanding (Quizzes 1 & 2)
+        const answers = {
+            quiz1: 'antifederalists',
+            quiz2: 'false'
+        };
+
+        const explanations = {
+            quiz1: {
+                correct: "Correct! The Anti-Federalists were very worried that the new Constitution didn't list out specific rights for citizens, like freedom of speech or religion. They pushed hard for the Bill of Rights.",
+                incorrect: "Not quite! The Federalists thought the Constitution was fine as it was. It was the Anti-Federalists who insisted on a Bill of Rights to protect individual freedoms."
+            },
+            quiz2: {
+                correct: "That's right! The Bill of Rights was added in 1791, a few years AFTER the original Constitution was written in 1787. It was a compromise to get everyone on board.",
+                incorrect: "Actually, it's false. The Bill of Rights was added as amendments AFTER the Constitution was ratified. The original document didn't include it."
+            }
+        };
+
+        function checkAnswer(quizId, selectedAnswer, feedbackElementId) {
+            const feedbackEl = document.getElementById(feedbackElementId);
+            const buttons = document.querySelectorAll(`#${quizId} button`);
+            buttons.forEach(button => button.disabled = true); 
+
+            if (selectedAnswer === answers[quizId]) {
+                feedbackEl.innerHTML = `<span class="feedback-correct"><i class="fas fa-check-circle mr-1"></i> ${explanations[quizId].correct}</span>`;
+            } else {
+                feedbackEl.innerHTML = `<span class="feedback-incorrect"><i class="fas fa-times-circle mr-1"></i> ${explanations[quizId].incorrect}</span>`;
+            }
+        }
+
+        // Bill of Rights Data
+        const billOfRightsData = [
+            { num: 1, name: "Freedom of Speech, Religion, Press, Assembly, and Petition", summary: "Guarantees your right to say what you think (mostly!), practice any religion (or no religion), publish news and opinions, gather peacefully with others, and ask the government to fix problems.", icon: "fa-comments" },
+            { num: 2, name: "Right to Bear Arms", summary: "Protects the right of individuals to keep and carry weapons, in the context of a well-regulated militia.", icon: "fa-crosshairs" },
+            { num: 3, name: "No Quartering of Soldiers", summary: "You can't be forced to house soldiers in your home during peacetime without your consent.", icon: "fa-home" },
+            { num: 4, name: "Protection from Unreasonable Searches and Seizures", summary: "The government can't search you or your property without a good reason (probable cause) and usually needs a warrant.", icon: "fa-search" },
+            { num: 5, name: "Rights in Criminal Cases (Due Process, No Double Jeopardy, Self-Incrimination)", summary: "You can't be tried for the same serious crime twice (double jeopardy), you don't have to testify against yourself ('pleading the fifth'), and the government must follow fair procedures (due process). Also includes right to a grand jury for serious crimes and compensation if private property is taken for public use.", icon: "fa-gavel" },
+            { num: 6, name: "Right to a Fair and Speedy Trial", summary: "If you're accused of a crime, you have the right to a quick public trial by an impartial jury, to know the charges against you, to confront witnesses, and to have a lawyer.", icon: "fa-balance-scale-right" },
+            { num: 7, name: "Right to a Jury Trial in Civil Cases", summary: "In certain types of non-criminal lawsuits (usually involving money or property over a certain amount), you have the right to a jury trial.", icon: "fa-users" },
+            { num: 8, name: "No Excessive Bail or Cruel and Unusual Punishments", summary: "Bail amounts can't be ridiculously high, and punishments can't be overly harsh or inhumane.", icon: "fa-ban" },
+            { num: 9, name: "Unenumerated Rights", summary: "Just because some rights are listed in the Constitution doesn't mean you don't have other rights too. (Basically, 'this list isn't everything!').", icon: "fa-list-ul" },
+            { num: 10, name: "Powers Reserved to the States or the People", summary: "Any powers that the Constitution doesn't specifically give to the national government, and doesn't forbid the states from having, belong to the states or to the people.", icon: "fa-landmark" }
+        ];
+
+        // Populate Bill of Rights Accordion
+        const accordionContainer = document.getElementById('accordionContainer');
+        billOfRightsData.forEach(amendment => {
+            const item = document.createElement('div');
+            item.classList.add('accordion-item');
+            item.innerHTML = `
+                <div class="accordion-header">
+                    <span><i class="fas ${amendment.icon} mr-3 text-indigo-600"></i>Amendment ${amendment.num}: ${amendment.name}</span>
+                    <i class="fas fa-chevron-down icon-rotate"></i>
+                </div>
+                <div class="accordion-content">
+                    <p>${amendment.summary}</p>
+                </div>
+            `;
+            accordionContainer.appendChild(item);
+        });
+
+        // Accordion Functionality
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                const icon = header.querySelector('.icon-rotate');
+                
+                document.querySelectorAll('.accordion-content.active').forEach(openContent => {
+                    if (openContent !== content) {
+                        openContent.classList.remove('active');
+                        openContent.style.display = 'none';
+                        openContent.previousElementSibling.querySelector('.icon-rotate').classList.remove('active');
+                    }
+                });
+
+                content.classList.toggle('active');
+                icon.classList.toggle('active');
+                if (content.classList.contains('active')) {
+                    content.style.display = 'block';
+                } else {
+                    content.style.display = 'none';
+                }
+            });
+        });
+
+        // Bill of Rights Trivia Game Logic
+        const triviaQuestions = [
+            {
+                question: "Which amendment protects your right to peacefully protest and express your opinions about the government?",
+                options: ["1st Amendment", "4th Amendment", "8th Amendment"],
+                answer: "1st Amendment",
+                explanation: "The 1st Amendment covers freedom of speech, press, religion, assembly (protest), and petition."
+            },
+            {
+                question: "If the police want to search your house, which amendment generally requires them to have a warrant?",
+                options: ["2nd Amendment", "4th Amendment", "6th Amendment"],
+                answer: "4th Amendment",
+                explanation: "The 4th Amendment protects against unreasonable searches and seizures, usually requiring a warrant based on probable cause."
+            },
+            {
+                question: "What is the common phrase for the right to remain silent and not incriminate yourself, protected by the 5th Amendment?",
+                options: ["'Pleading the fifth'", "'Taking a stand'", "'Staying quiet'"],
+                answer: "'Pleading the fifth'",
+                explanation: "The 5th Amendment protects against self-incrimination, often referred to as 'pleading the fifth.'"
+            },
+            {
+                question: "Which amendment ensures you have the right to a lawyer if you're accused of a crime?",
+                options: ["5th Amendment", "6th Amendment", "7th Amendment"],
+                answer: "6th Amendment",
+                explanation: "The 6th Amendment guarantees the right to counsel (a lawyer) in criminal prosecutions, among other fair trial rights."
+            },
+            {
+                question: "The 10th Amendment says that any powers not specifically given to the federal government are reserved for...",
+                options: ["The President only", "The Supreme Court", "The States or the people"],
+                answer: "The States or the people",
+                explanation: "The 10th Amendment deals with the division of powers, reserving those not delegated to the federal government to the states or the people."
+            }
+        ];
+
+        let currentTriviaQuestionIndex = 0;
+        let triviaScore = 0;
+        let questionsAnswered = 0;
+        const triviaQuestionsContainer = document.getElementById('triviaQuestionsContainer');
+        const triviaScoreDisplay = document.getElementById('triviaScoreDisplay');
+        const triviaResultContainer = document.getElementById('triviaResultContainer');
+
+
+        function startTriviaGame() {
+            currentTriviaQuestionIndex = 0;
+            triviaScore = 0;
+            questionsAnswered = 0;
+            triviaScoreDisplay.textContent = `Score: 0/${triviaQuestions.length}`;
+            triviaScoreDisplay.classList.remove('hidden');
+            triviaResultContainer.innerHTML = ''; // Clear previous results
+            loadTriviaQuestion(currentTriviaQuestionIndex);
+        }
+        
+        function loadTriviaQuestion(index) {
+            triviaQuestionsContainer.innerHTML = ''; // Clear previous question
+
+            if (index >= triviaQuestions.length) {
+                displayTriviaResults();
+                return;
+            }
+
+            const q = triviaQuestions[index];
+            const questionDiv = document.createElement('div');
+            questionDiv.classList.add('trivia-question-container');
+            questionDiv.innerHTML = `
+                <p class="text-xl font-semibold mb-4">${index + 1}. ${q.question}</p>
+                <div class="trivia-options space-y-2">
+                    ${q.options.map(option => `<button class="button bg-gray-200 hover:bg-gray-300 text-gray-800 w-full p-3 rounded-md" onclick="checkTriviaAnswer('${option.replace(/'/g, "\\'")}', '${q.answer.replace(/'/g, "\\'")}', this, '${q.explanation.replace(/'/g, "\\'")}')">${option}</button>`).join('')}
+                </div>
+                <div class="trivia-feedback mt-3"></div>
+            `;
+            triviaQuestionsContainer.appendChild(questionDiv);
+        }
+
+        function checkTriviaAnswer(selected, correct, buttonElement, explanation) {
+            const feedbackDiv = buttonElement.closest('.trivia-question-container').querySelector('.trivia-feedback');
+            const optionButtons = buttonElement.closest('.trivia-options').querySelectorAll('button');
+            optionButtons.forEach(btn => btn.disabled = true); 
+
+            questionsAnswered++;
+
+            if (selected === correct) {
+                triviaScore++;
+                buttonElement.classList.remove('bg-gray-200', 'hover:bg-gray-300', 'text-gray-800');
+                buttonElement.classList.add('bg-green-500', 'text-white');
+                feedbackDiv.innerHTML = `<p class="feedback-correct"><i class="fas fa-check-circle mr-1"></i> Correct! ${explanation}</p>`;
+            } else {
+                buttonElement.classList.remove('bg-gray-200', 'hover:bg-gray-300', 'text-gray-800');
+                buttonElement.classList.add('bg-red-500', 'text-white');
+                feedbackDiv.innerHTML = `<p class="feedback-incorrect"><i class="fas fa-times-circle mr-1"></i> Incorrect. The correct answer is <strong>${correct}</strong>. ${explanation}</p>`;
+                // Highlight correct answer
+                optionButtons.forEach(btn => {
+                    if (btn.textContent === correct) {
+                        btn.classList.remove('bg-gray-200', 'hover:bg-gray-300', 'text-gray-800');
+                        btn.classList.add('bg-green-500', 'text-white');
+                    }
+                });
+            }
+            triviaScoreDisplay.textContent = `Score: ${triviaScore}/${questionsAnswered}`;
+            
+            // Automatically move to the next question after a delay
+            setTimeout(() => {
+                currentTriviaQuestionIndex++;
+                loadTriviaQuestion(currentTriviaQuestionIndex);
+            }, 2500); // 2.5 second delay
+        }
+        
+        function displayTriviaResults() {
+            triviaQuestionsContainer.innerHTML = `<p class="text-2xl font-bold text-center text-indigo-600">Trivia Complete!</p>`;
+            let finalMessage = `Your Final Score: ${triviaScore} out of ${triviaQuestions.length}. `;
+            if (triviaScore === triviaQuestions.length) {
+                finalMessage += "Excellent work! <i class='fas fa-star text-yellow-400'></i>";
+            } else if (triviaScore >= triviaQuestions.length / 2) {
+                finalMessage += "Good job! <i class='fas fa-thumbs-up text-blue-500'></i>";
+            } else {
+                finalMessage += "Keep learning! <i class='fas fa-book-open text-green-500'></i>";
+            }
+            
+            triviaResultContainer.innerHTML = `
+                <p class="text-xl font-semibold mt-4">${finalMessage}</p>
+                <button class="button button-primary mt-6" onclick="startTriviaGame()">Play Again? <i class="fas fa-redo ml-2"></i></button>
+            `;
+            triviaScoreDisplay.textContent = `Final Score: ${triviaScore}/${triviaQuestions.length}`;
+        }
+
+        // Initial load for trivia
+        startTriviaGame();
+
+
+        // Modal functions
+        function openModal(modalId, text) {
+            document.getElementById('modalText').innerText = text;
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('infoModal');
+            if (event.target == modal) {
+                closeModal('infoModal');
+            }
+        }
+
+    </script>
+</body>
+</html>
