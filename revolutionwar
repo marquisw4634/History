@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The American Revolution: An Interactive Journey</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Kalam:wght@700&display=swap" rel="stylesheet">
+    <style>
+        html {
+            scroll-behavior: smooth; 
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; 
+            color: #1e293b; 
+        }
+        .header-title-font { /* Changed from title-font to be more specific */
+            font-family: 'Kalam', cursive; /* Keeping this for the main header for a bit of style */
+        }
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+        }
+        .button {
+            background-color: #3b82f6; 
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border: none;
+        }
+        .button:hover {
+            background-color: #2563eb; 
+        }
+        .button-secondary {
+            background-color: #64748b; 
+        }
+        .button-secondary:hover {
+            background-color: #475569; 
+        }
+        .quiz-option, .game-option {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #cbd5e1; 
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .quiz-option:hover, .game-option:hover {
+            background-color: #e2e8f0; 
+            border-color: #94a3b8; 
+        }
+        .quiz-feedback, .game-feedback {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+        .correct {
+            background-color: #d1fae5; 
+            color: #065f46; 
+            border: 1px solid #6ee7b7; 
+        }
+        .incorrect {
+            background-color: #fee2e2; 
+            color: #991b1b; 
+            border: 1px solid #fca5a5; 
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .nav-button {
+            background-color: #1e3a8a; 
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 5px;
+            border: none;
+            text-decoration: none; 
+        }
+        .nav-button:hover {
+            background-color: #1e40af; 
+        }
+        .nav-button.active { 
+            background-color: #fbbf24; 
+            color: #1e293b;
+        }
+        .section {
+            display: block; 
+            padding-top: 80px; 
+            margin-top: -80px; 
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 20px;
+            border-left: 2px solid #3b82f6; 
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -9px; 
+            top: 0;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #3b82f6; 
+            border: 2px solid white;
+        }
+        .figure-card {
+            cursor: pointer;
+            text-align: center;
+        }
+        .figure-card img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 10px;
+            border: 3px solid #93c5fd; 
+            background-color: #e0e7ff; 
+        }
+        .quote-block {
+            border-left: 3px solid #fbbf24; 
+            padding-left: 12px;
+            margin: 12px 0;
+            font-style: italic;
+            color: #475569; 
+        }
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 50; 
+            background-color: rgba(240, 244, 248, 0.9); 
+            backdrop-filter: blur(10px); 
+            -webkit-backdrop-filter: blur(10px); 
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <header class="text-center mb-12">
+        <h1 class="text-4xl md:text-5xl font-bold header-title-font text-blue-700">The American Revolution: An Interactive Journey</h1>
+        <p class="text-lg md:text-xl text-slate-600 mt-2">Exploring the Path to Independence</p>
+    </header>
+
+    <nav class="flex flex-wrap justify-center mb-8">
+        <a href="#poll" class="nav-button" data-section="poll">Start Here: Poll</a>
+        <a href="#causes" class="nav-button" data-section="causes">Causes of Conflict</a>
+        <a href="#sides" class="nav-button" data-section="sides">Choosing Sides</a>
+        <a href="#battles" class="nav-button" data-section="battles">Major Battles</a>
+        <a href="#figures" class="nav-button" data-section="figures">Key Figures</a>
+        <a href="#legacy" class="nav-button" data-section="legacy">Victory & Legacy</a>
+        <a href="#game" class="nav-button" data-section="game">Challenge Game</a>
+    </nav>
+
+    <main id="infographic-content" class="max-w-4xl mx-auto">
+
+        <section id="poll" class="card section">
+            <h2 class="text-2xl font-semibold mb-4 text-blue-600">Quick Poll: What Ignited the Revolution?</h2>
+            <p class="mb-4">Before we explore the details, what do you believe was the primary catalyst for the American Revolution?</p>
+            <div id="poll-options">
+                <button class="quiz-option poll-option-btn" data-poll-answer="A">A) Excessive Taxation (e.g., Stamp Act)</button>
+                <button class="quiz-option poll-option-btn" data-poll-answer="B">B) A Desire for Complete Autonomy</button>
+                <button class="quiz-option poll-option-btn" data-poll-answer="C">C) Lack of Representation in Government</button>
+                <button class="quiz-option poll-option-btn" data-poll-answer="D">D) Territorial Disputes</button>
+            </div>
+            <div id="poll-feedback" class="quiz-feedback mt-4" style="display: none;"></div>
+            <p class="mt-4 text-sm text-slate-500">While historians consider multiple factors, the principle of "No taxation without representation" (Option C) is widely regarded as a central grievance. However, all these elements contributed to the revolutionary sentiment.</p>
+        </section>
+
+        <section id="causes" class="card section">
+            <h2 class="text-2xl font-semibold mb-4 text-blue-600">Causes of the Conflict</h2>
+            <p class="mb-3">The path to revolution was a gradual escalation of tensions. Following the costly <strong>French and Indian War</strong> (1754-1763), Great Britain faced significant debt and sought to have the American colonies contribute financially. This led to a series of new taxes and laws that many colonists viewed as unjust, particularly as they lacked direct representation in the British Parliament.</p>
+            <p class="mb-4">The rallying cry became: <strong>"No taxation without representation!"</strong></p>
+            
+            <h3 class="text-xl font-semibold mb-2">Key British Acts and Colonial Reactions:</h3>
+            <ul class="list-disc list-inside mb-4 space-y-1">
+                <li><strong>Stamp Act (1765):</strong> Imposed a tax on all paper documents in the colonies. Met with widespread protests and boycotts, leading to its repeal.</li>
+                <li><strong>Townshend Acts (1767):</strong> Taxed imported goods such as glass, lead, paint, paper, and tea. These also sparked colonial resistance.</li>
+                <li><strong>Tea Act (1773):</strong> Designed to save the failing British East India Company by granting it a monopoly on the tea trade in the colonies; this undercut colonial merchants and led directly to the Boston Tea Party.</li>
+                <li><strong>Intolerable Acts (Coercive Acts) (1774):</strong> A series of punitive measures enacted by the British Parliament in retaliation for the Boston Tea Party. These included closing Boston Harbor and expanding the Quartering Act.</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold mb-2">Check Your Understanding!</h3>
+            <p class="mb-2">Which of these was NOT a primary tax or series of acts imposed by the British that directly fueled revolutionary sentiment?</p>
+            <div id="quiz1-options">
+                <button class="quiz-option" onclick="checkQuiz(1, 'A', false)">A) Stamp Act</button>
+                <button class="quiz-option" onclick="checkQuiz(1, 'B', false)">B) Tea Act</button>
+                <button class="quiz-option" onclick="checkQuiz(1, 'C', false)">C) Intolerable Acts</button>
+                <button class="quiz-option" onclick="checkQuiz(1, 'D', true)">D) Navigation Acts (While earlier and a source of tension, not a direct trigger in the 1760s-70s like the others)</button>
+            </div>
+            <div id="quiz1-feedback" class="quiz-feedback" style="display: none;"></div>
+        </section>
+
+        <section id="sides" class="card section">
+            <h2 class="text-2xl font-semibold mb-4 text-blue-600">Choosing Sides: Patriots, Loyalists, and Neutrals</h2>
+            <p class="mb-3">The decision to support independence or remain loyal to Britain divided colonial society:</p>
+            <div class="grid md:grid-cols-2 gap-6 mb-4">
+                <div class="p-4 border border-blue-300 rounded-lg bg-blue-50">
+                    <h3 class="text-xl font-semibold text-blue-700 mb-2">🇺🇸 Patriots (or Whigs)</h3>
+                    <p>Advocates for American independence, Patriots believed in self-governance and vehemently opposed British policies they deemed oppressive. They constituted roughly 40-45% of the white colonial population and were willing to engage in armed conflict to achieve their goals.</p>
+                </div>
+                <div class="p-4 border border-red-300 rounded-lg bg-red-50">
+                    <h3 class="text-xl font-semibold text-red-700 mb-2">🇬🇧 Loyalists (or Tories)</h3>
+                    <p>Comprising about 15-20% of the white population, Loyalists maintained their allegiance to the British Crown. Their motivations varied, including strong economic or familial ties to Britain, a belief in the legitimacy of British rule, or fear of the potential anarchy resulting from revolution.</p>
+                </div>
+            </div>
+            <p class="mb-4">A significant portion of the populace, perhaps up to 35-40%, remained <strong>neutral</strong> or sought to avoid direct involvement in the conflict, often due to pacifist beliefs, geographic isolation, or a desire to see how events unfolded.</p>
+            
+            <h3 class="text-xl font-semibold mb-2">Consider the Dilemma...</h3>
+            <p class="mb-2">Imagine you are a colonial farmer in 1775. Your livelihood is tied to the land, and you have family members on both sides of the debate. How might these factors influence your decision to support the Patriots, remain loyal, or stay neutral?</p>
+            <div id="reflection-feedback" class="p-3 bg-yellow-100 border border-yellow-300 rounded-md text-yellow-700">
+                This was a deeply personal and complex decision for many colonists, often leading to fractured communities and families.
+            </div>
+        </section>
+
+        <section id="battles" class="card section">
+            <h2 class="text-2xl font-semibold mb-4 text-blue-600">Major Battles of the Revolution</h2>
+            <p class="mb-4">The Revolutionary War (1775-1783) was marked by several pivotal engagements. Click on a battle to explore its details and significance:</p>
+            <div id="timeline" class="space-y-4">
+                </div>
+            
+            <h3 class="text-xl font-semibold mb-2 mt-6">Check Your Understanding!</h3>
+            <p class="mb-2">Which battle is widely considered the primary turning point of the war, significantly influencing France's decision to formally ally with the Americans?</p>
+            <div id="quiz2-options">
+                <button class="quiz-option" onclick="checkQuiz(2, 'A', false)">A) Lexington & Concord</button>
+                <button class="quiz-option" onclick="checkQuiz(2, 'B', true)">B) Saratoga</button>
+                <button class="quiz-option" onclick="checkQuiz(2, 'C', false)">C) Yorktown</button>
+                <button class="quiz-option" onclick="checkQuiz(2, 'D', false)">D) Bunker Hill</button>
+            </div>
+            <div id="quiz2-feedback" class="quiz-feedback" style="display: none;"></div>
+        </section>
+
+        <section id="figures" class="card section">
+            <h2 class="text-2xl font-semibold mb-4 text-blue-600">Key Figures of the Revolution</h2>
+            <p class="mb-4">Numerous individuals from diverse backgrounds played critical roles in the American Revolution. Click on a figure to learn more about their contributions:</p>
+            <div id="figures-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                </div>
+
+            <h3 class="text-xl font-semibold mb-2 mt-6">Check Your Understanding!</h3>
+            <p class="mb-2">Who is credited as the principal author of the Declaration of Independence?</p>
+            <div id="quiz3-options">
+                <button class="quiz-option" onclick="checkQuiz(3, 'A', false)">A) George Washington</button>
+                <button class="quiz-option" onclick="checkQuiz(3, 'B', true)">B) Thomas Jefferson</button>
+                <button class="quiz-option" onclick="checkQuiz(3, 'C', false)">C) Benjamin Franklin</button>
+                <button class="quiz-option" onclick="checkQuiz(3, 'D', false)">D) John Adams</button>
+            </div>
+            <div id="quiz3-feedback" class="quiz-feedback" style="display: none;"></div>
+        </section>
+
+        <section id="legacy" class="card section">
+            <h2 class="text-2xl font-semibold mb-4 text-blue-600">Victory and the Legacy of Independence</h2>
+            <p class="mb-3">After eight long years of conflict, and with indispensable support from international allies like France, the American colonies achieved their independence. The <strong>Treaty of Paris</strong>, formally signed on September 3, 1783, officially concluded the war and mandated British recognition of the United States of America as a sovereign nation.</p>
+            
+            <h3 class="text-xl font-semibold mb-2">Enduring Significance of the Revolution:</h3>
+            <ul class="list-disc list-inside mb-4 space-y-1">
+                <li><strong>Establishment of the USA:</strong> The most direct outcome was the creation of a new nation founded on principles of liberty, popular sovereignty, and republicanism, though the application of these ideals was initially limited.</li>
+                <li><strong>Inspiration for Global Movements:</strong> The success of the American Revolution served as a powerful inspiration for subsequent independence movements and democratic reforms worldwide, notably influencing the French Revolution.</li>
+                <li><strong>Creation of Foundational Documents:</strong> The revolutionary era produced seminal documents such as the Declaration of Independence, the Articles of Confederation, and ultimately the U.S. Constitution and Bill of Rights, which continue to underpin American governance and societal values.</li>
+                <li><strong>Shift in Global Power Dynamics:</strong> The war significantly weakened the British Empire and signaled the emergence of the United States as a new, influential power on the international stage.</li>
+            </ul>
+
+            <h3 class="text-xl font-semibold mb-2">Check Your Understanding!</h3>
+            <p class="mb-2">True or False: The American Revolution's impact was confined solely to the inhabitants of the American colonies.</p>
+            <div id="quiz4-options">
+                <button class="quiz-option" onclick="checkQuiz(4, 'A', false)">A) True</button>
+                <button class="quiz-option" onclick="checkQuiz(4, 'B', true)">B) False</button>
+            </div>
+            <div id="quiz4-feedback" class="quiz-feedback" style="display: none;"></div>
+            
+            </section>
+
+        <section id="game" class="card section">
+            <h2 class="text-2xl font-semibold mb-4 text-purple-600">Revolutionary Knowledge Challenge</h2>
+            <div id="game-area">
+                <div id="game-start-screen">
+                    <p class="mb-4">Assess your understanding of the American Revolution. Can you achieve the rank of "Historical Strategist"?</p>
+                    <button id="start-game-btn" class="button bg-purple-500 hover:bg-purple-600">Start Challenge</button>
+                </div>
+
+                <div id="game-question-screen" style="display: none;">
+                    <p id="game-question-text" class="text-lg font-medium mb-3"></p>
+                    <div id="game-options-container" class="space-y-2">
+                        </div>
+                    <div id="game-feedback" class="game-feedback mt-3" style="display: none;"></div>
+                    <button id="next-question-btn" class="button mt-4 bg-purple-500 hover:bg-purple-600" style="display: none;">Next Question</button>
+                </div>
+
+                <div id="game-end-screen" style="display: none;">
+                    <h3 id="game-final-score" class="text-xl font-semibold mb-2"></h3>
+                    <p id="game-rank" class="text-lg mb-4"></p>
+                    <button id="play-again-btn" class="button bg-purple-500 hover:bg-purple-600">Play Again</button>
+                </div>
+            </div>
+            <p id="game-score-display" class="mt-4 text-md font-semibold text-purple-700" style="display: none;">Score: <span id="current-score">0</span></p>
+        </section>
+
+
+    </main>
+
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle" class="text-2xl font-semibold mb-3 text-blue-700"></h3>
+            <div id="modalImageContainer" class="mb-3"></div>
+            <div id="modalDescription" class="text-slate-700 space-y-3"></div>
+            <div id="modalExtraInfo" class="text-sm text-slate-600 mt-4"></div>
+            <button id="closeModal" class="button mt-6 w-full">Close</button>
+        </div>
+    </div>
+
+    <footer class="text-center mt-12 mb-6">
+        <p class="text-sm text-slate-500">&copy; <span id="currentYear"></span> The American Revolution: An Interactive Journey. Educational Use.</p>
+    </footer>
+
+    <script>
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // --- Navigation for Single Scroll Page ---
+        const navLinks = document.querySelectorAll('nav a.nav-button');
+        const contentSections = document.querySelectorAll('.section');
+        const navHeight = document.querySelector('nav').offsetHeight;
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault(); 
+                const targetId = this.getAttribute('href');
+                const targetSection = document.querySelector(targetId);
+                if (targetSection) {
+                    const targetPosition = targetSection.getBoundingClientRect().top + window.pageYOffset - navHeight;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        function highlightNavLink() {
+            let currentSectionId = '';
+            contentSections.forEach(section => {
+                const sectionTop = section.getBoundingClientRect().top + window.pageYOffset - navHeight - 50; 
+                if (window.pageYOffset >= sectionTop) {
+                    currentSectionId = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${currentSectionId}`) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        window.addEventListener('scroll', highlightNavLink);
+        window.addEventListener('load', highlightNavLink); 
+
+
+        // --- Poll ---
+        const pollOptions = document.querySelectorAll('.poll-option-btn');
+        const pollFeedback = document.getElementById('poll-feedback');
+        let pollTaken = false;
+
+        pollOptions.forEach(button => {
+            button.addEventListener('click', () => {
+                if (pollTaken) return;
+                pollTaken = true;
+                const userAnswer = button.dataset.pollAnswer;
+                pollFeedback.style.display = 'block';
+                pollFeedback.innerHTML = `You selected Option ${userAnswer}. This is a valid perspective. The principle of "No taxation without representation" (Option C) is widely cited by historians as a crucial factor, though all listed elements contributed to the growing unrest.`;
+                pollFeedback.className = 'quiz-feedback p-3 bg-sky-100 border border-sky-300 rounded-md text-sky-700';
+                pollOptions.forEach(opt => opt.disabled = true);
+            });
+        });
+
+
+        // --- Quizzes ---
+        function checkQuiz(quizNum, selectedAnswer, isCorrect) {
+            const feedbackEl = document.getElementById(`quiz${quizNum}-feedback`);
+            const optionButtons = document.querySelectorAll(`#quiz${quizNum}-options .quiz-option`);
+
+            feedbackEl.style.display = 'block';
+            if (isCorrect) {
+                feedbackEl.textContent = "Correct. Excellent understanding!";
+                feedbackEl.className = 'quiz-feedback correct';
+            } else {
+                let hint = "";
+                if (quizNum === 1) hint = "Consider which set of acts, while historically significant for trade regulation, were not the immediate legislative triggers for the revolutionary war in the 1760s and 1770s compared to direct taxation and punitive measures.";
+                if (quizNum === 2) hint = "This American victory was instrumental in securing foreign aid, particularly from France.";
+                if (quizNum === 3) hint = "This Virginian statesman was renowned for his eloquent writing and articulation of Enlightenment ideals.";
+                if (quizNum === 4) hint = "The Revolution's ideals and outcomes had far-reaching international consequences, inspiring other movements.";
+                feedbackEl.textContent = `Incorrect. ${hint} Please review the relevant section for clarification.`;
+                feedbackEl.className = 'quiz-feedback incorrect';
+            }
+            
+            optionButtons.forEach(button => {
+                button.disabled = true;
+                if (button.textContent.startsWith(selectedAnswer)) {
+                    if(isCorrect) button.classList.add('bg-green-200', 'border-green-400');
+                    else button.classList.add('bg-red-200', 'border-red-400');
+                }
+            });
+        }
+
+
+        // --- Modal ---
+        const modal = document.getElementById('infoModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalImageContainer = document.getElementById('modalImageContainer');
+        const modalDescription = document.getElementById('modalDescription');
+        const modalExtraInfo = document.getElementById('modalExtraInfo');
+        const closeModalBtn = document.getElementById('closeModal');
+
+        function openModal(title, descriptionHTML, extraInfoHTML = "", imageUrl = null, placeholderText = "N/A") {
+            modalTitle.textContent = title;
+            modalDescription.innerHTML = descriptionHTML; 
+            modalExtraInfo.innerHTML = extraInfoHTML;   
+
+            modalImageContainer.innerHTML = ''; 
+            
+            if (placeholderText !== "Battle") {
+                const img = document.createElement('img');
+                img.alt = title;
+                img.className = 'w-32 h-32 object-cover rounded-full mx-auto mb-4 border-4 border-blue-300';
+                
+                img.src = imageUrl && imageUrl.trim() !== "" ? imageUrl : `https://placehold.co/128x128/EBF4FF/1E3A8A?text=${placeholderText.substring(0,2).toUpperCase()}`;
+                
+                img.onerror = function() { 
+                    this.src = `https://placehold.co/128x128/EBF4FF/1E3A8A?text=${placeholderText.substring(0,2).toUpperCase()}`; 
+                    this.onerror=null; 
+                };
+                modalImageContainer.appendChild(img);
+                modalImageContainer.style.display = 'block'; 
+            } else {
+                modalImageContainer.style.display = 'none'; 
+            }
+            
+            modal.classList.add('active');
+        }
+
+        closeModalBtn.addEventListener('click', () => modal.classList.remove('active'));
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && modal.classList.contains('active')) modal.classList.remove('active');
+        });
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) modal.classList.remove('active');
+        });
+
+
+        // --- Dynamic Content: Battles ---
+        const battlesData = [
+             { 
+                name: "Lexington and Concord", 
+                date: "April 19, 1775", 
+                description: `<p>Often cited as the "shot heard 'round the world," these engagements marked the outbreak of open hostilities. British regulars were dispatched from Boston to seize colonial military supplies stored in Concord and to arrest Patriot leaders Samuel Adams and John Hancock, then believed to be in Lexington.</p>
+                              <p>Alerted by riders like Paul Revere and William Dawes, colonial Minutemen confronted the British advance in Lexington. An exchange of fire ensued, resulting in colonial casualties. The British proceeded to Concord, where they encountered more organized resistance at the North Bridge. Facing mounting colonial forces employing guerrilla tactics, the British began a harrowing retreat to Boston, sustaining significant casualties along the way.</p>`,
+                significance: `<strong>Signaled the formal beginning of the American Revolutionary War.</strong> These clashes demonstrated the colonists' resolve to resist British authority through armed force and transformed a series of political disputes into a full-scale military conflict.
+                               <div class="quote-block">Ralph Waldo Emerson's 1837 "Concord Hymn" immortalized the event: <i>"By the rude bridge that arched the flood, / Their flag to April’s breeze unfurled, / Here once the embattled farmers stood, / And fired the shot heard round the world."</i></div>`
+            },
+            { 
+                name: "Bunker Hill (Breed's Hill)", 
+                date: "June 17, 1775", 
+                description: `<p>Primarily fought on Breed's Hill, this battle occurred during the Siege of Boston. Colonial forces occupied the Charlestown Peninsula and fortified the high ground, posing a threat to British positions. The British, under General William Howe, launched three determined frontal assaults against the entrenched colonial militia.</p>
+                              <p>The colonists, critically low on ammunition, were famously instructed (attributed to Colonel William Prescott or General Israel Putnam): <span class="quote-block"><i>"Don't fire until you see the whites of their eyes!"</i></span> This order aimed to conserve ammunition and maximize its effectiveness. Though the British ultimately captured the redoubt after the colonists exhausted their supplies, they suffered exceptionally heavy casualties (over 1,000 killed or wounded, including a significant number of officers).</p>`,
+                significance: `<strong>A costly British victory that underscored the colonists' fighting capability.</strong> While a tactical loss for the Americans, the battle demonstrated that the colonial militia could stand against professional British soldiers and inflicted a severe blow to British military confidence. It also hardened colonial resolve.`
+            },
+            { 
+                name: "Trenton", 
+                date: "December 26, 1776", 
+                description: `<p>Following a series of defeats and with American morale at a nadir, General George Washington executed a bold strategic maneuver. On Christmas night, the Continental Army crossed the ice-filled Delaware River in harsh weather conditions to launch a surprise attack against the Hessian garrison stationed in Trenton, New Jersey.</p>
+                              <p>The Hessians, caught off guard, were decisively defeated. The Americans captured nearly 1,000 prisoners and vital supplies with minimal losses. This victory occurred shortly after Thomas Paine published "The American Crisis," which began with the stirring words: <span class="quote-block"><i>"These are the times that try men's souls. The summer soldier and the sunshine patriot will, in this crisis, shrink from the service of their country; but he that stands it now, deserves the love and thanks of man and woman."</i></span></p>`,
+                significance: `<strong>A crucial American victory that significantly boosted morale.</strong> It revitalized the Patriot cause, encouraged re-enlistments in the Continental Army, and demonstrated Washington's strategic acumen and leadership during a critical period of the war.`
+            },
+            { 
+                name: "Saratoga", 
+                date: "September 19 and October 7, 1777", 
+                description: `<p>The Battles of Saratoga, encompassing the Battle of Freeman's Farm and the Battle of Bemis Heights, were part of a British campaign to isolate New England. British General John Burgoyne's army advanced south from Canada, aiming to link with other British forces. However, American forces, commanded by General Horatio Gates and with notable field leadership from General Benedict Arnold, effectively checked and surrounded Burgoyne's army.</p>
+                              <p>Logistical failures, difficult terrain, and effective American resistance, including the efforts of riflemen and militia, culminated in Burgoyne's surrender of his entire army on October 17, 1777.</p>`,
+                significance: `<strong>Considered the primary turning point of the American Revolution.</strong> This decisive American victory was instrumental in convincing France to formally recognize American independence and enter into a military alliance with the United States. French naval, financial, and military support proved vital to the ultimate American success.`
+            },
+            { 
+                name: "Valley Forge", 
+                date: "Winter 1777-1778", 
+                description: `<p>This was not a battle but the site of the Continental Army's winter encampment. Following campaigns in Pennsylvania, Washington's army faced a severe crisis. Conditions were deplorable: inadequate food, clothing, shelter, and rampant disease (such as typhus and dysentery) led to the deaths of approximately 2,000-2,500 soldiers.</p>
+                              <p>Despite the immense suffering and challenges to his leadership, Washington maintained the army's cohesion. During this period, Baron Friedrich Wilhelm von Steuben, a Prussian military officer, arrived and implemented a rigorous training program that significantly improved the discipline, drill, and professionalism of the Continental Army.</p>
+                              <p>Washington wrote of the conditions: <span class="quote-block"><i>"To see men without clothes to cover their nakedness, without blankets to lie upon, without shoes...and submitting without a murmur, is a proof of patience and obedience which, in my opinion, can scarce be paralleled."</i></span></p>`,
+                significance: `<strong>A symbol of American perseverance and a critical period of transformation for the Continental Army.</strong> Though marked by extreme hardship, the army emerged from Valley Forge more disciplined, better trained, and with a renewed sense of purpose, capable of more effectively confronting the British forces.`
+            },
+            { 
+                name: "Yorktown", 
+                date: "September 28 – October 19, 1781", 
+                description: `<p>The decisive engagement of the war. British General Lord Cornwallis established a fortified position at Yorktown, Virginia, anticipating resupply or evacuation by the Royal Navy. A coordinated Franco-American strategy, however, trapped him. The French fleet, under Admiral de Grasse, achieved naval superiority in the Chesapeake Bay, preventing British relief efforts.</p>
+                              <p>Simultaneously, combined American land forces led by General Washington and French forces led by Comte de Rochambeau besieged Yorktown. Subjected to continuous artillery bombardment and with no prospect of escape or reinforcement, Cornwallis was compelled to surrender his army of over 7,000 soldiers on October 19, 1781. Tradition holds that as the British surrendered, their bands played "The World Turned Upside Down."</p>`,
+                significance: `<strong>The last major land battle of the Revolutionary War, effectively securing American independence.</strong> Cornwallis's surrender shattered British political will to continue the conflict, leading to the commencement of peace negotiations and the eventual signing of the Treaty of Paris.`
+            }
+        ];
+
+        const timelineContainer = document.getElementById('timeline');
+        battlesData.forEach(battle => {
+            const item = document.createElement('div');
+            item.className = 'timeline-item cursor-pointer hover:bg-blue-50 p-3 rounded-md';
+            item.innerHTML = `<h4 class="font-semibold text-lg text-blue-700">${battle.name}</h4><p class="text-sm text-slate-500">${battle.date}</p>`;
+            item.addEventListener('click', () => openModal(
+                battle.name,
+                battle.description, 
+                battle.significance,
+                null, 
+                "Battle" 
+            ));
+            timelineContainer.appendChild(item);
+        });
+
+        // --- Dynamic Content: Figures (UPDATED INFORMATION) ---
+        const figuresData = [
+            { 
+                name: "George Washington", 
+                role: "Commander-in-Chief of the Continental Army throughout the war. His leadership, resilience, and strategic vision were crucial in holding the army together during immense hardships and achieving ultimate victory. He later became the first President of the United States (1789-1797).", 
+                additionalInfo: "Presided over the Constitutional Convention in 1787, which drafted the U.S. Constitution. Often referred to as the 'Father of His Country.' His voluntary relinquishment of power after two presidential terms set a precedent for peaceful transitions.", 
+                imgPlaceholder: "GW", 
+                imageUrl: "" 
+            },
+            { 
+                name: "Thomas Jefferson", 
+                role: "Principal author of the Declaration of Independence (1776), a document that articulated the philosophical underpinnings of American independence based on natural rights and popular sovereignty. Served as Governor of Virginia during the war.", 
+                additionalInfo: "Later became the third U.S. President (1801-1809), orchestrated the Louisiana Purchase, and founded the University of Virginia. He was also a diplomat, architect, inventor, and scholar.", 
+                imgPlaceholder: "TJ", 
+                imageUrl: "/Revolutionimages/TJ.png" 
+            },
+            { 
+                name: "Benjamin Franklin", 
+                role: "A leading statesman, diplomat, scientist, and writer. As a diplomat in France, he was instrumental in securing the Franco-American Alliance of 1778, which provided critical military and financial support to the American cause. He also served on the committee that drafted the Declaration of Independence.", 
+                additionalInfo: "His contributions extended beyond diplomacy; he was a renowned inventor (bifocals, lightning rod), author (Poor Richard's Almanack), and civic leader in Philadelphia. He is the only Founding Father to have signed all four key documents establishing the U.S.: the Declaration of Independence, the Treaty of Alliance with France, the Treaty of Paris, and the Constitution.", 
+                imgPlaceholder: "BF", 
+                imageUrl: "" 
+            },
+            { 
+                name: "John Adams", 
+                role: "A prominent lawyer, diplomat, and a leading voice for independence in the Continental Congress. He played a crucial role in persuading Congress to declare independence and was part of the committee that drafted the Declaration. He also secured vital loans from Dutch bankers during the war.", 
+                additionalInfo: "Served as the first Vice President and later the second U.S. President (1797-1801). His defense of British soldiers after the Boston Massacre, despite personal risk, underscored his commitment to the rule of law. He was a key negotiator of the Treaty of Paris.", 
+                imgPlaceholder: "JA", 
+                imageUrl: "" 
+            },
+            { 
+                name: "Samuel Adams", 
+                role: "A Massachusetts politician, writer, and a fervent organizer of colonial resistance against British policies. He was a leader of the Sons of Liberty and played a significant role in events like the Boston Tea Party. He was a delegate to the Continental Congress.", 
+                additionalInfo: "Known for his powerful oratory and writings that fueled revolutionary sentiment. He was instrumental in establishing committees of correspondence, which facilitated communication and coordination among the colonies. He later served as Governor of Massachusetts.", 
+                imgPlaceholder: "SA", 
+                imageUrl: "" 
+            },
+            { 
+                name: "King George III", 
+                role: "The monarch of Great Britain and Ireland during the American Revolution. He was determined to maintain British authority over the colonies and supported policies that ultimately led to the conflict.", 
+                additionalInfo: "His reign (1760-1820) was one of the longest in British history and saw Britain emerge victorious in the Napoleonic Wars, though it lost its American colonies. He suffered from recurrent, and eventually permanent, mental illness later in his life.", 
+                imgPlaceholder: "KG", 
+                imageUrl: "" 
+            },
+            { 
+                name: "Lord Cornwallis (Charles Cornwallis)", 
+                role: "A prominent British general who served in several campaigns during the Revolutionary War. He achieved notable victories, particularly in the Southern theater (e.g., Battle of Camden).", 
+                additionalInfo: "His surrender at the Siege of Yorktown in 1781 effectively ended major hostilities in the war. Despite this defeat, he later had a distinguished career as Governor-General of India and Lord Lieutenant of Ireland.", 
+                imgPlaceholder: "LC", 
+                imageUrl: "" 
+            },
+            { 
+                name: "Marquis de Lafayette", 
+                role: "A young French aristocrat and military officer who volunteered his services to the Continental Army. He became a close confidant of George Washington and served as a Major General, playing a crucial role in several battles, including the Siege of Yorktown.", 
+                additionalInfo: "His involvement symbolized French support for the American cause even before the formal alliance. He was a passionate advocate for liberty and later played a significant role in the French Revolution of 1789. He is celebrated as a hero in both France and the United States.", 
+                imgPlaceholder: "ML", 
+                imageUrl: "" 
+            }
+        ];
+
+        const figuresGrid = document.getElementById('figures-grid');
+        figuresData.forEach(figure => {
+            const card = document.createElement('div');
+            card.className = 'figure-card p-3 bg-slate-50 rounded-lg hover:shadow-md transition-shadow';
+            
+            const imgElement = document.createElement('img');
+            imgElement.alt = figure.name;
+            imgElement.src = (figure.imageUrl && figure.imageUrl.trim() !== "") ? figure.imageUrl : `https://placehold.co/100x100/A5B4FC/1E293B?text=${figure.imgPlaceholder}`;
+            
+            imgElement.onerror = function() { 
+                this.src = `https://placehold.co/100x100/E0E7FF/4338CA?text=${figure.imgPlaceholder}`;
+                this.onerror = null; 
+            };
+
+            const nameElement = document.createElement('h4');
+            nameElement.className = 'font-semibold text-md text-indigo-700';
+            nameElement.textContent = figure.name;
+
+            card.appendChild(imgElement);
+            card.appendChild(nameElement);
+            
+            card.addEventListener('click', () => openModal(
+                figure.name,
+                `<p>${figure.role}</p>`, 
+                `<p class="mt-2"><strong>Further Details:</strong> ${figure.additionalInfo || 'N/A'}</p>`, 
+                figure.imageUrl, 
+                figure.imgPlaceholder 
+            ));
+            figuresGrid.appendChild(card);
+        });
+
+        // --- Challenge Game Logic ---
+        const gameStartScreen = document.getElementById('game-start-screen');
+        const gameQuestionScreen = document.getElementById('game-question-screen');
+        const gameEndScreen = document.getElementById('game-end-screen');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const gameQuestionText = document.getElementById('game-question-text');
+        const gameOptionsContainer = document.getElementById('game-options-container');
+        const gameFeedbackEl = document.getElementById('game-feedback');
+        const nextQuestionBtn = document.getElementById('next-question-btn');
+        const gameFinalScoreEl = document.getElementById('game-final-score');
+        const gameRankEl = document.getElementById('game-rank');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const gameScoreDisplay = document.getElementById('game-score-display');
+        const currentScoreEl = document.getElementById('current-score');
+
+        const gameQuestions = [
+            { question: "'Give me liberty, or give me death!' Who famously declared this?", options: ["George Washington", "Thomas Paine", "Patrick Henry", "John Adams"], answer: "Patrick Henry" },
+            { question: "The 'shot heard 'round the world' refers to the battles of:", options: ["Saratoga", "Yorktown", "Lexington and Concord", "Bunker Hill"], answer: "Lexington and Concord" },
+            { question: "'I have not yet begun to fight!' is a famous naval quote attributed to:", options: ["Benedict Arnold", "John Paul Jones", "Nathan Hale", "Horatio Gates"], answer: "John Paul Jones" },
+            { question: "Which document officially recognized American independence and ended the war?", options: ["Declaration of Independence", "Articles of Confederation", "Treaty of Paris", "Olive Branch Petition"], answer: "Treaty of Paris" },
+            { question: "This French nobleman became a trusted general under Washington:", options: ["Baron von Steuben", "Comte de Rochambeau", "Marquis de Lafayette", "Casimir Pulaski"], answer: "Marquis de Lafayette" },
+            { question: "The brutal winter encampment that tested the Continental Army's endurance was at:", options: ["Trenton", "Valley Forge", "Monmouth", "Brandywine"], answer: "Valley Forge" },
+            { question: "Who was the King of Great Britain during the American Revolution?", options: ["King George I", "King George II", "King George III", "King William IV"], answer: "King George III" }
+        ];
+
+        let currentGameQuestionIndex = 0;
+        let playerScore = 0;
+        let gameQuestionsShuffled = [];
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+
+        function startGame() {
+            gameQuestionsShuffled = shuffleArray([...gameQuestions]); 
+            currentGameQuestionIndex = 0;
+            playerScore = 0;
+            updateScoreDisplay();
+            gameStartScreen.style.display = 'none';
+            gameEndScreen.style.display = 'none';
+            gameQuestionScreen.style.display = 'block';
+            gameScoreDisplay.style.display = 'block';
+            displayGameQuestion();
+        }
+
+        function displayGameQuestion() {
+            if (currentGameQuestionIndex < gameQuestionsShuffled.length) {
+                const currentQuestion = gameQuestionsShuffled[currentGameQuestionIndex];
+                gameQuestionText.textContent = currentQuestion.question;
+                gameOptionsContainer.innerHTML = ''; 
+                
+                const shuffledOptions = shuffleArray([...currentQuestion.options]);
+
+                shuffledOptions.forEach(option => {
+                    const button = document.createElement('button');
+                    button.className = 'game-option';
+                    button.textContent = option;
+                    button.onclick = () => selectGameAnswer(option, currentQuestion.answer);
+                    gameOptionsContainer.appendChild(button);
+                });
+                gameFeedbackEl.style.display = 'none';
+                nextQuestionBtn.style.display = 'none';
+            } else {
+                endGame();
+            }
+        }
+
+        function selectGameAnswer(selectedOption, correctAnswer) {
+            const optionsButtons = gameOptionsContainer.querySelectorAll('.game-option');
+            optionsButtons.forEach(button => button.disabled = true); 
+
+            gameFeedbackEl.style.display = 'block';
+            if (selectedOption === correctAnswer) {
+                playerScore++;
+                gameFeedbackEl.textContent = "Correct! Well done!";
+                gameFeedbackEl.className = 'game-feedback correct';
+            } else {
+                gameFeedbackEl.textContent = `Not quite. The correct answer was: ${correctAnswer}`;
+                gameFeedbackEl.className = 'game-feedback incorrect';
+            }
+            updateScoreDisplay();
+            nextQuestionBtn.style.display = 'block';
+        }
+
+        function updateScoreDisplay() {
+            currentScoreEl.textContent = playerScore;
+        }
+
+        function nextGameQuestion() {
+            currentGameQuestionIndex++;
+            displayGameQuestion();
+        }
+
+        function endGame() {
+            gameQuestionScreen.style.display = 'none';
+            gameEndScreen.style.display = 'block';
+            gameScoreDisplay.style.display = 'none'; 
+
+            gameFinalScoreEl.textContent = `Your Final Score: ${playerScore} out of ${gameQuestionsShuffled.length}`;
+            
+            let rank = "";
+            const percentage = (playerScore / gameQuestionsShuffled.length) * 100;
+            if (percentage >= 90) rank = "Historical Strategist! Outstanding!"; 
+            else if (percentage >= 70) rank = "Patriot Pro! Excellent knowledge!";
+            else if (percentage >= 50) rank = "Colonial Captain! Good job!";
+            else if (percentage >= 30) rank = "Minuteman Recruit! Keep learning!"; 
+            else rank = "Revolutionary Novice! Review and try again!"; 
+            gameRankEl.textContent = `Your Rank: ${rank}`;
+        }
+
+        startGameBtn.addEventListener('click', startGame);
+        nextQuestionBtn.addEventListener('click', nextGameQuestion);
+        playAgainBtn.addEventListener('click', startGame);
+
+    </script>
+</body>
+</html>
