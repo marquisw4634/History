@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-P8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Articles of Confederation: America's Wartime Government!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+        }
+        .title-font {
+            font-family: 'Patrick Hand', cursive;
+        }
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .question-card {
+            background-color: #e0e7ff; /* Light indigo for questions */
+            border-left: 5px solid #6366f1; /* Indigo border */
+        }
+        .feedback {
+            font-size: 0.9em;
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+        }
+        .feedback.correct {
+            background-color: #d1fae5; /* Light green */
+            color: #065f46; /* Dark green */
+            border: 1px solid #6ee7b7;
+        }
+        .feedback.incorrect {
+            background-color: #fee2e2; /* Light red */
+            color: #991b1b; /* Dark red */
+            border: 1px solid #fca5a5;
+        }
+        .btn {
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        .btn-primary {
+            background-color: #4f46e5; /* Indigo */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca; /* Darker Indigo */
+            transform: scale(1.05);
+        }
+        .btn-secondary {
+            background-color: #6b7280; /* Gray */
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563; /* Darker Gray */
+            transform: scale(1.05);
+        }
+        .section-title {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #374151; /* Dark Gray */
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .section-subtitle {
+            font-size: 1.2em;
+            color: #6b7280; /* Medium Gray */
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .icon {
+            font-size: 2rem;
+            margin-right: 10px;
+            color: #4f46e5; /* Indigo */
+        }
+        #progress-bar-container {
+            width: 100%;
+            background-color: #e5e7eb; /* Light gray */
+            border-radius: 8px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #progress-bar {
+            width: 0%;
+            height: 15px;
+            background-color: #4f46e5; /* Indigo */
+            border-radius: 8px;
+            text-align: center;
+            line-height: 15px;
+            color: white;
+            font-size: 0.7rem;
+            transition: width 0.5s ease-in-out;
+        }
+        .hidden {
+            display: none;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 90%;
+            width: 450px; /* Slightly wider for more text */
+        }
+        .vocab {
+            font-weight: 700;
+            color: #4f46e5; /* Indigo for vocab terms */
+        }
+        .shays-card {
+            background-color: #fff1f2; /* Light red for Shays' Rebellion */
+            border: 1px solid #ff DDE1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div id="progress-bar-container">
+        <div id="progress-bar">0%</div>
+    </div>
+
+    <header class="text-center my-8">
+        <h1 class="title-font text-5xl md:text-6xl text-indigo-700">The Articles of Confederation</h1>
+        <p class="text-xl text-gray-600 mt-2">America's Wartime Government & Its Challenges</p>
+    </header>
+
+    <section id="poll-section" class="card">
+        <h2 class="text-2xl font-semibold text-indigo-600 mb-3 flex items-center"><span class="icon">🤔</span>Before We Dive In: Your Thoughts?</h2>
+        <p class="mb-4 text-gray-700">If you were creating a new government *during* a major war for independence, what would be your biggest concern when giving it powers?</p>
+        <div id="poll-question">
+            <button onclick="handlePoll('win_war')" class="btn btn-primary w-full sm:w-auto mb-2">Making sure the government is strong enough to win the war, no matter what.</button>
+            <button onclick="handlePoll('limit_power')" class="btn btn-primary w-full sm:w-auto mb-2">Making sure the government doesn't become too powerful, like the one we're fighting against.</button>
+        </div>
+        <div id="poll-feedback" class="feedback mt-3 hidden"></div>
+    </section>
+
+    <main id="main-content" class="hidden">
+
+        <section id="intro-section" class="card">
+            <h2 class="text-2xl font-semibold text-indigo-600 mb-3 flex items-center"><span class="icon">📜</span>What Were the Articles, Really? A Wartime Plan!</h2>
+            <p class="text-gray-700 mb-2">Imagine it's the middle of the American Revolutionary War. The Second Continental Congress started drafting the <span class="vocab">Articles of Confederation</span> in 1777, and they were finally <span class="vocab">ratified</span> (approved) by all 13 states in 1781 – while the war was still being fought! This was the first <span class="vocab">constitution</span> (written plan of government) for the "United States of America."</p>
+            <p class="text-gray-700">Because they were created during a war against a powerful king, the Articles aimed to create a <span class="vocab">confederation</span> – a "league of friendship" where states worked together, especially for war, but kept most of their own power. The goal was to have enough unity to fight Britain, but not so much that the central government became a new tyrant.</p>
+            <div class="text-center my-4">
+                <span class="text-4xl">⚔️ ⭐🤝⭐ ⚔️</span>
+                <p class="text-sm text-gray-500">(States united for war, but cautious about central power!)</p>
+            </div>
+        </section>
+
+        <section id="purpose-section" class="card">
+            <h2 class="text-2xl font-semibold text-indigo-600 mb-3 flex items-center"><span class="icon">🎯</span>Why Create Them? Winning the War & Staying Free!</h2>
+            <p class="text-gray-700 mb-2">The main job of the government under the Articles was to manage the Revolutionary War effort and deal with foreign countries. The colonists were fighting to escape the strong control of King George III, so they were terrified of creating another powerful national government.</p>
+            <ul class="list-disc list-inside text-gray-700 mb-4 pl-4">
+                <li><strong>Primary Goal:</strong> Successfully wage war against Great Britain and secure independence. This meant Congress needed powers to declare war, make treaties (like the alliance with France), raise an army (by asking states for troops), and borrow money for the war.</li>
+                <li><strong>BIG Fear:</strong> A central government that could become oppressive, like the British monarchy. They wanted to protect the <span class="vocab">sovereignty</span> (supreme power) of individual states.</li>
+                <li><strong>The Compromise:</strong> A weak central government with specific, limited powers mostly related to war and diplomacy. States kept most of the day-to-day governing power.</li>
+            </ul>
+
+            <div class="question-card p-4 rounded-lg">
+                <h3 class="font-semibold text-lg text-indigo-700 mb-2">🧠 Checkpoint #1: Wartime Worries!</h3>
+                <p class="mb-3 text-gray-800">When creating the Articles *during the Revolutionary War*, the writers were MOST concerned with:</p>
+                <div id="q1-options">
+                    <button onclick="checkAnswer('q1', 'a')" class="btn btn-secondary w-full sm:w-auto">a) Building a very strong national economy immediately.</button>
+                    <button onclick="checkAnswer('q1', 'b')" class="btn btn-secondary w-full sm:w-auto">b) Balancing the need to win the war with the fear of creating a new powerful central ruler.</button>
+                    <button onclick="checkAnswer('q1', 'c')" class="btn btn-secondary w-full sm:w-auto">c) Giving the national government power to tax citizens directly to fund the war.</button>
+                </div>
+                <div id="q1-feedback" class="feedback mt-3 hidden"></div>
+            </div>
+        </section>
+
+        <section id="structure-section" class="card">
+            <h2 class="text-2xl font-semibold text-indigo-600 mb-3 flex items-center"><span class="icon">🏛️</span>How Was It Set Up? A Government for Limited Action</h2>
+            <p class="text-gray-700 mb-3">The government under the Articles was designed to be simple and have limited reach, reflecting wartime needs and fears:</p>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h4 class="font-bold text-xl text-blue-700 mb-2">The National Government (Congress):</h4>
+                    <ul class="list-disc list-inside text-gray-700 space-y-1">
+                        <li><strong>One Branch Only:</strong> A <span class="vocab">unicameral</span> (one-house) <span class="vocab">legislature</span> called the Confederation Congress. No separate president (<span class="vocab">executive branch</span>) or national court system (<span class="vocab">judicial branch</span>).</li>
+                        <li><strong>One Vote Per State:</strong> Regardless of size or population, each state had one vote. This protected smaller states but could be unfair to larger ones.</li>
+                        <li><strong>Key Wartime Powers:</strong> Congress could:
+                            <ul class="list-circle list-inside ml-4 text-sm">
+                                <li>Declare war and make peace.</li>
+                                <li>Command the army and navy (but relied on states for soldiers).</li>
+                                <li>Make <span class="vocab">treaties</span> and alliances (crucial for foreign support like from France).</li>
+                                <li>Borrow money and issue paper money (to fund the war).</li>
+                                <li>Settle disputes between states (though this was difficult).</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <h4 class="font-bold text-xl text-green-700 mb-2">The State Governments:</h4>
+                     <ul class="list-disc list-inside text-gray-700 space-y-1">
+                        <li><strong>Retained Most Power:</strong> States kept all powers not expressly delegated to Congress. This is a core idea of <span class="vocab">states' rights</span>.</li>
+                        <li><strong>Controlled Taxation:</strong> Only states could <span class="vocab">tax</span> their citizens directly to raise <span class="vocab">revenue</span>. Congress had to request funds from states.</li>
+                        <li><strong>Raised Militias:</strong> States were responsible for raising and equipping their own <span class="vocab">militias</span> (citizen armies) for local defense and to contribute to the national effort.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="text-center my-6">
+                <p class="text-gray-600">The setup was like this:</p>
+                <div class="flex justify-center items-center space-x-2 mt-2">
+                    <div class="bg-indigo-200 text-indigo-800 px-3 py-1 rounded-full text-sm">National Gov't (for war/diplomacy)</div>
+                    <div class="text-2xl font-bold text-gray-500">&harr;</div>
+                    <div class="bg-emerald-200 text-emerald-800 px-3 py-1 rounded-full text-sm">Powerful State Gov'ts (for most other things)</div>
+                </div>
+            </div>
+
+            <div class="question-card p-4 rounded-lg mt-6">
+                <h3 class="font-semibold text-lg text-indigo-700 mb-2">🧠 Checkpoint #2: Who Did What?</h3>
+                <p class="mb-3 text-gray-800">Under the Articles, which of these was a power the *national Congress* actually had?</p>
+                <div id="q2-options">
+                    <button onclick="checkAnswer('q2', 'a')" class="btn btn-secondary w-full sm:w-auto">a) Forcing states to provide soldiers for the army.</button>
+                    <button onclick="checkAnswer('q2', 'b')" class="btn btn-secondary w-full sm:w-auto">b) Directly taxing citizens to raise money.</button>
+                    <button onclick="checkAnswer('q2', 'c')" class="btn btn-secondary w-full sm:w-auto">c) Declaring war and making treaties with other countries.</button>
+                </div>
+                <div id="q2-feedback" class="feedback mt-3 hidden"></div>
+            </div>
+        </section>
+
+        <section id="weaknesses-section" class="card">
+            <h2 class="text-2xl font-semibold text-indigo-600 mb-3 flex items-center"><span class="icon">😬</span>Post-War Problems & The Big Wake-Up Call!</h2>
+            <p class="text-gray-700 mb-4">While designed for wartime unity, the Articles had major weaknesses that became glaringly obvious after the Revolutionary War ended in 1783. The country faced new challenges, and the government wasn't equipped to handle them.</p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="bg-red-50 p-3 rounded-lg border border-red-200">
+                    <h4 class="font-bold text-red-700">💸 No Power to Tax Directly</h4>
+                    <p class="text-sm text-gray-600">Congress could only request money from states. Many states paid little or nothing, leaving the national government broke and unable to pay war debts.</p>
+                    <div class="text-3xl text-center py-2">🐖💨</div>
+                </div>
+                <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-300">
+                    <h4 class="font-bold text-yellow-700">💰 No Uniform Currency / Trade Wars</h4>
+                    <p class="text-sm text-gray-600">States had their own money and often taxed goods from other states (<span class="vocab">tariffs</span>). This hurt interstate trade and economic stability.</p>
+                    <div class="text-3xl text-center py-2">💵🆚🪙</div>
+                </div>
+                <div class="bg-purple-50 p-3 rounded-lg border border-purple-200">
+                    <h4 class="font-bold text-purple-700">🤷 No Executive Branch</h4>
+                    <p class="text-sm text-gray-600">No president to enforce laws or provide national leadership. This made consistent policy difficult.</p>
+                    <div class="text-3xl text-center py-2">🚢❓</div>
+                </div>
+                <div class="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                    <h4 class="font-bold text-orange-700">⚖️ No National Judicial Branch</h4>
+                    <p class="text-sm text-gray-600">No national court to settle disputes between states, leading to unresolved conflicts.</p>
+                    <div class="text-3xl text-center py-2">🗣️🆚🗣️</div>
+                </div>
+                <div class="bg-teal-50 p-3 rounded-lg border border-teal-200">
+                    <h4 class="font-bold text-teal-700">🚧 Hard to Pass Laws</h4>
+                    <p class="text-sm text-gray-600">Needed 9 of 13 states to agree for major laws. Getting consensus was rare.</p>
+                    <div class="text-3xl text-center py-2">🚧✋</div>
+                </div>
+                <div class="bg-pink-50 p-3 rounded-lg border border-pink-200">
+                    <h4 class="font-bold text-pink-700">🔒 Nearly Impossible to <span class="vocab">Amend</span></h4>
+                    <p class="text-sm text-gray-600">ALL 13 states had to agree to change the Articles. This meant flaws couldn't be fixed.</p>
+                    <div class="text-3xl text-center py-2">📜🔐</div>
+                </div>
+            </div>
+
+            <div class="shays-card mt-6">
+                <h3 class="font-bold text-2xl text-red-700 mb-3 flex items-center"><span class="icon text-red-600">🔥</span>The Crisis: <span class="vocab">Shays' Rebellion</span> (1786-1787)</h3>
+                <p class="text-gray-700 mb-2">This <span class="vocab">uprising</span> of farmers in Massachusetts became a symbol of the Articles' failures. Here's why it was such a big deal:</p>
+                <ul class="list-disc list-inside text-gray-700 space-y-2 mb-3 pl-4">
+                    <li><strong>The Farmers' Plight:</strong> After the war, many farmers, including former soldiers, faced crushing <span class="vocab">debt</span>. The Massachusetts government raised taxes to pay off its war debts, and demanded payment in hard currency (gold/silver), which was scarce. Farmers who couldn't pay lost their farms and sometimes faced debtors' prison.</li>
+                    <li><strong>The Rebellion:</strong> Led by Daniel Shays, a Revolutionary War veteran, these angry farmers began to protest. They shut down courts to prevent judges from foreclosing on farms. They wanted the state to print more paper money and pass laws to help debtors.</li>
+                    <li><strong>Weak National Response:</strong> Massachusetts asked the Confederation Congress for help to put down the rebellion. But Congress had no power to raise a national army without consent from other states, and no money to pay for one. It was largely powerless to act.</li>
+                    <li><strong>State Action & Aftermath:</strong> Eventually, the Massachusetts state <span class="vocab">militia</span>, funded by wealthy Boston merchants, suppressed the rebellion. While Shays' followers were defeated, the event sent shockwaves across the country.</li>
+                    <li><strong>The Impact – A Call for Change:</strong> Shays' Rebellion terrified many wealthy landowners, merchants, and national leaders like George Washington and James Madison. It exposed the dangerous weaknesses of the national government under the Articles. If the government couldn't maintain order and protect property, they feared the new nation could fall into <span class="vocab">anarchy</span> (chaos, lack of government) or split apart. This fear was a major catalyst that led to the call for a convention in Philadelphia in 1787, originally to <span class="vocab">revise</span> the Articles, but ultimately to replace them with the U.S. <span class="vocab">Constitution</span>.</li>
+                </ul>
+                <p class="text-gray-700 italic font-semibold">Shays' Rebellion dramatically highlighted that a stronger national government was needed to ensure domestic peace and stability.</p>
+            </div>
+
+            <div class="question-card p-4 rounded-lg mt-6">
+                <h3 class="font-semibold text-lg text-indigo-700 mb-2">🧠 Checkpoint #3: Understanding the Crisis</h3>
+                <p class="mb-3 mt-4 text-gray-800"><strong>Question 1:</strong> True or False: Shays' Rebellion was easily and quickly stopped by the national government under the Articles of Confederation.</p>
+                <div id="q3a-options">
+                    <button onclick="checkAnswer('q3a', 'true')" class="btn btn-secondary w-full sm:w-auto">True</button>
+                    <button onclick="checkAnswer('q3a', 'false')" class="btn btn-secondary w-full sm:w-auto">False</button>
+                </div>
+                <div id="q3a-feedback" class="feedback mt-3 hidden"></div>
+
+                <p class="mb-3 mt-4 text-gray-800"><strong>Question 2:</strong> A major lesson from Shays' Rebellion was that:</p>
+                <div id="q3b-options">
+                    <button onclick="checkAnswer('q3b', 'a')" class="btn btn-secondary w-full sm:w-auto">a) The states had too little power and needed more freedom from the national government.</button>
+                    <button onclick="checkAnswer('q3b', 'b')" class="btn btn-secondary w-full sm:w-auto">b) The Articles of Confederation provided a strong enough national government to handle internal unrest.</button>
+                    <button onclick="checkAnswer('q3b', 'c')" class="btn btn-secondary w-full sm:w-auto">c) The national government under the Articles was too weak and a stronger one was needed to maintain order and protect the new nation.</button>
+                </div>
+                <div id="q3b-feedback" class="feedback mt-3 hidden"></div>
+            </div>
+        </section>
+
+
+        <div id="all-done-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2 class="text-3xl font-bold text-indigo-600 mb-4 title-font">You've Got It!</h2>
+                <p class="text-gray-700 mb-3">You've explored the Articles of Confederation, America's first government, born out of war and a fear of strong central power.</p>
+                <p class="text-gray-700 mb-6">Its weaknesses, especially highlighted by <span class="vocab">Shays' Rebellion</span>, showed the need for a new system, leading directly to the creation of the U.S. Constitution. The Articles were a crucial learning experience for the young nation!</p>
+                <button onclick="resetInfographic()" class="btn btn-primary">Explore Again?</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="text-center mt-12 mb-6">
+        <p class="text-sm text-gray-500">&copy; <span id="year"></span> Interactive Learning. Keep Questioning!</p>
+    </footer>
+
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        const sections = ['poll-section', 'intro-section', 'purpose-section', 'structure-section', 'weaknesses-section'];
+        let currentSectionIndex = 0;
+        let correctAnswersCount = 0;
+        const totalQuestions = 4; 
+
+        const progressBar = document.getElementById('progress-bar');
+        const mainContent = document.getElementById('main-content');
+        const pollSection = document.getElementById('poll-section');
+        const allDoneModal = document.getElementById('all-done-modal');
+
+        function updateProgressBar() {
+            let sectionsCompleted = 0;
+            if (currentSectionIndex > 0) { 
+                sectionsCompleted = currentSectionIndex; 
+            }
+            const totalMainSections = sections.length - 1; 
+            const percentage = totalMainSections > 0 ? Math.round((sectionsCompleted / totalMainSections) * 100) : 0;
+            
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = percentage + '%';
+        }
+
+        function handlePoll(choice) {
+            const feedbackEl = document.getElementById('poll-feedback');
+            let feedbackText = "That's a key consideration! ";
+            if (choice === 'win_war') {
+                feedbackText += "Absolutely, winning the war was critical. The challenge was how to do that without giving the new government too much power that could be abused later.";
+            } else { 
+                feedbackText += "This was a huge fear for the founders! They had just fought a war against a powerful king and were determined not to create another one. This heavily influenced the Articles.";
+            }
+            feedbackEl.textContent = feedbackText;
+            feedbackEl.className = 'feedback p-3 bg-sky-100 text-sky-700 border border-sky-300 rounded';
+            feedbackEl.classList.remove('hidden');
+
+            document.querySelectorAll('#poll-question button').forEach(btn => btn.disabled = true);
+            
+            mainContent.classList.remove('hidden');
+            currentSectionIndex = 1; 
+            updateProgressBar();
+            scrollToSection(sections[currentSectionIndex]); // Scroll to intro after poll
+        }
+
+        const answers = {
+            q1: 'b', 
+            q2: 'c', 
+            q3a: 'false',
+            q3b: 'c'
+        };
+
+        const feedbackText = {
+            q1: {
+                b: "Correct! This was the central dilemma. They needed a government effective enough to manage the war but not so strong that it threatened the liberties they were fighting for.",
+                a: "While a good economy was a long-term goal, the immediate crisis of the war and the fear of tyranny were more pressing in shaping the Articles.",
+                c: "Actually, they specifically AVOIDED giving Congress direct taxing power. They feared it too much, which became a major weakness."
+            },
+            q2: {
+                c: "You got it! Declaring war and making treaties were key powers given to Congress, essential for managing the Revolutionary War and international relations.",
+                a: "Not quite. Congress could request troops from states, but couldn't *force* them to provide soldiers. This was a weakness.",
+                b: "Incorrect. Only states could directly tax citizens. Congress had to ask states for money, which often didn't come."
+            },
+            q3a: {
+                false: "Correct! The national government under the Articles was too weak to stop Shays' Rebellion effectively. Massachusetts had to use its own state militia.",
+                true: "Actually, this is false. The national government's inability to deal with Shays' Rebellion highlighted its severe weaknesses."
+            },
+            q3b: {
+                c: "Exactly! Shays' Rebellion scared many leaders into believing that the Articles were too weak to maintain order and that a stronger national government was essential for the survival of the new nation.",
+                a: "The opposite was true. Shays' Rebellion showed that states having *too much* power relative to a weak national government could lead to chaos.",
+                b: "Definitely not! It showed the government was far too weak to handle such internal problems."
+            }
+        };
+
+        function checkAnswer(questionId, selectedAnswer) {
+            const feedbackEl = document.getElementById(questionId + '-feedback');
+            const correctAnswer = answers[questionId];
+            const optionsContainer = document.getElementById(questionId + '-options');
+
+            optionsContainer.querySelectorAll('button').forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent.toLowerCase().startsWith(selectedAnswer.toLowerCase().substring(0,1))) {
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+
+            if (selectedAnswer === correctAnswer) {
+                feedbackEl.textContent = feedbackText[questionId][correctAnswer];
+                feedbackEl.className = 'feedback correct';
+                correctAnswersCount++;
+            } else {
+                feedbackEl.textContent = feedbackText[questionId][selectedAnswer] || "That's not quite right. Think about the main powers (or lack thereof) of the central government under the Articles.";
+                feedbackEl.className = 'feedback incorrect';
+            }
+            feedbackEl.classList.remove('hidden');
+            
+            let advance = false;
+            if (questionId === 'q1' || questionId === 'q2') {
+                 advance = true;
+            } else if (questionId === 'q3a') {
+                const q3bFeedback = document.getElementById('q3b-feedback');
+                if (!q3bFeedback.classList.contains('hidden')) { 
+                    advance = true;
+                }
+            } else if (questionId === 'q3b') { 
+                 const q3aFeedback = document.getElementById('q3a-feedback');
+                if (!q3aFeedback.classList.contains('hidden')) { 
+                    advance = true; 
+                }
+            }
+
+            if(advance){
+                advanceToNextConceptualSection(); // Changed function name
+            }
+        }
+
+        // Renamed and modified function
+        function advanceToNextConceptualSection() {
+            setTimeout(() => {
+                if (currentSectionIndex === sections.length - 1) {
+                    // This was the last set of questions in the last section.
+                    updateProgressBar(); // Ensure it's 100%
+                    allDoneModal.classList.remove('hidden');
+                } else if (currentSectionIndex < sections.length - 1) {
+                    currentSectionIndex++; // Conceptually move to the next section
+                    updateProgressBar();
+                    // SCROLLING REMOVED HERE: The user can now manually scroll.
+                }
+            }, 1500); 
+        }
+
+        function scrollToSection(sectionId) {
+            const sectionElement = document.getElementById(sectionId);
+            if (sectionElement) {
+                sectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+        
+        function resetInfographic() {
+            allDoneModal.classList.add('hidden');
+            mainContent.classList.add('hidden');
+            
+            const pollFeedbackEl = document.getElementById('poll-feedback');
+            pollFeedbackEl.classList.add('hidden');
+            pollFeedbackEl.textContent = '';
+            document.querySelectorAll('#poll-question button').forEach(btn => btn.disabled = false);
+
+            ['q1', 'q2', 'q3a', 'q3b'].forEach(qId => {
+                const feedbackEl = document.getElementById(qId + '-feedback');
+                if (feedbackEl) {
+                    feedbackEl.classList.add('hidden');
+                    feedbackEl.textContent = '';
+                    feedbackEl.className = 'feedback mt-3 hidden';
+                }
+                const optionsContainer = document.getElementById(qId + '-options');
+                if (optionsContainer) {
+                    optionsContainer.querySelectorAll('button').forEach(btn => {
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50');
+                    });
+                }
+            });
+            
+            currentSectionIndex = 0;
+            correctAnswersCount = 0;
+            updateProgressBar(); 
+            scrollToSection('poll-section'); // Scroll to poll on reset
+        }
+
+        window.onload = () => {
+            window.scrollTo(0, 0);
+            updateProgressBar(); 
+        };
+    </script>
+</body>
+</html>
