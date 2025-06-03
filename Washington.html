@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>George Washington's Presidency: An Interactive Infographic</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            color: #1e293b; /* Dark slate text */
+        }
+        .title-font {
+            font-family: 'Montserrat', sans-serif;
+        }
+        .card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .interactive-section h3.toggler { /* Renamed for clarity */
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0; /* Light gray border */
+        }
+        .interactive-section h3.toggler:hover {
+            color: #2563eb; /* Blue hover */
+        }
+        .interactive-content {
+            display: none;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+            margin-top: -1px; /* Align with border */
+        }
+        .icon-placeholder { /* Basic styling for SVG icons */
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+            fill: currentColor;
+        }
+        .farewell-theme {
+            background-color: #eef2ff; /* Lighter blue for themes */
+            border-left: 4px solid #4f46e5; /* Indigo border */
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: #334155; /* Darker slate for tooltip */
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position above the text */
+            left: 50%;
+            margin-left: -110px; /* Center the tooltip */
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.875rem;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        .expand-icon {
+            transition: transform 0.3s ease;
+        }
+        .expanded .expand-icon {
+            transform: rotate(90deg);
+        }
+        /* Custom modal styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 100; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto; /* 10% from the top and centered */
+            padding: 24px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+            max-width: 600px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        /* Check for understanding styles */
+        .check-understanding {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9fafb; /* Very light gray */
+            border-radius: 8px;
+            border: 1px solid #e5e7eb; /* Light border */
+        }
+        .check-understanding p {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .check-understanding label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: normal;
+        }
+        .check-understanding input[type="radio"] {
+            margin-right: 8px;
+        }
+        .check-understanding button {
+            background-color: #3b82f6; /* Blue */
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 0.875rem;
+        }
+        .check-understanding button:hover {
+            background-color: #2563eb; /* Darker blue */
+        }
+        .feedback {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+        .feedback.correct {
+            background-color: #d1fae5; /* Green light */
+            color: #065f46; /* Green dark */
+            border: 1px solid #6ee7b7;
+        }
+        .feedback.incorrect {
+            background-color: #fee2e2; /* Red light */
+            color: #991b1b; /* Red dark */
+            border: 1px solid #fca5a5;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white py-12 shadow-lg">
+        <div class="container mx-auto px-6 text-center">
+            <img src="https://placehold.co/150x150/A9A9A9/FFFFFF?text=GW&font=montserrat" 
+                 alt="George Washington" 
+                 class="w-32 h-32 mx-auto rounded-full mb-6 border-4 border-blue-300 shadow-md object-cover" 
+                 onerror="this.src='/Revolutionimages/GW1.jpg'; this.alt='Error loading image of George Washington';">
+            <h1 class="text-4xl md:text-5xl font-bold title-font mb-2">George Washington: Forging a Nation</h1>
+            <p class="text-lg md:text-xl text-blue-200">The First President & His Enduring Legacy (1789-1797)</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 md:px-6 py-8">
+
+        <section id="intro" class="card">
+            <h2 class="text-2xl font-bold title-font mb-4 text-indigo-700">The Man Who Wouldn't Be King</h2>
+            <p class="mb-3">After leading the Continental Army to victory in the Revolutionary War, George Washington was the unanimous choice to be the first President of the United States. He wasn't just a leader; he was a symbol of unity and integrity for the new nation. His presidency was all about setting up the government, navigating new challenges, and laying the foundation for America's future.</p>
+            <p class="text-sm text-gray-600"><strong>Did you know?</strong> Washington was the only president to be unanimously elected by the Electoral College. Twice!</p>
+        
+            <div class="check-understanding">
+                <p>Quick Check: Why was Washington chosen as the first president?</p>
+                <label><input type="radio" name="intro_q1" value="a"> A) He was the wealthiest man in America.</label>
+                <label><input type="radio" name="intro_q1" value="b"> B) He was a symbol of unity and had led the army to victory.</label>
+                <label><input type="radio" name="intro_q1" value="c"> C) He wrote the Declaration of Independence.</label>
+                <button onclick="checkAnswer('intro_q1', 'b', 'feedback_intro_q1')">Check Answer</button>
+                <div id="feedback_intro_q1" class="feedback" style="display:none;"></div>
+            </div>
+        </section>
+
+        <section id="precedents" class="card">
+            <h2 class="text-2xl font-bold title-font mb-6 text-indigo-700 flex items-center">
+                <svg class="icon-placeholder text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M2 5a3 3 0 013-3h10a3 3 0 013 3v1.75a.75.75 0 01-1.5 0V5a1.5 1.5 0 00-1.5-1.5H5A1.5 1.5 0 003.5 5v10A1.5 1.5 0 005 16.5h7.5a.75.75 0 010 1.5H5a3 3 0 01-3-3V5zm11.25 3.52a.75.75 0 01.671.912l-3.001 6.5a.75.75 0 01-1.342-.624l3.001-6.5a.75.75 0 01.67-.288zM15.75 9a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V9.75a.75.75 0 01.75-.75z" clip-rule="evenodd" /></svg>
+                Setting the Stage: Presidential Firsts
+            </h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="interactive-section bg-gray-50 p-4 rounded-lg">
+                    <h3 class="toggler" onclick="toggleContent('cabinet')">
+                        The First Cabinet
+                        <svg class="expand-icon w-6 h-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </h3>
+                    <div id="cabinet" class="interactive-content text-sm">
+                        <p class="mb-2">Washington knew he couldn't run the country alone. He created the first <span class="tooltip font-semibold text-blue-600">Cabinet<span class="tooltiptext">A group of advisors to the President, heading different departments.</span></span>, a team of experts to advise him:</p>
+                        <ul class="list-disc list-inside ml-4 space-y-1 text-gray-700">
+                            <li><strong>Thomas Jefferson:</strong> Secretary of State (foreign affairs)</li>
+                            <li><strong>Alexander Hamilton:</strong> Secretary of the Treasury (money matters)</li>
+                            <li><strong>Henry Knox:</strong> Secretary of War (defense)</li>
+                            <li><strong>Edmund Randolph:</strong> Attorney General (chief lawyer)</li>
+                        </ul>
+                        <button onclick="showModal('cabinetModal')" class="mt-3 text-sm text-blue-600 hover:text-blue-800 font-semibold">Meet the Cabinet &rarr;</button>
+                    </div>
+                </div>
+                <div class="interactive-section bg-gray-50 p-4 rounded-lg">
+                    <h3 class="toggler" onclick="toggleContent('twoTerms')">
+                        The Two-Term Tradition
+                        <svg class="expand-icon w-6 h-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </h3>
+                    <div id="twoTerms" class="interactive-content text-sm">
+                        <p>Washington chose to step down after two terms (8 years). This wasn't a law then, but it set a powerful <span class="tooltip font-semibold text-blue-600">precedent<span class="tooltiptext">An example that others follow.</span></span> that most presidents followed until the 22nd Amendment made it official in 1951.</p>
+                        <p class="mt-2"><strong>Why step down?</strong> He wanted to show that power could be transferred peacefully and that the President was not a king.</p>
+                    </div>
+                </div>
+            </div>
+             <div class="check-understanding mt-6"> <p>Quick Check: What important precedent regarding presidential terms did Washington set?</p>
+                <label><input type="radio" name="precedents_q1" value="a"> A) Serving for life.</label>
+                <label><input type="radio" name="precedents_q1" value="b"> B) Serving only one term.</label>
+                <label><input type="radio" name="precedents_q1" value="c"> C) Stepping down after two terms.</label>
+                <button onclick="checkAnswer('precedents_q1', 'c', 'feedback_precedents_q1')">Check Answer</button>
+                <div id="feedback_precedents_q1" class="feedback" style="display:none;"></div>
+            </div>
+        </section>
+
+        <section id="challenges" class="card">
+            <h2 class="text-2xl font-bold title-font mb-6 text-indigo-700 flex items-center">
+                <svg class="icon-placeholder text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 2zM10 15a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 15zM10 7a3 3 0 100 6 3 3 0 000-6zM4.138 4.138a.75.75 0 010 1.06l-1.06 1.06a.75.75 0 01-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm11.724 11.724a.75.75 0 010 1.06l-1.06 1.06a.75.75 0 01-1.06-1.06l1.06-1.06a.75.75 0 011.06 0zm-1.06-10.607a.75.75 0 011.06 0l1.06 1.06a.75.75 0 11-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zm-10.607 11.724a.75.75 0 011.06 0l1.06 1.06a.75.75 0 01-1.06 1.06l-1.06-1.06a.75.75 0 010-1.06zM10 3.25a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5z" /></svg>
+                Navigating a New Nation: Policies & Problems
+            </h2>
+            <div class="space-y-6">
+                <div class="interactive-section bg-gray-50 p-4 rounded-lg">
+                    <h3 class="toggler" onclick="toggleContent('financialPlan')">
+                        Hamilton's Financial Plan
+                        <svg class="expand-icon w-6 h-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </h3>
+                    <div id="financialPlan" class="interactive-content text-sm">
+                        <p>The new nation was broke! Alexander Hamilton, Secretary of the Treasury, had a plan:</p>
+                        <ul class="list-disc list-inside ml-4 my-2 space-y-1 text-gray-700">
+                            <li><strong>Pay off war debts:</strong> The federal government would take on states' debts.</li>
+                            <li><strong>Create a National Bank:</strong> To manage government money and issue currency.</li>
+                            <li><strong>Taxes:</strong> On imported goods (tariffs) and some domestic products (like whiskey).</li>
+                        </ul>
+                        <p>This plan was controversial but helped establish the country's financial stability.</p>
+                        <button onclick="showModal('hamiltonModal')" class="mt-3 text-sm text-blue-600 hover:text-blue-800 font-semibold">Why was it controversial? &rarr;</button>
+                    </div>
+                </div>
+                <div class="interactive-section bg-gray-50 p-4 rounded-lg">
+                    <h3 class="toggler" onclick="toggleContent('whiskeyRebellion')">
+                        The Whiskey Rebellion (1794)
+                        <svg class="expand-icon w-6 h-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </h3>
+                    <div id="whiskeyRebellion" class="interactive-content text-sm">
+                        <p>Farmers in Western Pennsylvania were furious about a tax on whiskey (which they often used like money). They rebelled, attacking tax collectors.</p>
+                        <p class="mt-2"><strong>Washington's Response:</strong> He personally led about 13,000 troops to put down the rebellion. This showed that the new federal government was strong and would enforce its laws.</p>
+                        <button onclick="showModal('whiskeyModal')" class="mt-3 text-sm text-blue-600 hover:text-blue-800 font-semibold">More on the Rebellion &rarr;</button>
+                    </div>
+                </div>
+                 <div class="interactive-section bg-gray-50 p-4 rounded-lg">
+                    <h3 class="toggler" onclick="toggleContent('neutrality')">
+                        Staying Neutral: Foreign Policy
+                        <svg class="expand-icon w-6 h-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </h3>
+                    <div id="neutrality" class="interactive-content text-sm">
+                        <p>When war broke out between France (an old ally) and Great Britain (a major trade partner), many Americans wanted to pick a side. Washington, however, issued the <span class="tooltip font-semibold text-blue-600">Neutrality Proclamation (1793)<span class="tooltiptext">A formal announcement that the U.S. would not take sides in the war between France and Britain.</span></span>.</p>
+                        <p class="mt-2">He believed the young nation was too fragile to get involved in European conflicts. This set a course for American foreign policy for many years.</p>
+                         <button onclick="showModal('neutralityModal')" class="mt-3 text-sm text-blue-600 hover:text-blue-800 font-semibold">Why was neutrality tricky? &rarr;</button>
+                    </div>
+                </div>
+            </div>
+            <div class="check-understanding mt-6">
+                <p>Quick Check: How did Washington respond to the Whiskey Rebellion?</p>
+                <label><input type="radio" name="challenges_q1" value="a"> A) He ignored it, hoping it would go away.</label>
+                <label><input type="radio" name="challenges_q1" value="b"> B) He repealed the whiskey tax immediately.</label>
+                <label><input type="radio" name="challenges_q1" value="c"> C) He personally led troops to enforce the law.</label>
+                <button onclick="checkAnswer('challenges_q1', 'c', 'feedback_challenges_q1')">Check Answer</button>
+                <div id="feedback_challenges_q1" class="feedback" style="display:none;"></div>
+            </div>
+        </section>
+
+        <section id="farewell" class="card">
+            <h2 class="text-2xl font-bold title-font mb-6 text-indigo-700 flex items-center">
+                <svg class="icon-placeholder text-indigo-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M3.5 2.75a.75.75 0 00-1.5 0v14.5a.75.75 0 001.5 0V14.5zM20 9.5H5.75a.75.75 0 010-1.5H20a.75.75 0 010 1.5z" /></svg> Parting Words: The Farewell Address (1796)
+            </h2>
+            <p class="mb-4">As he left office, Washington wrote a letter to the American people. It wasn't a speech, but a published message filled with advice and warnings for the future of the nation. It's one of the most famous documents in American history!</p>
+            <p class="mb-6 text-sm text-gray-600">Click on each theme to learn more about Washington's advice:</p>
+
+            <div class="space-y-4">
+                <div class="interactive-section farewell-theme p-4 rounded-lg">
+                    <h3 class="toggler" onclick="toggleContent('unity')">
+                        Strength in Unity
+                        <svg class="expand-icon w-6 h-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </h3>
+                    <div id="unity" class="interactive-content text-sm">
+                        <p>Washington stressed that the <span class="tooltip font-semibold text-blue-600">unity of the states<span class="tooltiptext">Keeping all the states together as one country.</span></span> was essential for America's success and happiness. He warned against anything that might pull the country apart, like regional jealousies (North vs. South, East vs. West).</p>
+                        <blockquote class="mt-2 pl-3 border-l-2 border-indigo-500 italic text-gray-700">"The name of AMERICAN, which belongs to you in your national capacity, must always exalt the just pride of patriotism more than any appellation derived from local discriminations."</blockquote>
+                    </div>
+                </div>
+
+                <div class="interactive-section farewell-theme p-4 rounded-lg">
+                    <h3 class="toggler" onclick="toggleContent('factions')">
+                        Dangers of Political Parties
+                        <svg class="expand-icon w-6 h-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </h3>
+                    <div id="factions" class="interactive-content text-sm">
+                        <p>Even though political parties (or "factions" as he called them) were already forming (Federalists vs. Democratic-Republicans), Washington warned they could be dangerous. He worried they would:</p>
+                        <ul class="list-disc list-inside ml-4 my-2 space-y-1 text-gray-700">
+                            <li>Distract from national issues.</li>
+                            <li>Lead to "revenge" politics.</li>
+                            <li>Open the door to foreign influence.</li>
+                        </ul>
+                        <p>He urged Americans to prioritize national interest over party loyalty.</p>
+                    </div>
+                </div>
+
+                <div class="interactive-section farewell-theme p-4 rounded-lg">
+                    <h3 class="toggler" onclick="toggleContent('foreignAlliances')">
+                        Avoid Permanent Foreign Alliances
+                        <svg class="expand-icon w-6 h-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </h3>
+                    <div id="foreignAlliances" class="interactive-content text-sm">
+                        <p>Washington advised the U.S. to "steer clear of permanent alliances with any portion of the foreign world." He believed in friendly relations and trade with all nations, but warned against getting entangled in Europe's frequent wars and quarrels.</p>
+                        <p class="mt-2">This didn't mean isolation, but rather maintaining independence in foreign policy. <span class="tooltip font-semibold text-blue-600">Temporary alliances<span class="tooltiptext">Alliances for specific emergencies, not long-term commitments.</span></span> for emergencies were okay.</p>
+                    </div>
+                </div>
+                 <div class="interactive-section farewell-theme p-4 rounded-lg">
+                    <h3 class="toggler" onclick="toggleContent('morality')">
+                        Religion and Morality
+                        <svg class="expand-icon w-6 h-6 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </h3>
+                    <div id="morality" class="interactive-content text-sm">
+                        <p>Washington called religion and morality the "indispensable supports" of political prosperity. He believed that a moral citizenry was crucial for good government and the success of the republic.</p>
+                        <blockquote class="mt-2 pl-3 border-l-2 border-indigo-500 italic text-gray-700">"Of all the dispositions and habits which lead to political prosperity, religion and morality are indispensable supports."</blockquote>
+                    </div>
+                </div>
+            </div>
+            <div class="check-understanding mt-6">
+                <p>Quick Check: What was one major warning in Washington's Farewell Address?</p>
+                <label><input type="radio" name="farewell_q1" value="a"> A) The dangers of political parties (factions).</label>
+                <label><input type="radio" name="farewell_q1" value="b"> B) The need to conquer more territory.</label>
+                <label><input type="radio" name="farewell_q1" value="c"> C) The importance of a strong monarchy.</label>
+                <button onclick="checkAnswer('farewell_q1', 'a', 'feedback_farewell_q1')">Check Answer</button>
+                <div id="feedback_farewell_q1" class="feedback" style="display:none;"></div>
+            </div>
+        </section>
+
+        <section id="legacy" class="card text-center">
+            <h2 class="text-2xl font-bold title-font mb-4 text-indigo-700">An Enduring Legacy</h2>
+            <p class="mb-3">George Washington's presidency was more than just a term in office; it was the blueprint for the American executive. His actions and decisions, especially his voluntary relinquishing of power, shaped the course of the nation and set a standard for leadership.</p>
+            <p class="text-lg font-semibold text-indigo-600">"Observe good faith and justice towards all nations; cultivate peace and harmony with all." - George Washington, Farewell Address</p>
+        </section>
+    </main>
+
+    <div id="cabinetModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('cabinetModal')">&times;</span>
+            <h3 class="text-xl font-bold mb-3 title-font text-indigo-700">Meet the First Cabinet</h3>
+            <p class="text-sm mb-2">Washington's Cabinet was small but mighty, filled with some of the era's brightest minds (who often disagreed!).</p>
+            <ul class="list-disc list-inside text-sm space-y-1">
+                <li><strong>Thomas Jefferson (State):</strong> Managed relations with other countries. Later became the 3rd President. Famously clashed with Hamilton.</li>
+                <li><strong>Alexander Hamilton (Treasury):</strong> Architect of the U.S. financial system. Advocated for a strong central government.</li>
+                <li><strong>Henry Knox (War):</strong> A trusted general from the Revolution, he oversaw the nation's defenses.</li>
+                <li><strong>Edmund Randolph (Attorney General):</strong> The government's chief lawyer. Later became Secretary of State.</li>
+            </ul>
+            <p class="text-xs mt-4 text-gray-500">This system of department heads advising the President continues today, though the Cabinet is much larger!</p>
+        </div>
+    </div>
+
+    <div id="hamiltonModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('hamiltonModal')">&times;</span>
+            <h3 class="text-xl font-bold mb-3 title-font text-indigo-700">Hamilton's Plan: The Debate</h3>
+            <p class="text-sm mb-2">Hamilton's financial plan was groundbreaking but faced strong opposition, especially from Jefferson and Madison.</p>
+            <strong class="text-sm">Key Points of Contention:</strong>
+            <ul class="list-disc list-inside text-sm space-y-1 mt-1 mb-2">
+                <li><strong>Assumption of State Debts:</strong> States that had already paid their debts (like Virginia) felt it was unfair to help pay for states that hadn't. Hamilton argued it would unify the country and build credit.</li>
+                <li><strong>National Bank:</strong> Opponents argued the Constitution didn't explicitly give Congress power to create a bank (a "strict construction" view). Hamilton argued it was "necessary and proper" (a "loose construction" view).</li>
+                <li><strong>Economic Vision:</strong> Hamilton envisioned an America with a strong industrial and commercial economy. Jefferson favored an agrarian republic of small farmers.</li>
+            </ul>
+            <p class="text-xs mt-4 text-gray-500">The debate over Hamilton's plan highlighted early divisions in American politics that would lead to the first political parties.</p>
+        </div>
+    </div>
+
+    <div id="whiskeyModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('whiskeyModal')">&times;</span>
+            <h3 class="text-xl font-bold mb-3 title-font text-indigo-700">The Whiskey Rebellion: More Than Just Whiskey</h3>
+            <p class="text-sm mb-2">The tax on whiskey hit western farmers hard. For them, whiskey wasn't just a drink:</p>
+            <ul class="list-disc list-inside text-sm space-y-1 mt-1 mb-2">
+                <li>It was easier to transport and sell than bulky grain.</li>
+                <li>It was often used as a form of currency.</li>
+            </ul>
+            <p class="text-sm mb-2">The rebellion tested the new government's authority. Washington's decisive action demonstrated that the federal government would enforce its laws, a crucial step in establishing its power and credibility.</p>
+            <p class="text-xs mt-4 text-gray-500">It was a clear message: armed rebellion against federal law would not be tolerated.</p>
+        </div>
+    </div>
+
+     <div id="neutralityModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('neutralityModal')">&times;</span>
+            <h3 class="text-xl font-bold mb-3 title-font text-indigo-700">The Tightrope of Neutrality</h3>
+            <p class="text-sm mb-2">Declaring neutrality was easier said than done. The U.S. had strong ties and pressures from both sides:</p>
+            <ul class="list-disc list-inside text-sm space-y-1 mt-1 mb-2">
+                <li><strong>France:</strong> An ally from the Revolution (Treaty of Alliance 1778). Many Americans, like Jefferson, sympathized with the French Revolution's ideals.</li>
+                <li><strong>Great Britain:</strong> The U.S.'s largest trading partner. Hamilton and Federalists favored closer ties with Britain for economic stability.</li>
+            </ul>
+            <p class="text-sm mb-2">Both Britain and France interfered with American shipping. Washington's administration had to navigate these challenges carefully, leading to treaties like Jay's Treaty (with Britain) and Pinckney's Treaty (with Spain, influenced by European events).</p>
+            <p class="text-xs mt-4 text-gray-500">Washington's commitment to neutrality aimed to protect the young nation from being drawn into devastating European wars, allowing it time to grow stronger.</p>
+        </div>
+    </div>
+
+
+    <footer class="text-center py-8 bg-gray-800 text-gray-400 text-sm">
+        <p>&copy; <span id="currentYear"></span> Interactive Infographics Inc. All Rights Reserved.</p>
+        <p>An educational resource for learning about American History.</p>
+    </footer>
+
+    <script>
+        function toggleContent(id) {
+            const content = document.getElementById(id);
+            const header = content.previousElementSibling; // The h3.toggler tag
+            if (content.style.display === 'block') {
+                content.style.display = 'none';
+                header.classList.remove('expanded');
+            } else {
+                content.style.display = 'block';
+                header.classList.add('expanded');
+            }
+        }
+
+        // Modal script
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = "block";
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+
+        // Close modal if user clicks outside of it
+        window.onclick = function(event) {
+            const modals = document.getElementsByClassName('modal');
+            for (let i = 0; i < modals.length; i++) {
+                if (event.target == modals[i]) {
+                    modals[i].style.display = "none";
+                }
+            }
+        }
+
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Check for Understanding Script
+        function checkAnswer(questionName, correctAnswer, feedbackId) {
+            const feedbackEl = document.getElementById(feedbackId);
+            const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
+
+            if (!selectedOption) {
+                feedbackEl.textContent = "Please select an answer.";
+                feedbackEl.className = 'feedback incorrect'; // Use 'incorrect' style for prompt
+                feedbackEl.style.display = 'block';
+                return;
+            }
+
+            if (selectedOption.value === correctAnswer) {
+                feedbackEl.textContent = "Correct! Great job.";
+                feedbackEl.className = 'feedback correct';
+            } else {
+                feedbackEl.textContent = "Not quite. Try reviewing the section again or think about other options.";
+                feedbackEl.className = 'feedback incorrect';
+            }
+            feedbackEl.style.display = 'block';
+        }
+    </script>
+
+</body>
+</html>
