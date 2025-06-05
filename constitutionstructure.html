@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Remixing the Rules: Inside the Constitutional Convention!</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+
+        header {
+            background-color: #4a90e2;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-bottom: 5px solid #357ABD;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #ffffff;
+        }
+
+        h2 {
+            color: #357ABD;
+            border-bottom: 2px solid #4a90e2;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h3 {
+            color: #1e528c;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        h3:hover {
+            color: #4a90e2;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #pre-reading-poll label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        #pre-reading-poll button {
+            background-color: #5cb85c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
+        }
+
+        #pre-reading-poll button:hover {
+            background-color: #4cae4c;
+        }
+
+        .feedback {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .feedback.correct {
+            color: green;
+        }
+
+        .feedback.incorrect {
+            color: red;
+        }
+
+        .interactive-card {
+            background-color: #e9f2fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border-left: 5px solid #4a90e2;
+        }
+
+        .debate-content ul, .branch-info ul, .checks-balances-list ul {
+            padding-left: 20px;
+        }
+
+        .debate-content li, .branch-info li, .checks-balances-list li {
+            margin-bottom: 8px;
+        }
+
+        .did-you-know {
+            background-color: #fffbe6;
+            border: 1px dashed #ffe58f;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 4px;
+            font-style: italic;
+        }
+
+        .did-you-know strong {
+            font-style: normal;
+        }
+
+        .branches-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap; /* Allows wrapping on smaller screens */
+            gap: 15px; /* Adds space between cards */
+            margin-bottom: 20px;
+        }
+
+        .branch-card {
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            width: calc(33.333% - 20px); /* Adjust width for 3 columns, considering gap */
+            box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-align: center;
+        }
+
+        .branch-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .branch-card h3 {
+            margin-top: 0;
+            color: #4a90e2;
+        }
+
+        .branch-card p:first-of-type { /* Targets the "Makes/Enforces/Interprets the Laws" text */
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #555;
+        }
+
+
+        .branch-info {
+            margin-top: 15px;
+            text-align: left; /* Align text to left inside the expanded info */
+            padding: 10px;
+            background-color: #e9f2fa; /* Light blue background for content */
+            border-radius: 5px;
+        }
+
+        .checks-balances-list > li {
+            background-color: #f7f7f7;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            border-left: 3px solid #ffa726; /* Orange accent */
+        }
+
+        .checks-balances-list ul {
+            margin-top: 5px;
+        }
+
+        .quiz-button {
+            background-color: #ffc107;
+            color: #333;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        .quiz-button:hover {
+            background-color: #e0a800;
+        }
+
+        .quiz-container {
+            background-color: #e9ecef;
+            padding: 20px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+
+        .quiz-container h4 {
+            margin-top: 0;
+            color: #357ABD;
+        }
+
+        .quiz-container label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .quiz-container button {
+            background-color: #28a745;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 5px;
+            margin-bottom: 10px; /* Space before feedback */
+        }
+
+        .quiz-container button:hover {
+            background-color: #218838;
+        }
+
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #333;
+            color: #eee;
+            margin-top: 30px;
+            font-size: 0.9em;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2em;
+            }
+
+            .branches-container {
+                flex-direction: column;
+            }
+
+            .branch-card {
+                width: 100%; /* Full width on smaller screens */
+                margin-bottom: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.5em;
+            }
+            main {
+                padding: 10px;
+            }
+            section {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📜 Remixing the Rules: Inside the Constitutional Convention! 📜</h1>
+    </header>
+
+    <main>
+        <!-- Pre-Reading Poll Section -->
+        <section id="pre-reading-poll">
+            <h2>🤔 Before We Dive In... A Quick Poll! 🤔</h2>
+            <p>Imagine you're designing a new government for a country with diverse states. What do you think would be the BIGGEST challenge?</p>
+            <form id="poll-form">
+                <label><input type="radio" name="poll" value="representation"> A) Making sure every state, big or small, feels fairly represented.</label><br>
+                <label><input type="radio" name="poll" value="leader_power"> B) Deciding how powerful the national leader should be.</label><br>
+                <label><input type="radio" name="poll" value="rights_balance"> C) Balancing the rights of individual citizens with the power of the government.</label><br>
+                <label><input type="radio" name="poll" value="agreement"> D) Getting states with very different economies and beliefs to agree on anything!</label><br>
+                <button type="button" onclick="submitPoll()">Vote!</button>
+            </form>
+            <p id="poll-feedback" class="feedback"></p>
+        </section>
+
+        <!-- Introduction Section -->
+        <section id="introduction" class="content-section hidden">
+            <h2>👋 Welcome, Future Historians! 👋</h2>
+            <p>The year is 1787. The brand-new United States of America is... well, not doing so great. The first set of rules, the <strong>Articles of Confederation</strong>, made the central government too weak. Think of it like a group project where no one is really in charge – chaos, right? So, leaders from most of the states met in Philadelphia during a hot summer to try and fix things. This meeting was called the <strong>Constitutional Convention</strong>. Their goal? To create a new, stronger framework for the government. But it wasn't easy! Let's see what went down.</p>
+            <div class="did-you-know">
+                <p><strong>🤫 Did You Know?</strong> The delegates swore to keep their discussions secret! They didn't want outside pressure or public opinion to sway their debates. Windows were kept closed even in the summer heat to ensure privacy!</p>
+            </div>
+        </section>
+
+        <!-- Main Debates Section -->
+        <section id="main-debates" class="content-section hidden">
+            <h2>💥 The Big Debates & Cool Compromises 💥</h2>
+            <p>Imagine a room full of smart, passionate people with VERY different ideas. That was the Constitutional Convention! Here are some of the biggest arguments and how they settled them (mostly with compromises – meaning everyone gave a little to get something done).</p>
+
+            <!-- Debate Card 1: Representation -->
+            <div class="interactive-card">
+                <h3 onclick="toggleDebate('debate1')">Debate #1: The Great State Debate (Representation) 🤔🆚😲</h3>
+                <div id="debate1" class="debate-content hidden">
+                    <p><strong>The Problem:</strong> How should states be represented in the new Congress? Big states (like Virginia) wanted representation based on population (more people = more votes). Small states (like New Jersey) wanted equal representation (every state gets the same number of votes, no matter its size).</p>
+                    <p><strong>The Sides:</strong></p>
+                    <ul>
+                        <li><strong>Virginia Plan (Big States):</strong> Two houses in Congress, both with representation based on population.</li>
+                        <li><strong>New Jersey Plan (Small States):</strong> One house in Congress, with equal votes for each state.</li>
+                    </ul>
+                    <p><strong>The Outcome: The Great Compromise (or Connecticut Compromise) 🎉</strong></p>
+                    <p>They created a <strong>bicameral</strong> (two-house) Congress:</p>
+                    <ul>
+                        <li><strong>The House of Representatives:</strong> Representation based on state population (pleased the big states).</li>
+                        <li><strong>The Senate:</strong> Each state gets two Senators, regardless of population (pleased the small states).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Debate Card 2: Slavery -->
+            <div class="interactive-card">
+                <h3 onclick="toggleDebate('debate2')">Debate #2: The Slavery Question ⚫⚪</h3>
+                <div id="debate2" class="debate-content hidden">
+                    <p><strong>The Problem:</strong> This was a deeply divisive issue. Southern states wanted enslaved people to be counted for representation in Congress (to get more power) but not for taxation. Northern states generally opposed this.</p>
+                    <p><strong>The Sides:</strong></p>
+                    <ul>
+                        <li><strong>Southern States:</strong> Argued enslaved individuals should boost their population counts for more representatives.</li>
+                        <li><strong>Northern States:</strong> Argued that if enslaved people were considered property for other purposes, they shouldn't be counted for representation, or if they were, they should also be counted for taxation.</li>
+                    </ul>
+                    <p><strong>The Outcome: The Three-Fifths Compromise 😔</strong></p>
+                    <p>A grim compromise was reached: For purposes of both representation and taxation, three-fifths of the enslaved population would be counted. This meant that for every five enslaved people, three would be added to the state's population count. The convention also agreed to not ban the slave trade for at least 20 years (until 1808).</p>
+                    <div class="did-you-know">
+                        <p><strong>💔 Historical Note:</strong> The compromises over slavery had tragic long-term consequences, contributing to the tensions that eventually led to the Civil War. The Constitution, in its original form, did not abolish slavery.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debate Card 3: Presidential Power -->
+            <div class="interactive-card">
+                <h3 onclick="toggleDebate('debate3')">Debate #3: Power to the President? 👑❓</h3>
+                <div id="debate3" class="debate-content hidden">
+                    <p><strong>The Problem:</strong> After living under a powerful king, many were wary of giving one person too much authority. But the weak executive under the Articles of Confederation wasn't working either. How strong should the new national leader (the President) be, and how should they be chosen?</p>
+                    <p><strong>The Sides:</strong></p>
+                    <ul>
+                        <li><strong>Strong Executive Advocates:</strong> Wanted a single president with significant powers, possibly elected for a long term or even life.</li>
+                        <li><strong>Limited Executive Advocates:</strong> Feared a single powerful executive, preferring a weaker council or an executive elected by the legislature for a short term.</li>
+                    </ul>
+                    <p><strong>The Outcome: A Single President with Checks ⚖️</strong></p>
+                    <p>They decided on a single President, elected for a four-year term. To prevent tyranny, the President's powers would be limited by the other branches of government (Congress and the courts). The method of election was also a compromise: the <strong>Electoral College</strong>. Instead of a direct popular vote, citizens vote for electors who then cast the official votes for President.</p>
+                </div>
+            </div>
+            <!-- Debates Quiz Button and Container -->
+             <button class="quiz-button" onclick="showQuiz('debates-quiz')">Test Your Debate Knowledge!</button>
+            <div id="debates-quiz" class="quiz-container hidden">
+                <h4>Quick Check: Debates!</h4>
+                <p>1. The Great Compromise created a Congress with:</p>
+                <label><input type="radio" name="q1_debates" value="a"> One house based on population.</label><br>
+                <label><input type="radio" name="q1_debates" value="b"> Two houses: one with equal representation, one based on population.</label><br>
+                <label><input type="radio" name="q1_debates" value="c"> One house with equal representation for all states.</label><br>
+                <button onclick="checkAnswer('q1_debates', 'b', 'feedback1_debates')">Check Answer</button>
+                <p id="feedback1_debates" class="feedback"></p>
+
+                <p>2. The Three-Fifths Compromise was about:</p>
+                <label><input type="radio" name="q2_debates" value="a"> How to divide land in new territories.</label><br>
+                <label><input type="radio" name="q2_debates" value="b"> How many votes the President would have.</label><br>
+                <label><input type="radio" name="q2_debates" value="c"> How to count enslaved people for representation and taxation.</label><br>
+                <button onclick="checkAnswer('q2_debates', 'c', 'feedback2_debates')">Check Answer</button>
+                <p id="feedback2_debates" class="feedback"></p>
+            </div>
+        </section>
+
+        <!-- Government Structure Section -->
+        <section id="government-structure" class="content-section hidden">
+            <h2>🏛️ Building the Government: The Three Branches 🏛️</h2>
+            <p>The framers didn't want any one part of the government to become too powerful. So, they created a system with three distinct branches, each with its own jobs and powers. This is called <strong>Separation of Powers</strong>.</p>
+            <div class="branches-container">
+                <!-- Legislative Branch Card -->
+                <div class="branch-card" onclick="showBranchInfo('legislative')">
+                    <h3>🌳 Legislative Branch (Congress)</h3>
+                    <p><em>Makes the Laws</em></p>
+                    <div id="legislative-info" class="branch-info hidden">
+                        <p><strong>Who are they?</strong> Congress = The House of Representatives + The Senate.</p>
+                        <p><strong>House of Representatives:</strong> Members based on state population (currently 435). Reps serve 2-year terms. Must be 25 years old.</p>
+                        <p><strong>Senate:</strong> 2 Senators per state (100 total). Senators serve 6-year terms. Must be 30 years old.</p>
+                        <p><strong>Main Job:</strong> To write, debate, and pass bills (proposals for laws). If both houses pass a bill and the President signs it, it becomes law!</p>
+                        <p><strong>Key Powers:</strong></p>
+                        <ul>
+                            <li>Make laws (duh!)</li>
+                            <li>Declare war</li>
+                            <li>Control government spending (the "power of the purse")</li>
+                            <li>Approve presidential appointments (Senate)</li>
+                            <li>Impeach (formally accuse) government officials</li>
+                        </ul>
+                         <div class="did-you-know">
+                            <p><strong>💡 Fun Fact:</strong> Only the House of Representatives can introduce bills about taxes!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Executive Branch Card -->
+                <div class="branch-card" onclick="showBranchInfo('executive')">
+                    <h3>🦅 Executive Branch (President & Team)</h3>
+                    <p><em>Enforces the Laws</em></p>
+                     <div id="executive-info" class="branch-info hidden">
+                        <p><strong>Who are they?</strong> The President, Vice President, and the Cabinet (heads of major departments like Treasury, Defense, Education, etc.).</p>
+                        <p><strong>The President:</strong> Head of state and government. Serves a 4-year term (can be elected twice). Must be 35 years old, a natural-born citizen, and lived in the U.S. for 14 years.</p>
+                        <p><strong>Main Job:</strong> To make sure the laws passed by Congress are carried out and enforced.</p>
+                        <p><strong>Key Powers:</strong></p>
+                        <ul>
+                            <li>Sign bills into law or veto (reject) them</li>
+                            <li>Commander-in-Chief of the armed forces</li>
+                            <li>Make treaties with other countries (with Senate approval)</li>
+                            <li>Appoint federal judges, ambassadors, and other officials (with Senate approval)</li>
+                            <li>Issue Executive Orders (directives that have the force of law)</li>
+                        </ul>
+                         <div class="did-you-know">
+                            <p><strong>🎖️ Did You Know?</strong> The President is also the Commander-in-Chief of the U.S. military but cannot declare war – only Congress can do that!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Judicial Branch Card -->
+                <div class="branch-card" onclick="showBranchInfo('judicial')">
+                    <h3>⚖️ Judicial Branch (Courts)</h3>
+                    <p><em>Interprets the Laws</em></p>
+                    <div id="judicial-info" class="branch-info hidden">
+                        <p><strong>Who are they?</strong> The Supreme Court (the highest court) and other federal courts.</p>
+                        <p><strong>Supreme Court:</strong> Made up of 9 Justices (one Chief Justice and eight Associate Justices). Appointed by the President and confirmed by the Senate. They serve for life (or until they retire/resign)!</p>
+                        <p><strong>Main Job:</strong> To interpret laws and the Constitution, settle disputes, and ensure justice is served. They decide if a law is "constitutional" (agrees with the Constitution).</p>
+                        <p><strong>Key Powers:</strong></p>
+                        <ul>
+                            <li><strong>Judicial Review:</strong> The power to declare laws or executive actions unconstitutional (this power was established later in <em>Marbury v. Madison</em>, 1803, but is a cornerstone of their power).</li>
+                            <li>Hear cases involving federal laws, treaties, and the Constitution.</li>
+                            <li>Settle disputes between states.</li>
+                        </ul>
+                        <div class="did-you-know">
+                            <p><strong>👩‍⚖️ Fun Fact:</strong> The Supreme Court gets to choose which cases it hears, usually ones that involve significant constitutional questions or where lower courts have disagreed.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Checks and Balances Subsection -->
+            <h3>🔄 Checks and Balances: Keeping Everyone in Line! 🔄</h3>
+            <p>To make EXTRA sure no branch gets too bossy, the Constitution includes a system of <strong>checks and balances</strong>. This means each branch has ways to limit the power of the other two.</p>
+            <ul class="checks-balances-list">
+                <li><strong>Legislative (Congress) checks on Executive (President):</strong>
+                    <ul>
+                        <li>Can override a President's veto with a 2/3 vote.</li>
+                        <li>Can impeach and remove the President.</li>
+                        <li>Senate approves presidential appointments and treaties.</li>
+                        <li>Controls the budget.</li>
+                    </ul>
+                </li>
+                <li><strong>Legislative (Congress) checks on Judicial (Courts):</strong>
+                    <ul>
+                        <li>Can impeach and remove federal judges.</li>
+                        <li>Creates lower federal courts.</li>
+                        <li>Can propose amendments to the Constitution to overturn judicial decisions.</li>
+                        <li>Senate confirms judicial appointments.</li>
+                    </ul>
+                </li>
+                <li><strong>Executive (President) checks on Legislative (Congress):</strong>
+                    <ul>
+                        <li>Can veto laws passed by Congress.</li>
+                        <li>Can call special sessions of Congress.</li>
+                    </ul>
+                </li>
+                <li><strong>Executive (President) checks on Judicial (Courts):</strong>
+                    <ul>
+                        <li>Appoints federal judges (including Supreme Court Justices).</li>
+                        <li>Can grant pardons for federal crimes.</li>
+                    </ul>
+                </li>
+                <li><strong>Judicial (Courts) checks on Legislative (Congress):</strong>
+                    <ul>
+                        <li>Can declare laws unconstitutional (Judicial Review).</li>
+                    </ul>
+                </li>
+                <li><strong>Judicial (Courts) checks on Executive (President):</strong>
+                    <ul>
+                        <li>Can declare executive actions unconstitutional (Judicial Review).</li>
+                        <li>Chief Justice presides over impeachment trials of the President.</li>
+                    </ul>
+                </li>
+            </ul>
+            <p>It's like a super-important game of rock-paper-scissors, but for running a country!</p>
+
+            <!-- Structure Quiz Button and Container -->
+            <button class="quiz-button" onclick="showQuiz('structure-quiz')">Test Your Government Structure Knowledge!</button>
+            <div id="structure-quiz" class="quiz-container hidden">
+                <h4>Quick Check: Branches & Balances!</h4>
+                <p>1. Which branch MAKES the laws?</p>
+                <label><input type="radio" name="q1_structure" value="a"> Executive</label><br>
+                <label><input type="radio" name="q1_structure" value="b"> Judicial</label><br>
+                <label><input type="radio" name="q1_structure" value="c"> Legislative</label><br>
+                <button onclick="checkAnswer('q1_structure', 'c', 'feedback1_structure')">Check Answer</button>
+                <p id="feedback1_structure" class="feedback"></p>
+
+                <p>2. The President can veto a law, but Congress can...</p>
+                <label><input type="radio" name="q2_structure" value="a"> Ignore the veto.</label><br>
+                <label><input type="radio" name="q2_structure" value="b"> Override the veto with a 2/3 vote.</label><br>
+                <label><input type="radio" name="q2_structure" value="c"> Ask the Supreme Court to cancel the veto.</label><br>
+                <button onclick="checkAnswer('q2_structure', 'b', 'feedback2_structure')">Check Answer</button>
+                <p id="feedback2_structure" class="feedback"></p>
+
+                <p>3. The power of Judicial Review means the Supreme Court can:</p>
+                <label><input type="radio" name="q3_structure" value="a"> Write new laws.</label><br>
+                <label><input type="radio" name="q3_structure" value="b"> Declare laws unconstitutional.</label><br>
+                <label><input type="radio" name="q3_structure" value="c"> Appoint the President.</label><br>
+                <button onclick="checkAnswer('q3_structure', 'b', 'feedback3_structure')">Check Answer</button>
+                <p id="feedback3_structure" class="feedback"></p>
+            </div>
+        </section>
+
+        <!-- Conclusion Section -->
+        <section id="conclusion" class="content-section hidden">
+            <h2>📜 A "Living Document" & Why It Matters Today 📜</h2>
+            <p>The Constitution wasn't perfect (as the compromises on slavery showed), but it created a flexible framework for government that has lasted over 235 years! It's often called a "living document" because it can be changed through <strong>amendments</strong> (official additions or changes). There have been 27 amendments so far, including the Bill of Rights (the first 10 amendments, protecting individual freedoms).</p>
+            <p>Understanding the debates, compromises, and structure of the Constitution helps us understand how our government works today and why certain issues are still debated. It's the rulebook for our nation, and knowing the rules is the first step to being an informed citizen!</p>
+            <div class="did-you-know">
+                <p><strong>🤓 Who were some key players?</strong> George Washington (President of the Convention), James Madison ("Father of the Constitution" for his notes and ideas), Alexander Hamilton (strong national government advocate), Roger Sherman (key to the Great Compromise), and Benjamin Franklin (the wise old statesman offering guidance).</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Infographic by AI. Always double-check historical facts with reliable sources like the National Archives, Constitution Center, or academic texts.</p>
+        <p>Today's Date: <span id="currentDate"></span></p>
+    </footer>
+
+    <script>
+        // JavaScript for interactivity
+
+        // Function to handle the pre-reading poll submission
+        function submitPoll() {
+            const pollForm = document.getElementById('poll-form');
+            const feedbackEl = document.getElementById('poll-feedback');
+            const selectedOption = pollForm.querySelector('input[name="poll"]:checked');
+
+            if (selectedOption) {
+                feedbackEl.textContent = "Great thought! All of these were HUGE challenges at the Constitutional Convention. Let's see how they tackled them!";
+                feedbackEl.className = 'feedback correct'; // Use a general 'correct' class or a specific one
+                // Show the rest of the content sections
+                document.getElementById('introduction').classList.remove('hidden');
+                document.getElementById('main-debates').classList.remove('hidden');
+                document.getElementById('government-structure').classList.remove('hidden');
+                document.getElementById('conclusion').classList.remove('hidden');
+            } else {
+                feedbackEl.textContent = "Please select an option to vote!";
+                feedbackEl.className = 'feedback incorrect';
+            }
+        }
+
+        // Function to toggle the visibility of debate content
+        function toggleDebate(debateId) {
+            const content = document.getElementById(debateId);
+            content.classList.toggle('hidden');
+        }
+
+        // Function to show information for a specific branch of government
+        function showBranchInfo(branchId) {
+            // Hide all branch info sections first to ensure only one is open
+            document.getElementById('legislative-info').classList.add('hidden');
+            document.getElementById('executive-info').classList.add('hidden');
+            document.getElementById('judicial-info').classList.add('hidden');
+
+            // Show the selected branch's information
+            const infoElement = document.getElementById(branchId + '-info');
+            if (infoElement) {
+                infoElement.classList.remove('hidden');
+            }
+        }
+
+        // Function to show a specific quiz container
+        function showQuiz(quizId) {
+            const quizContainer = document.getElementById(quizId);
+            if (quizContainer) {
+                quizContainer.classList.remove('hidden');
+            }
+        }
+
+        // Function to check the user's answer for a quiz question
+        function checkAnswer(questionName, correctAnswer, feedbackId) {
+            const selectedOption = document.querySelector(`input[name="${questionName}"]:checked`);
+            const feedbackEl = document.getElementById(feedbackId);
+
+            if (selectedOption) {
+                if (selectedOption.value === correctAnswer) {
+                    feedbackEl.textContent = "Correct! 🎉 Great job!";
+                    feedbackEl.className = 'feedback correct';
+                } else {
+                    feedbackEl.textContent = "Not quite. Try again or review the section! 🤔";
+                    feedbackEl.className = 'feedback incorrect';
+                }
+            } else {
+                feedbackEl.textContent = "Please select an answer.";
+                feedbackEl.className = 'feedback incorrect';
+            }
+        }
+
+        // Event listener to run functions once the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Set the current date in the footer
+            const dateElement = document.getElementById('currentDate');
+            if (dateElement) {
+                const today = new Date();
+                dateElement.textContent = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+            }
+
+            // Optional: Automatically open the first branch info as an example, or keep them all closed
+            // showBranchInfo('legislative');
+        });
+    </script>
+</body>
+</html>
