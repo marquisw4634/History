@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>James Madison: Constitutional Convention</title>
+    <!-- Tailwind CSS CDN for easy styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to start to prevent excessive vertical centering on small content */
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .game-container {
+            max-width: 800px;
+            width: 100%;
+            background-color: #ffffff;
+            border-radius: 1rem; /* Rounded corners */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2.5rem; /* Increased padding */
+            animation: fadeIn 0.8s ease-out;
+            margin-bottom: 20px; /* Space for the log below */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .option-button {
+            background-color: #4f46e5; /* Indigo */
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.75rem; /* Rounded corners */
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            font-weight: 600;
+        }
+        .option-button:hover {
+            background-color: #4338ca; /* Darker indigo on hover */
+            transform: translateY(-2px);
+        }
+        .option-button:active {
+            background-color: #3730a3; /* Even darker on active */
+            transform: translateY(0);
+        }
+        .consequence-box {
+            background-color: #e0f2f7; /* Light blue */
+            border-left: 4px solid #0ea5e9; /* Cyan border */
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border-radius: 0.5rem;
+            font-style: italic;
+            color: #0c4a6e; /* Darker blue text */
+        }
+        .ending-success {
+            background-color: #d1fae5; /* Light green */
+            border-left: 4px solid #10b981; /* Green border */
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            color: #065f46; /* Darker green text */
+            text-align: center;
+            font-size: 1.25rem;
+        }
+        .ending-failure {
+            background-color: #fee2e2; /* Light red */
+            border-left: 4px solid #ef4444; /* Red border */
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            color: #991b1b; /* Darker red text */
+            text-align: center;
+            font-size: 1.25rem;
+        }
+        .history-log-container {
+            max-width: 800px;
+            width: 100%;
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2.5rem;
+            margin-top: 20px; /* Space above the log */
+        }
+        .log-item {
+            border-bottom: 1px dashed #e5e7eb;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .log-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .log-choice {
+            font-weight: 600;
+            color: #4f46e5; /* Indigo */
+        }
+        .log-consequence {
+            font-style: italic;
+            color: #374151; /* Darker gray */
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
+    <div id="game-container" class="game-container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">James Madison: Architect of a Nation</h1>
+        <div id="narrative-text" class="text-lg text-gray-700 leading-relaxed mb-8"></div>
+        <div id="options-container" class="space-y-4"></div>
+    </div>
+
+    <div id="history-log-container" class="history-log-container hidden">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Your Choices & Outcomes</h2>
+        <div id="history-log" class="space-y-4"></div>
+    </div>
+
+    <script>
+        // Define the entire branching narrative structure
+        const story = {
+            'intro': {
+                text: "Philadelphia, Summer 1787. The air is thick with tension and the smell of revolution's aftermath. Delegates from across the fledgling United States have gathered in secret, tasked with nothing less than salvaging a nation teetering on the brink under the weak Articles of Confederation. You are James Madison, a delegate from Virginia, deeply committed to a strong, unified republic. Your vision, laid out in the 'Virginia Plan,' calls for a radical departure from the past. The debates are fierce, the stakes unimaginable. Your choices will determine the fate of the United States.",
+                options: [
+                    { text: "Begin the Convention", nextScene: "virginiaPlan" }
+                ]
+            },
+            'virginiaPlan': {
+                text: "The stage is set. You rise to present the Virginia Plan, advocating for a strong national government with proportional representation in both houses of a bicameral legislature. This proposal immediately sparks a fundamental debate: how will states be represented in the new government?",
+                options: [
+                    { text: "Emphasize that proportional representation is the only fair way for a truly national government.", nextScene: "representationDebate_proportional", consequence: "This stance pleases large states but immediately alarms smaller states, who fear being swallowed by larger populations." },
+                    { text: "Stress the necessity of a powerful national government capable of addressing national problems, even if it requires compromise on representation.", nextScene: "executivePower", consequence: "This approach signals flexibility, easing immediate tensions but leaving the representation issue simmering." }
+                ]
+            },
+            'representationDebate_proportional': {
+                text: "The debate over representation rages. Small states, led by New Jersey, propose their own plan for equal representation. The convention is deadlocked, threatening to dissolve. A compromise emerges: the Great Compromise (Connecticut Compromise), proposing proportional representation in the House and equal representation in the Senate.",
+                options: [
+                    { text: "Reluctantly support the Great Compromise to preserve the Convention.", nextScene: "executivePower", consequence: "You swallow your pride, recognizing the necessity of this compromise to prevent the convention's collapse. Small states are appeased, for now." },
+                    { text: "Insist on strict proportional representation in both houses, arguing against equal representation.", nextScene: "representationDebate_breakdown", consequence: "Your steadfastness alienates small states further. Whispers of their withdrawal from the convention grow louder." }
+                ]
+            },
+            'representationDebate_breakdown': {
+                text: "Your unwavering stance on proportional representation has pushed the small states to the brink. Delegates from Delaware and New Jersey openly threaten to leave the convention, declaring that the current path would lead to the ruin of their states' sovereignty. The convention is teetering on the edge of collapse. Can you salvage it?",
+                options: [
+                    { text: "Acknowledge the need for compromise and publicly endorse the Great Compromise, despite your reservations.", nextScene: "executivePower", consequence: "A dramatic shift in your position. Relief washes over the convention as the Great Compromise passes. The convention is saved, but you've learned the hard way about the power of unity over principle." },
+                    { text: "State that a strong national government requires proportional representation to be truly democratic, and if states cannot agree, the union is doomed.", nextScene: "ending_failure_representation", consequence: "Your uncompromising stance is met with grim faces. Several small state delegations walk out, effectively ending the convention." }
+                ]
+            },
+            'executivePower': {
+                text: "With representation tentatively settled, the focus shifts to the executive branch. How much power should a single president wield? Some fear a monarchy, while others insist on a strong leader to enforce laws and govern effectively.",
+                options: [
+                    { text: "Advocate for a strong, independent executive with broad powers, arguing for efficiency and decisive leadership.", nextScene: "executivePower_debate", consequence: "This proposal sparks vigorous debate, with some delegates expressing fears of a tyrannical executive and demanding immediate safeguards." },
+                    { text: "Argue for a more limited executive, with checks and balances to prevent abuse of power, emphasizing collective decision-making.", nextScene: "slaveryDebate", consequence: "This approach calms some fears, but others worry about a weak executive incapable of leading the nation. It allows the convention to progress." }
+                ]
+            },
+            'executivePower_debate': {
+                text: "Your strong advocacy for a powerful executive has stirred deep anxieties among many delegates, particularly those from states that recently fought against monarchical rule. Fears of a new tyranny are openly voiced. The convention is now divided on the very nature of the executive branch.",
+                options: [
+                    { text: "Compromise: Suggest a system of checks and balances on the executive, including a legislative veto or power-sharing.", nextScene: "slaveryDebate", consequence: "You concede on some executive powers, reassuring fearful delegates. This allows the convention to move forward, albeit with a slightly less powerful presidency than you initially envisioned." },
+                    { text: "Insist that a strong executive is non-negotiable for national stability and reject significant checks on its power.", nextScene: "ending_failure_executive", consequence: "Your refusal to compromise on executive power leads to an impasse. Several delegates from wary states depart, seeing the proposed government as a threat to liberty. The convention stalls indefinitely." }
+                ]
+            },
+            'slaveryDebate': {
+                text: "Perhaps the most contentious issue arises: slavery. Southern states demand that enslaved people be counted for representation but not taxation, while Northern states oppose this. The infamous Three-Fifths Compromise is proposed: enslaved individuals would count as three-fifths of a person for both representation and taxation.",
+                options: [
+                    { text: "Support the Three-Fifths Compromise as a necessary evil to ensure the unity of the new nation, despite its moral implications.", nextScene: "tradeRegulation", consequence: "A painful concession. Southern states agree to remain, but the moral stain of slavery is etched into the founding document." },
+                    { text: "Oppose the Three-Fifths Compromise on moral grounds, arguing against the counting of enslaved people for any purpose.", nextScene: "slaveryDebate_breakdown", consequence: "Your moral stand wins admiration from some, but enrages Southern delegates who threaten immediate withdrawal." }
+                ]
+            },
+            'slaveryDebate_breakdown': {
+                text: "Your opposition to the Three-Fifths Compromise has pushed the Southern states to the brink. Delegates from South Carolina and Georgia declare they cannot join a union that undermines their economic and social structure. The entire project of a new constitution is in jeopardy.",
+                options: [
+                    { text: "Reluctantly accept the Three-Fifths Compromise, prioritizing national unity over immediate moral rectification.", nextScene: "tradeRegulation", consequence: "With a heavy heart, you agree to the compromise. The Southern states remain, but the convention's moral integrity is severely tested." },
+                    { text: "Stand firm on moral principles, refusing to compromise on the issue of slavery's recognition.", nextScene: "ending_failure_slavery", consequence: "Southern delegations walk out, making it impossible to form a unified nation. The convention collapses amidst irreconcilable differences." }
+                ]
+            },
+            'tradeRegulation': {
+                text: "The final major hurdle: trade regulation. Northern states want the national government to regulate interstate and foreign commerce, while Southern states fear federal tariffs on their agricultural exports. A compromise is floated: Congress can regulate commerce, but a two-thirds majority is required for treaties, and the slave trade cannot be abolished for 20 years.",
+                options: [
+                    { text: "Support the compromise on trade, seeing it as essential for economic stability and national unity.", nextScene: "signingConstitution", consequence: "The final pieces fall into place. Economic powers are granted to the national government, ensuring a more stable future, though the slave trade compromise is a bitter pill." },
+                    { text: "Argue against strong federal control over trade, fearing it will disproportionately harm Southern agriculture.", nextScene: "tradeRegulation_breakdown", consequence: "This position reopens old wounds and creates new divisions. Without economic consensus, the future of the union looks bleak, and the convention falters." }
+                ]
+            },
+            'tradeRegulation_breakdown': {
+                text: "Your stance against robust federal trade regulation has exacerbated tensions between the agricultural South and the commercial North. States are unwilling to cede significant economic power, fearing ruin. The convention is now on the brink of collapse due to irreconcilable economic interests.",
+                options: [
+                    { text: "Seek a new compromise on trade, perhaps by adding clauses that protect specific state interests or limit federal power in certain areas.", nextScene: "signingConstitution", consequence: "A last-ditch effort to find common ground on trade succeeds, albeit with a weaker federal hand in some economic matters. The convention can proceed." },
+                    { text: "Insist on state autonomy in trade, believing federal regulation will lead to economic dominance by certain regions.", nextScene: "ending_failure_trade", consequence: "Your insistence on state autonomy over trade proves fatal. Economic divisions are too deep to bridge, and the convention ultimately dissolves without a viable economic framework for the nation." }
+                ]
+            },
+            'signingConstitution': {
+                text: `After months of arduous debate, bitter compromises, and countless hours of deliberation, a document is finally drafted. It is not perfect, but it represents the collective will of diverse states striving for a more perfect union. You, James Madison, have played a pivotal role in its creation, guiding debates, drafting resolutions, and tirelessly advocating for a strong, yet balanced, national government. The Constitution is now ready for signing.
+
+                <p class="font-bold text-gray-800 mt-6 mb-2">Key Features and Compromises of the Proposed Constitution:</p>
+                <ul class="list-disc list-inside text-gray-700 ml-4 space-y-1">
+                    <li>**Bicameral Legislature (Great Compromise):** A House of Representatives with proportional representation and a Senate with equal representation for each state.</li>
+                    <li>**Strong Federal Government:** Granted powers to tax, regulate interstate commerce, declare war, and maintain a standing army.</li>
+                    <li>**Separation of Powers:** Divided government into three branches: legislative, executive, and judicial.</li>
+                    <li>**Checks and Balances:** A system to prevent any one branch from becoming too powerful (e.g., presidential veto, judicial review, legislative impeachment).</li>
+                    <li>**Three-Fifths Compromise:** Enslaved individuals would count as three-fifths of a person for both representation and taxation.</li>
+                    <li>**Commerce and Slave Trade Compromise:** Congress could regulate interstate and foreign commerce, but the slave trade could not be abolished for 20 years.</li>
+                    <li>**Independent Executive:** A single President with significant, but checked, powers.</li>
+                    <li>**Independent Judiciary:** Established a Supreme Court and allowed for lower federal courts.</li>
+                    <li>**Supremacy Clause:** Federal law would be supreme when in conflict with state laws.</li>
+                </ul>
+                `,
+                options: [
+                    { text: "Witness the signing of the Constitution.", nextScene: "ending_success" }
+                ]
+            },
+            'ending_success': {
+                text: "Success! Despite immense challenges and deep divisions, the delegates have forged a new Constitution for the United States of America. It is a testament to compromise and the enduring desire for a unified nation. The journey is far from over, as ratification awaits, but the foundation has been laid for a new republic.",
+                options: [
+                    { text: "Restart", nextScene: "intro" }
+                ],
+                ending: "success"
+            },
+            'ending_failure_representation': {
+                text: "Failure. Your inability to compromise on representation has led to the walkout of several small state delegations. The convention dissolves in disarray, unable to agree on a fundamental structure for the government. The Articles of Confederation remain, and the young nation drifts towards an uncertain, fragmented future, vulnerable to internal strife and foreign powers.",
+                options: [
+                    { text: "Restart", nextScene: "intro" }
+                ],
+                ending: "failure"
+            },
+            'ending_failure_executive': {
+                text: "Failure. The convention collapses due to insurmountable disagreements over the nature and power of the executive branch. Delegates, fearing a new monarchy or an ineffective leader, cannot agree on a presidential model. The vision of a strong, unified government crumbles, leaving the nation leaderless and directionless.",
+                options: [
+                    { text: "Restart", nextScene: "intro" }
+                ],
+                ending: "failure"
+            },
+            'ending_failure_slavery': {
+                text: "Failure. Your principled stand against the Three-Fifths Compromise, while morally admirable, led to the immediate withdrawal of crucial Southern states. Without their participation, the dream of a united federal government crumbles. The convention breaks apart, leaving the states to face their futures as thirteen independent entities, potentially leading to civil strife and foreign interference.",
+                options: [
+                    { text: "Restart", nextScene: "intro" }
+                ],
+                ending: "failure"
+            },
+            'ending_failure_trade': {
+                text: "Failure. The inability to reach a consensus on federal trade regulation proves to be the final straw. Economic divisions between North and South deepen, and the states cannot agree on a common future. The convention adjourns without a new constitution, leaving the struggling Articles of Confederation in place and the nation's economic stability in peril.",
+                options: [
+                    { text: "Restart", nextScene: "intro" }
+                ],
+                ending: "failure"
+            }
+        };
+
+        let currentScene = 'intro';
+        const narrativeTextElement = document.getElementById('narrative-text');
+        const optionsContainerElement = document.getElementById('options-container');
+        const gameContainerElement = document.getElementById('game-container');
+        const historyLogContainerElement = document.getElementById('history-log-container');
+        const historyLogElement = document.getElementById('history-log');
+
+        let history = []; // Array to store choices and outcomes
+
+        // Function to display the current scene
+        function displayScene() {
+            const scene = story[currentScene];
+            // Use innerHTML instead of textContent to render the list
+            narrativeTextElement.innerHTML = scene.text;
+            optionsContainerElement.innerHTML = ''; // Clear previous options
+
+            // Add animation class for smooth transition
+            gameContainerElement.classList.remove('fadeIn');
+            void gameContainerElement.offsetWidth; // Trigger reflow
+            gameContainerElement.classList.add('fadeIn');
+
+            if (scene.options) {
+                scene.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option.text;
+                    button.classList.add('option-button');
+                    button.onclick = () => chooseOption(option.nextScene, option.consequence, option.text);
+                    optionsContainerElement.appendChild(button);
+                });
+            }
+
+            // Handle endings
+            if (scene.ending) {
+                if (scene.ending === 'success') {
+                    gameContainerElement.classList.add('ending-success');
+                    gameContainerElement.classList.remove('ending-failure');
+                } else if (scene.ending === 'failure') {
+                    gameContainerElement.classList.add('ending-failure');
+                    gameContainerElement.classList.remove('ending-success');
+                }
+            } else {
+                gameContainerElement.classList.remove('ending-success', 'ending-failure');
+            }
+
+            // Always render the history log after a scene display
+            renderHistoryLog();
+        }
+
+        // Function to handle option selection
+        function chooseOption(nextSceneId, consequenceText, choiceText) {
+            // Store the current scene's raw text for context, not rendered HTML
+            const currentSceneIdForLog = currentScene; // Get the ID to retrieve raw text later
+            const rawSceneTextForLog = story[currentSceneIdForLog].text.replace(/<[^>]*>?/gm, ''); // Remove HTML tags from text for log
+
+            history.unshift({ // Add to the beginning of the array
+                sceneText: rawSceneTextForLog,
+                choice: choiceText,
+                consequence: consequenceText || "No direct consequence stated for this choice."
+            });
+
+            // Display consequence briefly if available
+            if (consequenceText) {
+                const consequenceBox = document.createElement('div');
+                consequenceBox.classList.add('consequence-box');
+                consequenceBox.textContent = `Consequence: ${consequenceText}`;
+                optionsContainerElement.innerHTML = ''; // Clear options
+                optionsContainerElement.appendChild(consequenceBox);
+
+                // Show the history log if it's hidden
+                historyLogContainerElement.classList.remove('hidden');
+
+                // Wait a moment before moving to the next scene
+                setTimeout(() => {
+                    currentScene = nextSceneId;
+                    displayScene();
+                }, 2000); // Display consequence for 2 seconds
+            } else {
+                currentScene = nextSceneId;
+                displayScene();
+            }
+        }
+
+        // Function to render the history log
+        function renderHistoryLog() {
+            historyLogElement.innerHTML = ''; // Clear existing log
+            if (history.length === 0) {
+                historyLogContainerElement.classList.add('hidden'); // Hide if no history
+                return;
+            } else {
+                 historyLogContainerElement.classList.remove('hidden'); // Show if there's history
+            }
+
+
+            history.forEach((logItem, index) => {
+                const logDiv = document.createElement('div');
+                logDiv.classList.add('log-item');
+
+                const choiceP = document.createElement('p');
+                choiceP.classList.add('text-gray-700');
+                choiceP.innerHTML = `<span class="log-choice">Your choice:</span> "${logItem.choice}"`;
+                logDiv.appendChild(choiceP);
+
+                const consequenceP = document.createElement('p');
+                consequenceP.classList.add('text-gray-600', 'log-consequence');
+                consequenceP.innerHTML = `<span class="log-consequence">Outcome:</span> ${logItem.consequence}`;
+                logDiv.appendChild(consequenceP);
+
+                // Add original scene text for context
+                const contextP = document.createElement('p');
+                contextP.classList.add('text-sm', 'text-gray-500', 'mt-1');
+                contextP.textContent = `(From the scene: "${logItem.sceneText.substring(0, 100)}...")`; // Truncate for brevity
+                logDiv.appendChild(contextP);
+
+                historyLogElement.appendChild(logDiv);
+            });
+        }
+
+        // Initialize the game
+        window.onload = displayScene;
+    </script>
+</body>
+</html>
