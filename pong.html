@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History Test Pong</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #121212;
+            color: #ffffff;
+            overflow: hidden; /* Prevents scrollbars from appearing */
+            touch-action: none; /* Disables pinch-zoom and other default touch actions */
+        }
+        canvas {
+            background-color: #000000;
+            display: block;
+            border: 2px solid #ffffff;
+            cursor: none; /* Hide cursor over canvas for a cleaner look */
+        }
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background-color: #222222;
+            border: 2px solid #ffffff;
+            padding: 2rem;
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .answer-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin-top: 1rem;
+            background-color: #333333;
+            border: 2px solid #ffffff;
+            color: #ffffff;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .answer-btn:hover {
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 2px solid white;
+            z-index: 100;
+            text-align: center;
+        }
+        .powerup-indicator, .legend-icon {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            margin: 0 0.25rem;
+            vertical-align: middle;
+        }
+        .controls-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid #ffffff;
+            background-color: #333;
+            color: #fff;
+            margin: 0 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .controls-btn:hover, .controls-btn.selected {
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .rules-list {
+            text-align: left;
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .legend-text {
+             margin-left: 1rem;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <h1 class="text-3xl md:text-5xl mb-2">History Test Pong</h1>
+    
+    <div class="flex justify-between w-full max-w-4xl mb-2 text-2xl">
+        <div>Player: <span id="player-score">0</span></div>
+        <div>CPU: <span id="cpu-score">0</span></div>
+    </div>
+    
+    <div id="powerup-status" class="h-10 mb-2 flex items-center justify-center"></div>
+
+    <canvas id="pongCanvas"></canvas>
+    
+    <div id="game-controls" class="mt-4 flex items-center">
+        <button id="pauseBtn" class="controls-btn">Pause</button>
+        <div id="difficulty-controls" class="ml-4">
+            <button id="btn-easy" class="controls-btn">Easy</button>
+            <button id="btn-normal" class="controls-btn selected">Normal</button>
+            <button id="btn-hard" class="controls-btn">Hard</button>
+        </div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div id="rulesModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h2 class="text-xl md:text-2xl mb-4">Game Rules & Power-ups</h2>
+            <div class="rules-list">
+                <p>• Use your mouse or drag your finger to move the paddle.</p>
+                <p>• Score points by getting the ball past the opponent.</p>
+                <p>• First to 10 points wins!</p>
+                <h3 class="font-bold mt-4 mb-2">Scoring Rules:</h3>
+                <p>• If YOU score: Answer a question. Correct = 2 pts, Incorrect = 1 pt.</p>
+                <p>• If CPU scores: CPU gets 1 pt. Answer a question. Incorrect = CPU gets a bonus point!</p>
+            </div>
+            <h3 class="font-bold mb-2">Power-up Legend:</h3>
+            <div id="legendContainer" class="rules-list"></div>
+            <button id="startGameBtn" class="controls-btn mt-4 text-lg">Start Game</button>
+        </div>
+    </div>
+    
+    <!-- Question Modal -->
+    <div id="questionModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <h2 class="text-xl md:text-2xl mb-4">History Question!</h2>
+            <p id="questionText" class="mb-6 text-lg"></p>
+            <div id="answersContainer"></div>
+        </div>
+    </div>
+    
+    <!-- Message Box -->
+    <div id="messageBox" class="message-box hidden">
+        <p id="messageText" class="text-2xl mb-4"></p>
+        <button id="messageBtn" class="px-6 py-2 bg-gray-600 hover:bg-white hover:text-black border-2 border-white rounded-lg">Continue</button>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const canvas = document.getElementById('pongCanvas');
+        const ctx = canvas.getContext('2d');
+        const playerScoreEl = document.getElementById('player-score');
+        const cpuScoreEl = document.getElementById('cpu-score');
+        const questionModal = document.getElementById('questionModal');
+        const questionTextEl = document.getElementById('questionText');
+        const answersContainer = document.getElementById('answersContainer');
+        const messageBox = document.getElementById('messageBox');
+        const messageText = document.getElementById('messageText');
+        const messageBtn = document.getElementById('messageBtn');
+        const powerupStatusEl = document.getElementById('powerup-status');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const rulesModal = document.getElementById('rulesModal');
+        const legendContainer = document.getElementById('legendContainer');
+        const startGameBtn = document.getElementById('startGameBtn');
+        const difficultyBtns = {
+            easy: document.getElementById('btn-easy'),
+            normal: document.getElementById('btn-normal'),
+            hard: document.getElementById('btn-hard')
+        };
+
+        // --- Game State & Configuration ---
+        let ball, player, cpu, score, invisiWall;
+        let gameActive = false;
+        let gamePaused = false;
+        let lastScorer = null;
+        let lastPaddleHit = null;
+        let powerUpSpawner, powerUpIntervalTime = 7000, lastPowerUpSpawnTime;
+        let activePowerUps = [];
+        let activeEffects = {};
+        let cpuLevel = 0.10; // Increased Normal difficulty
+        let animationFrameId;
+        let availableQuestions = [];
+        let lastQuestion = null;
+        let touchStartY = 0, paddleStartY = 0; // For touch controls
+
+        const PADDLE_HEIGHT = 100;
+        const PADDLE_WIDTH = 10;
+        const BALL_RADIUS = 10;
+        const WINNING_SCORE = 10;
+        const POWERUP_SIZE = 40;
+        const BASE_SPEED = 7.5;
+
+        // --- Powerup SVGs and Types ---
+        const powerUpTypes = {
+            'speedBoost': { duration: 10000, text: "Speed Boost: Ball moves faster.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ef4444"><path d="M12 2L6 8v5c0 2.21 1.79 4 4 4h4c2.21 0 4-1.79 4-4V8l-6-6zm-2 15v-5h4v5h-4z"/></svg>`},
+            'largePaddle': { duration: 10000, text: "Large Paddle: Hitter's paddle grows.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#3b82f6"><path d="M21 9h-4V5h-2v4H7V5H5v4H1v2h4v4h2v-4h10v4h2v-4h4V9z"/></svg>`},
+            'smallPaddle': { duration: 10000, text: "Small Paddle: Both paddles shrink.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#facc15"><path d="M15 19v-4h4v-2h-4V9h4V7h-4V3h-2v4H7v2h4v4H7v2h4v4h2z"/></svg>`},
+            'ghostBall': { duration: 10000, text: "Ghost Ball: Ball pulses in and out.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#a8a29e"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-9h4v2h-4v3l-4-4 4-4v3z"/></svg>`},
+            'slowDown': { duration: 5000, text: "Slow Down: Both paddles move slower.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#38bdf8"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm5.7 14.3a.7.7 0 11-1 1l-5-5-2.8 2.8a.7.7 0 01-1-1L12 11l5.7 3.3zM8 8a2 2 0 114 0 2 2 0 01-4 0z"/></svg>`},
+            'invisiWall': { duration: 10000, text: "Invisi-Wall: A shield protects the hitter's goal.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#4ade80"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>`}
+        };
+
+        Object.values(powerUpTypes).forEach(type => { const img = new Image(); img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(type.svg); type.img = img; });
+
+        const allQuestions = [
+            // American Revolution
+            { question: "Which event involved colonists dumping tea into a harbor to protest British taxes?", answers: ["The Boston Massacre", "The Stamp Act Congress", "The Boston Tea Party", "The Battle of Bunker Hill"], correctAnswer: "The Boston Tea Party" },
+            { question: "Who was the primary author of the Declaration of Independence?", answers: ["George Washington", "Benjamin Franklin", "John Adams", "Thomas Jefferson"], correctAnswer: "Thomas Jefferson" },
+            { question: "The first major battle of the American Revolution is often considered to be:", answers: ["Battle of Saratoga", "Battle of Yorktown", "Battle of Lexington and Concord", "Battle of Trenton"], correctAnswer: "Battle of Lexington and Concord" },
+            { question: "What country provided critical aid to the American colonists during the Revolution?", answers: ["Spain", "France", "Prussia", "Netherlands"], correctAnswer: "France" },
+            { question: "The final, decisive battle of the American Revolution occurred at:", answers: ["Saratoga", "Brandywine", "Yorktown", "Gettysburg"], correctAnswer: "Yorktown" },
+            // Civil War
+            { question: "Which 1863 proclamation, issued by Lincoln, declared slaves in Confederate states to be free?", answers: ["The Gettysburg Address", "The Bill of Rights", "The Emancipation Proclamation", "The Missouri Compromise"], correctAnswer: "The Emancipation Proclamation" },
+            { question: "Who served as the President of the Confederate States of America?", answers: ["Robert E. Lee", "Stonewall Jackson", "Jefferson Davis", "Ulysses S. Grant"], correctAnswer: "Jefferson Davis" },
+            { question: "The bloodiest single-day battle in American history took place at:", answers: ["Gettysburg", "Vicksburg", "Shiloh", "Antietam"], correctAnswer: "Antietam" },
+            { question: "What was the primary economic difference between the North and the South before the Civil War?", answers: ["Agricultural vs. Industrial", "Fishing vs. Mining", "Manufacturing vs. Services", "Trade vs. Agriculture"], correctAnswer: "Agricultural vs. Industrial" },
+            { question: "Where did Confederate General Robert E. Lee surrender to Union General Ulysses S. Grant?", answers: ["Richmond, Virginia", "Washington D.C.", "Appomattox Court House, Virginia", "Gettysburg, Pennsylvania"], correctAnswer: "Appomattox Court House, Virginia" },
+            // World War II
+            { question: "The invasion of which country by Germany in 1939 is considered the start of WWII in Europe?", answers: ["France", "Poland", "Austria", "Soviet Union"], correctAnswer: "Poland" },
+            { question: "What was the code name for the Allied invasion of Normandy on June 6, 1944?", answers: ["Operation Torch", "Operation Barbarossa", "Operation Overlord (D-Day)", "Operation Market Garden"], correctAnswer: "Operation Overlord (D-Day)" },
+            { question: "Which U.S. naval base was attacked by Japan on December 7, 1941?", answers: ["San Diego Naval Base", "Pearl Harbor", "Guantanamo Bay", "Norfolk Naval Station"], correctAnswer: "Pearl Harbor" },
+            { question: "The turning point of the war in the Pacific is often considered to be which naval battle?", answers: ["Battle of Coral Sea", "Battle of Leyte Gulf", "Battle of Midway", "Battle of Guadalcanal"], correctAnswer: "Battle of Midway" },
+            { question: "Which two Japanese cities were targeted by atomic bombs in August 1945?", answers: ["Tokyo and Kyoto", "Osaka and Nagasaki", "Hiroshima and Nagasaki", "Kobe and Hiroshima"], correctAnswer: "Hiroshima and Nagasaki" },
+            // Cold War
+            { question: "The ideological conflict between the USA and the USSR after WWII is known as:", answers: ["The Great War", "The Space Race", "The Cold War", "The Vietnam War"], correctAnswer: "The Cold War" },
+            { question: "What physical barrier separated East and West Berlin during the Cold War?", answers: ["The Iron Curtain", "The Maginot Line", "The Berlin Wall", "The Great Wall of Germany"], correctAnswer: "The Berlin Wall" },
+            { question: "The military alliance formed by the United States and its Western European allies was called:", answers: ["The Warsaw Pact", "The League of Nations", "The United Nations", "NATO"], correctAnswer: "NATO" },
+            { question: "The 1962 Cuban Missile Crisis was a confrontation over the placement of nuclear missiles by which country?", answers: ["China", "The Soviet Union", "Great Britain", "France"], correctAnswer: "The Soviet Union" },
+            { question: "The symbolic end of the Cold War is often associated with the fall of what in 1989?", answers: ["The Soviet Union", "The Berlin Wall", "The Iron Curtain", "The Warsaw Pact"], correctAnswer: "The Berlin Wall" },
+            // Civil Rights Movement
+            { question: "Who delivered the famous 'I Have a Dream' speech during the March on Washington?", answers: ["Malcolm X", "Rosa Parks", "Martin Luther King Jr.", "John F. Kennedy"], correctAnswer: "Martin Luther King Jr." },
+            { question: "What landmark 1954 Supreme Court case declared state-sponsored segregation in public schools unconstitutional?", answers: ["Plessy v. Ferguson", "Marbury v. Madison", "Brown v. Board of Education", "Roe v. Wade"], correctAnswer: "Brown v. Board of Education" },
+            { question: "Rosa Parks' refusal to give up her bus seat sparked a major boycott in which city?", answers: ["Atlanta, Georgia", "Birmingham, Alabama", "Montgomery, Alabama", "Jackson, Mississippi"], correctAnswer: "Montgomery, Alabama" },
+            { question: "What major piece of legislation, signed in 1964, outlawed discrimination based on race, color, religion, sex, or national origin?", answers: ["The Voting Rights Act of 1965", "The Fair Housing Act", "The Civil Rights Act of 1964", "The Equal Rights Amendment"], correctAnswer: "The Civil Rights Act of 1964" },
+            { question: "Sit-ins were a common form of nonviolent protest primarily used to desegregate what type of establishments?", answers: ["Public parks", "Lunch counters", "Movie theaters", "Public transportation"], correctAnswer: "Lunch counters" },
+            // Ancient Rome
+            { question: "What legendary general famously crossed the Alps with elephants to attack Rome?", answers: ["Alexander the Great", "Julius Caesar", "Scipio Africanus", "Hannibal Barca"], correctAnswer: "Hannibal Barca" },
+            { question: "The period of relative peace and stability in the Roman Empire is known as the:", answers: ["Pax Romana", "Roman Renaissance", "The Republic Era", "The Golden Age"], correctAnswer: "Pax Romana" },
+            { question: "Which Roman emperor was the first to convert to Christianity?", answers: ["Augustus", "Nero", "Constantine", "Trajan"], correctAnswer: "Constantine" },
+            { question: "What was the primary language spoken throughout the Roman Empire?", answers: ["Greek", "Italian", "Latin", "Romanesque"], correctAnswer: "Latin" },
+            { question: "The Roman Republic was governed by a body of officials known as the:", answers: ["Parliament", "Congress", "Senate", "Assembly"], correctAnswer: "Senate" }
+        ];
+
+        function resizeCanvas() {
+            const maxWidth = 900; const aspectRatio = 16 / 9; let width = window.innerWidth * 0.9; if (width > maxWidth) width = maxWidth; canvas.width = width; canvas.height = width / aspectRatio;
+        }
+
+        function init() {
+            resizeCanvas();
+            score = { player: 0, cpu: 0 };
+            updateScoreDisplay();
+            ball = { x: canvas.width / 2, y: canvas.height / 2, radius: BALL_RADIUS, speed: BASE_SPEED, dx: BASE_SPEED, dy: BASE_SPEED, color: 'white', alpha: 1, pulseTime: 0 };
+            player = { x: 10, y: canvas.height / 2 - PADDLE_HEIGHT / 2, width: PADDLE_WIDTH, height: PADDLE_HEIGHT, defaultHeight: PADDLE_HEIGHT, targetY: canvas.height / 2, speed: 0.5, speedMultiplier: 1 };
+            cpu = { x: canvas.width - 10 - PADDLE_WIDTH, y: canvas.height / 2 - PADDLE_HEIGHT / 2, width: PADDLE_WIDTH, height: PADDLE_HEIGHT, defaultHeight: PADDLE_HEIGHT, speedMultiplier: 1 };
+            invisiWall = null;
+            
+            activePowerUps = [];
+            Object.values(activeEffects).forEach(effect => clearTimeout(effect.timeoutId));
+            activeEffects = {};
+            updatePowerUpStatus();
+            if (powerUpSpawner) clearInterval(powerUpSpawner);
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+            availableQuestions = [...allQuestions];
+            showRules();
+        }
+
+        function showRules() {
+            legendContainer.innerHTML = '';
+            for (const type in powerUpTypes) {
+                const info = powerUpTypes[type];
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                const icon = info.img.cloneNode();
+                icon.className = 'legend-icon';
+                const text = document.createElement('span');
+                text.className = 'legend-text';
+                text.textContent = info.text;
+                item.appendChild(icon);
+                item.appendChild(text);
+                legendContainer.appendChild(item);
+            }
+            rulesModal.classList.remove('hidden');
+        }
+        
+        function startGame() {
+            rulesModal.classList.add('hidden');
+            gameActive = true;
+            gamePaused = false;
+            pauseBtn.textContent = "Pause";
+            lastPowerUpSpawnTime = Date.now();
+            powerUpSpawner = setInterval(spawnPowerUp, powerUpIntervalTime);
+            gameLoop();
+        }
+
+        function drawRect(x, y, w, h, color) { ctx.fillStyle = color; ctx.fillRect(x, y, w, h); }
+        function drawArc(x, y, r, color, alpha = 1) { ctx.fillStyle = color; ctx.globalAlpha = alpha; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
+        function drawNet() { for (let i = 0; i <= canvas.height; i += 15) drawRect(canvas.width / 2 - 1, i, 2, 10, 'white'); }
+        
+        function drawPowerUps() {
+            activePowerUps.forEach(p => { const typeInfo = powerUpTypes[p.type]; if (typeInfo.img.complete && typeInfo.img.naturalHeight !== 0) { ctx.drawImage(typeInfo.img, p.x - p.size / 2, p.y - p.size / 2, p.size, p.size); } });
+        }
+        
+        function drawInvisiWall() {
+            if (invisiWall) { ctx.fillStyle = "rgba(74, 222, 128, 0.3)"; ctx.fillRect(invisiWall.x, invisiWall.y, invisiWall.width, invisiWall.height); ctx.strokeStyle = "rgba(74, 222, 128, 0.7)"; ctx.strokeRect(invisiWall.x, invisiWall.y, invisiWall.width, invisiWall.height); }
+        }
+
+        function render() {
+            drawRect(0, 0, canvas.width, canvas.height, 'black');
+            drawNet();
+            drawRect(player.x, player.y, player.width, player.height, 'white');
+            drawRect(cpu.x, cpu.y, cpu.width, cpu.height, 'white');
+            drawPowerUps();
+            drawInvisiWall();
+            drawArc(ball.x, ball.y, ball.radius, ball.color, ball.alpha);
+
+            if (gamePaused && gameActive) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'white';
+                ctx.font = `${canvas.width / 15}px 'Press Start 2P'`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        function update() {
+            player.y += (player.targetY - player.y) * player.speed * player.speedMultiplier;
+            cpu.y += (ball.y - (cpu.y + cpu.height / 2)) * cpuLevel * cpu.speedMultiplier;
+            if (cpu.y < 0) cpu.y = 0; if (cpu.y + cpu.height > canvas.height) cpu.y = canvas.height - cpu.height;
+            
+            ball.x += ball.dx; ball.y += ball.dy;
+            if (activeEffects['ghostBall']) {
+                ball.pulseTime += 0.1;
+                ball.alpha = 0.5 + Math.sin(ball.pulseTime) * 0.5;
+            }
+
+            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) ball.dy *= -1;
+            
+            if (invisiWall && isCollision(ball, invisiWall)) {
+                ball.dx *= -1;
+                const offset = ball.radius + 1;
+                ball.x = (invisiWall.owner === 'player') ? invisiWall.x + invisiWall.width + offset : invisiWall.x - offset;
+            }
+
+            let paddle = (ball.x < canvas.width / 2) ? player : cpu;
+            if (isCollision(ball, paddle)) {
+                lastPaddleHit = (ball.x < canvas.width / 2) ? 'player' : 'cpu';
+                let collidePoint = (ball.y - (paddle.y + paddle.height / 2)) / (paddle.height / 2);
+                let angleRad = (Math.PI / 4) * collidePoint;
+                let direction = (ball.x < canvas.width / 2) ? 1 : -1;
+                ball.dx = direction * ball.speed * Math.cos(angleRad); ball.dy = ball.speed * Math.sin(angleRad);
+                if (!activeEffects['speedBoost']) ball.speed += 0.2;
+            }
+
+            activePowerUps.forEach((p, index) => { if (Math.hypot(ball.x - p.x, ball.y - p.y) < ball.radius + p.size / 2) { activatePowerUp(p.type, lastPaddleHit); activePowerUps.splice(index, 1); } });
+            if (ball.x - ball.radius < 0) { lastScorer = 'cpu'; gameActive = false; handleScore(); } else if (ball.x + ball.radius > canvas.width) { lastScorer = 'player'; gameActive = false; handleScore(); }
+        }
+        
+        function isCollision(b, p) { return p.x < b.x + b.radius && p.x + p.width > b.x - b.radius && p.y < b.y + b.radius && p.y + p.height > b.y - b.radius; }
+        
+        function resetBall() {
+            ball.x = canvas.width / 2; ball.y = canvas.height / 2;
+            ball.speed = activeEffects['speedBoost'] ? BASE_SPEED * 1.5 : BASE_SPEED;
+            ball.dx = (lastScorer === 'player') ? -ball.speed : ball.speed; ball.dy = ball.speed * (Math.random() > 0.5 ? 1 : -1) * 0.7;
+        }
+        
+        function gameLoop(timestamp) {
+            if (gamePaused) return;
+            if (!gameActive) { cancelAnimationFrame(animationFrameId); return; }
+            update(timestamp); render();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function spawnPowerUp() {
+            if (gamePaused || activePowerUps.length >= 2) return;
+            const type = Object.keys(powerUpTypes)[Math.floor(Math.random() * Object.keys(powerUpTypes).length)];
+            activePowerUps.push({ x: Math.random() * (canvas.width * 0.6) + (canvas.width * 0.2), y: Math.random() * (canvas.height * 0.8) + (canvas.height * 0.1), size: POWERUP_SIZE, type: type });
+            lastPowerUpSpawnTime = Date.now();
+        }
+
+        function activatePowerUp(type, hitter) {
+            if (activeEffects[type]) clearTimeout(activeEffects[type].timeoutId);
+            const powerUpInfo = powerUpTypes[type];
+            switch(type) {
+                case 'speedBoost': ball.speed = BASE_SPEED * 1.5; break;
+                case 'largePaddle': if(hitter === 'player') player.height = player.defaultHeight * 1.5; else cpu.height = cpu.defaultHeight * 1.5; break;
+                case 'smallPaddle': player.height = player.defaultHeight * 0.5; cpu.height = cpu.defaultHeight * 0.5; break;
+                case 'ghostBall': ball.alpha = 0.5; ball.pulseTime = 0; break;
+                case 'slowDown': player.speedMultiplier = 0.3; cpu.speedMultiplier = 0.3; break;
+                case 'invisiWall': invisiWall = { owner: hitter, x: (hitter === 'player' ? player.x + player.width + 5 : cpu.x - 15), y: 0, width: 10, height: canvas.height }; break;
+            }
+            activeEffects[type] = {
+                startTime: Date.now(),
+                timeoutId: setTimeout(() => deactivatePowerUp(type), powerUpInfo.duration),
+                hitter: hitter
+            };
+            updatePowerUpStatus();
+        }
+
+        function deactivatePowerUp(type) {
+            const hitter = activeEffects[type] ? activeEffects[type].hitter : null;
+            switch(type) {
+                case 'speedBoost': ball.speed = BASE_SPEED; break;
+                case 'largePaddle': if(hitter === 'player') player.height = player.defaultHeight; else cpu.height = cpu.defaultHeight; break;
+                case 'smallPaddle': player.height = player.defaultHeight; cpu.height = cpu.defaultHeight; break;
+                case 'ghostBall': ball.alpha = 1; break;
+                case 'slowDown': player.speedMultiplier = 1; cpu.speedMultiplier = 1; break;
+                case 'invisiWall': invisiWall = null; break;
+            }
+            delete activeEffects[type]; updatePowerUpStatus();
+        }
+        
+        function updatePowerUpStatus() {
+            powerupStatusEl.innerHTML = '';
+            for (const type in activeEffects) { const indicator = powerUpTypes[type].img.cloneNode(); indicator.className = 'powerup-indicator'; powerupStatusEl.appendChild(indicator); }
+        }
+        
+        function handleScore() {
+            if (lastScorer === 'cpu') { score.cpu++; }
+            updateScoreDisplay();
+            if (score.player >= WINNING_SCORE || score.cpu >= WINNING_SCORE) { endGame(); return; }
+            displayQuestion();
+        }
+        
+        function displayQuestion() {
+            if (availableQuestions.length === 0) { availableQuestions = [...allQuestions]; }
+            const qIndex = Math.floor(Math.random() * availableQuestions.length);
+            lastQuestion = { question: availableQuestions[qIndex], index: qIndex };
+            
+            questionTextEl.textContent = lastQuestion.question.question; 
+            answersContainer.innerHTML = '';
+            lastQuestion.question.answers.forEach(answer => { const button = document.createElement('button'); button.textContent = answer; button.classList.add('answer-btn'); button.onclick = () => checkAnswer(answer === lastQuestion.question.correctAnswer); answersContainer.appendChild(button); });
+            questionModal.classList.remove('hidden');
+        }
+        
+        function checkAnswer(isCorrect) {
+            questionModal.classList.add('hidden');
+            let message = "";
+            if (lastScorer === 'player') { 
+                if (isCorrect) { score.player += 2; message = "Correct! You get 2 points!"; } 
+                else { score.player += 1; message = "Incorrect. You still get 1 point."; } 
+            } else { 
+                if (isCorrect) { message = "Correct! You blocked the bonus point!"; } 
+                else { score.cpu++; message = "Incorrect! CPU gets a bonus point!"; } 
+            }
+            
+            if(isCorrect) { availableQuestions.splice(lastQuestion.index, 1); }
+
+            updateScoreDisplay(); resetBall(); render();
+            
+            showMessage(message, () => {
+                setTimeout(() => {
+                    if (score.player >= WINNING_SCORE || score.cpu >= WINNING_SCORE) { endGame(); } 
+                    else { gameActive = true; if(!gamePaused) gameLoop(); }
+                }, 2000);
+            });
+        }
+        
+        function updateScoreDisplay() { playerScoreEl.textContent = score.player; cpuScoreEl.textContent = score.cpu; }
+        
+        function endGame() {
+            gameActive = false; if (powerUpSpawner) clearInterval(powerUpSpawner);
+            cancelAnimationFrame(animationFrameId);
+            let finalMessage = score.player >= WINNING_SCORE ? "Congratulations! You Win!" : "Game Over. The CPU Wins.";
+            showMessage(finalMessage + " Play again?", init);
+        }
+        
+        function showMessage(msg, callback) {
+            messageText.textContent = msg; messageBox.classList.remove('hidden');
+            messageBtn.onclick = () => { messageBox.classList.add('hidden'); if (callback) callback(); };
+        }
+
+        function togglePause() {
+            if (!gameActive && !gamePaused) return;
+            gamePaused = !gamePaused;
+            pauseBtn.textContent = gamePaused ? "Resume" : "Pause";
+            if (gamePaused) {
+                cancelAnimationFrame(animationFrameId);
+                clearInterval(powerUpSpawner);
+                powerUpIntervalTime = Math.max(0, 7000 - (Date.now() - lastPowerUpSpawnTime));
+                for (const type in activeEffects) {
+                    const effect = activeEffects[type];
+                    clearTimeout(effect.timeoutId);
+                    effect.remainingTime = powerUpTypes[type].duration - (Date.now() - effect.startTime);
+                }
+                render();
+            } else {
+                lastPowerUpSpawnTime = Date.now();
+                powerUpSpawner = setTimeout(() => { spawnPowerUp(); clearInterval(powerUpSpawner); powerUpSpawner = setInterval(spawnPowerUp, 7000); }, powerUpIntervalTime);
+                for (const type in activeEffects) {
+                    const effect = activeEffects[type];
+                    if (effect.remainingTime > 0) {
+                        effect.startTime = Date.now();
+                        effect.timeoutId = setTimeout(() => deactivatePowerUp(type), effect.remainingTime);
+                    } else { deactivatePowerUp(type); }
+                }
+                gameLoop();
+            }
+        }
+
+        // --- Event Listeners ---
+        function handleMouseMove(e) { 
+            let rect = canvas.getBoundingClientRect(); 
+            player.targetY = e.clientY - rect.top; 
+        }
+
+        function handleTouchStart(e) {
+            if (e.touches.length) {
+                touchStartY = e.touches[0].clientY;
+                paddleStartY = player.y;
+            }
+        }
+
+        function handleTouchMove(e) { 
+            e.preventDefault(); 
+            if (e.touches.length) {
+                let touchCurrentY = e.touches[0].clientY;
+                let deltaY = touchCurrentY - touchStartY;
+                player.targetY = paddleStartY + deltaY;
+            }
+        }
+
+        function setDifficulty(level, btn) { 
+            cpuLevel = level; 
+            Object.values(difficultyBtns).forEach(b => b.classList.remove('selected')); 
+            btn.classList.add('selected'); 
+        }
+
+        startGameBtn.addEventListener('click', startGame);
+        pauseBtn.addEventListener('click', togglePause);
+        document.addEventListener('keydown', (e) => { if(e.key === ' ') { e.preventDefault(); togglePause(); } });
+        
+        difficultyBtns.easy.addEventListener('click', () => setDifficulty(0.07, difficultyBtns.easy));
+        difficultyBtns.normal.addEventListener('click', () => setDifficulty(0.10, difficultyBtns.normal));
+        difficultyBtns.hard.addEventListener('click', () => setDifficulty(0.15, difficultyBtns.hard));
+        
+        window.addEventListener('resize', init);
+        
+        // Mouse controls
+        document.addEventListener('mousemove', handleMouseMove);
+        
+        // Touch controls
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+        init();
+    </script>
+</body>
+</html>
