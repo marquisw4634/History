@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Pac-Man History Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #000;
+            color: #fff;
+            overflow: hidden;
+            /* Prevent scrolling and pull-to-refresh on mobile */
+            overscroll-behavior-y: contain;
+        }
+        canvas {
+            background-color: #000;
+            display: block;
+            margin: 0 auto;
+            border: 5px solid #0000FF; /* Blue border like original arcade */
+        }
+        #game-wrapper {
+            position: relative;
+            width: fit-content;
+            margin: 0 auto;
+        }
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .modal {
+            background-color: rgba(0, 0, 0, 0.9);
+            border: 5px solid #FFFF00; /* Yellow border */
+        }
+        .modal-button {
+            transition: all 0.2s ease;
+        }
+        .modal-button:hover, .modal-button.selected {
+            background-color: #FFFF00;
+            color: #000;
+            transform: scale(1.05);
+        }
+        #message-text {
+            white-space: pre-wrap;
+        }
+        /* [NEW] Joystick Styles */
+        #joystick-container {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 120px;
+            height: 120px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #joystick-knob {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            position: absolute;
+        }
+    </style>
+</head>
+<body class="bg-black text-white flex items-center justify-center min-h-screen">
+
+    <!-- Start Modal -->
+    <div id="start-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center p-4 z-50">
+        <div class="modal w-full max-w-xl p-8 rounded-lg text-center">
+            <h1 class="text-3xl md:text-4xl text-yellow-400 mb-8 tracking-wider">Pac-Man History Challenge</h1>
+            <h2 class="text-2xl mb-4 text-white">Select Mode:</h2>
+            <div class="flex justify-center gap-4 mb-8">
+                <button id="normal-mode-btn" class="modal-button selected bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-xl">Normal</button>
+                <button id="advanced-mode-btn" class="modal-button bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-xl">Advanced</button>
+            </div>
+            <p class="mb-2 text-sm text-gray-300">Normal: Unlimited time for questions.</p>
+            <p class="mb-8 text-sm text-gray-300">Advanced: 15 seconds to answer!</p>
+            <button id="start-game-btn" class="modal-button bg-green-600 hover:bg-green-500 text-white font-bold py-4 px-8 rounded-lg text-2xl animate-pulse">Start Game</button>
+        </div>
+    </div>
+
+
+    <div id="game-container" class="hidden w-full max-w-4xl mx-auto p-4">
+        <h1 class="text-3xl md:text-4xl text-yellow-400 mb-4 tracking-wider">Pac-Man History Challenge</h1>
+        <div class="flex justify-between w-full max-w-lg text-lg mb-4">
+            <p>Score: <span id="score">0</span></p>
+            <p>Level: <span id="level">1</span></p>
+        </div>
+        <!-- [MODIFIED] Wrapper for canvas and joystick -->
+        <div id="game-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <!-- [NEW] Joystick appears here -->
+            <div id="joystick-container" class="hidden md:hidden">
+                <div id="joystick-knob"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Modal -->
+    <div id="question-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50">
+        <div class="modal w-full max-w-2xl p-8 rounded-lg text-center">
+            <h2 class="text-2xl mb-2 text-yellow-400">A GHOST CAUGHT YOU!</h2>
+            <p class="mb-4 text-lg">Answer correctly to survive...</p>
+            <p id="question-text" class="text-xl mb-6"></p>
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Options will be injected here by JS -->
+            </div>
+            <div id="timer-container" class="hidden mt-6">
+                <p class="text-2xl text-red-500">Time Left: <span id="timer-countdown">15</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Modal (Level Clear, Game Over, Win) -->
+    <div id="message-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50">
+        <div class="modal w-full max-w-md p-8 rounded-lg text-center">
+            <h2 id="message-title" class="text-3xl mb-6 text-yellow-400"></h2>
+            <p id="message-text" class="text-xl mb-8"></p>
+            <button id="message-button" class="modal-button bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-xl">Continue</button>
+        </div>
+    </div>
+
+
+    <script>
+        // DOM Elements
+        const startModal = document.getElementById('start-modal');
+        const normalModeBtn = document.getElementById('normal-mode-btn');
+        const advancedModeBtn = document.getElementById('advanced-mode-btn');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const gameContainer = document.getElementById('game-container');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        const questionModal = document.getElementById('question-modal');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const timerContainer = document.getElementById('timer-container');
+        const timerCountdownEl = document.getElementById('timer-countdown');
+        const messageModal = document.getElementById('message-modal');
+        const messageTitleEl = document.getElementById('message-title');
+        const messageTextEl = document.getElementById('message-text');
+        const messageButton = document.getElementById('message-button');
+        // [NEW] Joystick DOM elements
+        const joystickContainer = document.getElementById('joystick-container');
+        const joystickKnob = document.getElementById('joystick-knob');
+
+        // Game constants
+        const TILE_SIZE = 20;
+        let mapWidth, mapHeight;
+
+        // Game state
+        let pacman;
+        let ghosts = [];
+        let score = 0;
+        let level = 1;
+        let pellets = [];
+        let powerPellets = [];
+        let gameActive = true;
+        let caughtGhost = null;
+        let animationFrameId;
+        let isInitializing = false; 
+        let gameMode = 'normal';
+        let questionTimer = null;
+        let countdownInterval = null;
+        let availableQuestions = [];
+        let askedQuestions = [];
+        let currentQuestion = null;
+        let correctAnswersCount = 0;
+
+        // Level-based settings
+        const levelSettings = {
+            1: { ghostSpeed: 1.5, powerPelletDuration: 6000 },
+            2: { ghostSpeed: 1.7, powerPelletDuration: 5000 },
+            3: { ghostSpeed: 1.9, powerPelletDuration: 4000 },
+            4: { ghostSpeed: 2.1, powerPelletDuration: 3000 },
+            5: { ghostSpeed: 2.3, powerPelletDuration: 2000 },
+        };
+        
+        const questions = [
+            { q: "Who was the first Emperor of Rome?", o: ["Julius Caesar", "Augustus", "Nero", "Constantine"], a: 1 },
+            { q: "The Hundred Years' War was fought between which two countries?", o: ["England and France", "Spain and Portugal", "Italy and Greece", "Germany and Russia"], a: 0 },
+            { q: "In what year did the Titanic sink?", o: ["1905", "1912", "1918", "1923"], a: 1 },
+            { q: "Who is credited with the invention of the telephone?", o: ["Thomas Edison", "Nikola Tesla", "Alexander Graham Bell", "Guglielmo Marconi"], a: 2 },
+            { q: "The Magna Carta was signed in what year?", o: ["1066", "1215", "1492", "1776"], a: 1 },
+            { q: "Which ancient civilization built the pyramids at Giza?", o: ["Greeks", "Romans", "Egyptians", "Persians"], a: 2 },
+            { q: "The Renaissance began in which country?", o: ["France", "Spain", "England", "Italy"], a: 3 },
+            { q: "Who was the primary author of the Declaration of Independence?", o: ["George Washington", "Benjamin Franklin", "Thomas Jefferson", "John Adams"], a: 2 },
+            { q: "The storming of the Bastille marked the beginning of which revolution?", o: ["American Revolution", "French Revolution", "Russian Revolution", "Industrial Revolution"], a: 1 },
+            { q: "Which explorer is credited with the first circumnavigation of the Earth?", o: ["Christopher Columbus", "Vasco da Gama", "Ferdinand Magellan", "James Cook"], a: 2 },
+        ];
+        
+        const map = [
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,3,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,3,0],
+            [0,1,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,1,0],
+            [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,1,0,0,1,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,1,0],
+            [0,1,1,1,1,0,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,0,1,1,1,1,0],
+            [0,0,0,0,1,0,0,0,0,1,0,0,2,2,2,2,0,0,1,0,0,0,0,1,0,0,0,0],
+            [2,2,2,0,1,0,2,2,2,1,2,2,2,4,4,2,2,2,1,2,2,2,0,1,0,2,2,2],
+            [0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0],
+            [0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,3,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,3,0],
+            [0,1,1,1,0,0,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,0,0,1,1,1,0],
+            [0,1,0,1,1,1,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,1,1,1,0,1,0],
+            [0,1,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0],
+            [0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        ];
+
+        class Character {
+            constructor(x, y, speed, radius) {
+                this.x = x;
+                this.y = y;
+                this.speed = speed;
+                this.radius = radius;
+                this.velX = 0;
+                this.velY = 0;
+                this.nextVelX = 0;
+                this.nextVelY = 0;
+            }
+
+            getGridPos() { return { col: Math.floor(this.x / TILE_SIZE), row: Math.floor(this.y / TILE_SIZE) }; }
+            isAtCenterOfTile() { const xCenter = (this.getGridPos().col * TILE_SIZE) + TILE_SIZE / 2; const yCenter = (this.getGridPos().row * TILE_SIZE) + TILE_SIZE / 2; return Math.abs(this.x - xCenter) < this.speed / 2 && Math.abs(this.y - yCenter) < this.speed / 2; }
+
+            update() {
+                if (this.isAtCenterOfTile()) {
+                    const { col, row } = this.getGridPos();
+                    if (this.nextVelX !== 0 || this.nextVelY !== 0) {
+                        const nextCol = col + this.nextVelX;
+                        const nextRow = row + this.nextVelY;
+                        if (nextRow >= 0 && nextRow < mapHeight && map[nextRow] && map[nextRow][nextCol] !== 0) { this.velX = this.nextVelX; this.velY = this.nextVelY; }
+                    }
+                    const currentCol = col + this.velX; const currentRow = row + this.velY;
+                    if (currentRow < 0 || currentRow >= mapHeight || map[currentRow][currentCol] === 0) { this.x = col * TILE_SIZE + TILE_SIZE / 2; this.y = row * TILE_SIZE + TILE_SIZE / 2; this.velX = 0; this.velY = 0; }
+                }
+                this.x += this.velX * this.speed; this.y += this.velY * this.speed;
+                if (this.x < 0) this.x = mapWidth * TILE_SIZE - TILE_SIZE / 2;
+                if (this.x > mapWidth * TILE_SIZE) this.x = TILE_SIZE / 2;
+            }
+        }
+        
+        class Pacman extends Character {
+            constructor(x, y, speed) { super(x, y, speed, TILE_SIZE / 2 - 2); this.angle = 0.2; this.mouthOpen = true; }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                let rotation = 0;
+                if (this.velX === 1) rotation = 0; else if (this.velX === -1) rotation = Math.PI; else if (this.velY === 1) rotation = Math.PI / 2; else if (this.velY === -1) rotation = -Math.PI / 2;
+                ctx.rotate(rotation);
+                if (this.velX !== 0 || this.velY !== 0) { this.angle += (this.mouthOpen ? -1 : 1) * 0.05; if (this.angle < 0 || this.angle > 0.2) { this.mouthOpen = !this.mouthOpen; } }
+                ctx.fillStyle = 'yellow'; ctx.beginPath(); ctx.arc(0, 0, this.radius, this.angle, Math.PI * 2 - this.angle); ctx.lineTo(0, 0); ctx.fill(); ctx.restore();
+            }
+        }
+
+        class Ghost extends Character {
+            constructor(x, y, speed, color, spawnX, spawnY) { super(x, y, speed, TILE_SIZE / 2 - 2); this.color = color; this.spawnX = spawnX; this.spawnY = spawnY; this.state = 'chasing'; this.frightenTimer = 0; this.respawnTimer = 0; }
+            draw() {
+                ctx.globalAlpha = (this.state === 'eaten' || this.state === 'respawning') ? 0.5 : 1.0; ctx.fillStyle = this.state === 'frightened' ? '#0000FF' : this.color;
+                if (this.state === 'eaten' || this.state === 'respawning') { ctx.fillStyle = '#888'; } else { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, Math.PI, 0); ctx.lineTo(this.x + this.radius, this.y + this.radius); ctx.lineTo(this.x + this.radius - this.radius/3, this.y + this.radius*0.8); ctx.lineTo(this.x + this.radius - (this.radius/3)*2, this.y + this.radius); ctx.lineTo(this.x, this.y + this.radius*0.8); ctx.lineTo(this.x - this.radius + (this.radius/3)*2, this.y + this.radius); ctx.lineTo(this.x - this.radius + this.radius/3, this.y + this.radius*0.8); ctx.lineTo(this.x - this.radius, this.y + this.radius); ctx.closePath(); ctx.fill(); }
+                const eyeOffsetX = this.radius * 0.3; const eyeOffsetY = -this.radius * 0.2;
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(this.x - eyeOffsetX, this.y + eyeOffsetY, this.radius * 0.25, 0, Math.PI * 2); ctx.arc(this.x + eyeOffsetX, this.y + eyeOffsetY, this.radius * 0.25, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; let pupilOffsetX = 0, pupilOffsetY = 0;
+                if (this.velX === 1) pupilOffsetX = 1; if (this.velX === -1) pupilOffsetX = -1; if (this.velY === 1) pupilOffsetY = 1; if (this.velY === -1) pupilOffsetY = -1;
+                ctx.beginPath(); ctx.arc(this.x - eyeOffsetX + pupilOffsetX, this.y + eyeOffsetY + pupilOffsetY, this.radius * 0.1, 0, Math.PI * 2); ctx.arc(this.x + eyeOffsetX + pupilOffsetX, this.y + eyeOffsetY + pupilOffsetY, this.radius * 0.1, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1.0;
+            }
+            update() {
+                if (this.state === 'respawning') { this.respawnTimer -= 1000 / 60; if (this.respawnTimer <= 0) { this.state = 'chasing'; } return; }
+                if (this.state === 'eaten') { if (Math.abs(this.x - this.spawnX) < this.speed && Math.abs(this.y - this.spawnY) < this.speed) { this.state = 'respawning'; this.respawnTimer = 1000; } else { this.aiMove(this.spawnX, this.spawnY); } }
+                else { if (this.state === 'frightened') { this.frightenTimer -= 1000 / 60; if (this.frightenTimer <= 0) { this.state = 'chasing'; } } this.aiMove(pacman.x, pacman.y, this.state === 'frightened'); }
+                super.update();
+            }
+            aiMove(targetX, targetY, isFrightened = false) {
+                 if (this.isAtCenterOfTile()) {
+                    const { col, row } = this.getGridPos(); const possibleMoves = [];
+                    if (map[row - 1]?.[col] !== 0) possibleMoves.push({ x: 0, y: -1 }); if (map[row + 1]?.[col] !== 0) possibleMoves.push({ x: 0, y: 1 }); if (map[row]?.[col - 1] !== 0) possibleMoves.push({ x: -1, y: 0 }); if (map[row]?.[col + 1] !== 0) possibleMoves.push({ x: 1, y: 0 });
+                    const filteredMoves = possibleMoves.filter(move => move.x !== -this.velX || move.y !== -this.velY); let bestMove; const movesToConsider = filteredMoves.length > 0 ? filteredMoves : possibleMoves;
+                    if (movesToConsider.length > 0) {
+                        let bestDistance = isFrightened ? -Infinity : Infinity;
+                        movesToConsider.forEach(move => { const newX = this.x + move.x * TILE_SIZE; const newY = this.y + move.y * TILE_SIZE; const distance = Math.hypot(newX - targetX, newY - targetY); if (isFrightened) { if(distance > bestDistance) { bestDistance = distance; bestMove = move; } } else { if (distance < bestDistance) { bestDistance = distance; bestMove = move; } } });
+                         if(Math.random() > 0.8 && movesToConsider.length > 1) { bestMove = movesToConsider[Math.floor(Math.random() * movesToConsider.length)]; }
+                    }
+                    if(bestMove) { this.nextVelX = bestMove.x; this.nextVelY = bestMove.y; }
+                }
+            }
+            frighten() { if(this.state !== 'eaten' && this.state !== 'respawning') { this.state = 'frightened'; this.frightenTimer = levelSettings[level].powerPelletDuration; } }
+        }
+
+        function initializeQuestions() { availableQuestions = [...questions]; askedQuestions = []; }
+        function init() {
+            if (isInitializing) return; isInitializing = true; if(animationFrameId) cancelAnimationFrame(animationFrameId);
+            mapWidth = map[0].length; mapHeight = map.length; canvas.width = mapWidth * TILE_SIZE; canvas.height = mapHeight * TILE_SIZE;
+            levelEl.textContent = level; scoreEl.textContent = score;
+            pellets = []; powerPellets = []; ghosts = [];
+            let ghostSpawns = [];
+            for (let row = 0; row < mapHeight; row++) {
+                for (let col = 0; col < mapWidth; col++) {
+                    const x = col * TILE_SIZE + TILE_SIZE / 2; const y = row * TILE_SIZE + TILE_SIZE / 2;
+                    if (map[row][col] === 1) pellets.push({ x, y }); else if (map[row][col] === 3) powerPellets.push({ x, y, active: true }); else if (map[row][col] === 4) ghostSpawns.push({x, y});
+                }
+            }
+            const pacmanX = 13 * TILE_SIZE + TILE_SIZE / 2; const pacmanY = 12 * TILE_SIZE + TILE_SIZE / 2; pacman = new Pacman(pacmanX, pacmanY, 2);
+            const ghostColors = ['#FF0000', '#FFB8FF', '#00FFFF', '#FFB852'];
+            if (ghostSpawns.length > 0) { for (let i = 0; i < 4; i++) { const spawn = ghostSpawns[i % ghostSpawns.length]; const { ghostSpeed } = levelSettings[level]; ghosts.push(new Ghost(spawn.x, spawn.y, ghostSpeed, ghostColors[i], spawn.x, spawn.y)); } }
+            gameActive = true; isInitializing = false; gameLoop();
+        }
+        function restartGame() { gameContainer.classList.add('hidden'); startModal.classList.remove('hidden'); level = 1; score = 0; correctAnswersCount = 0; }
+        function gameLoop() { if (!gameActive) return; update(); draw(); animationFrameId = requestAnimationFrame(gameLoop); }
+        function update() { pacman.update(); ghosts.forEach(ghost => ghost.update()); checkCollisions(); }
+        function draw() { ctx.clearRect(0, 0, canvas.width, canvas.height); drawMap(); drawPellets(); ghosts.forEach(ghost => ghost.draw()); pacman.draw(); }
+        function drawMap() { ctx.fillStyle = '#0000FF'; for (let row = 0; row < mapHeight; row++) { for (let col = 0; col < mapWidth; col++) { if (map[row][col] === 0) { ctx.fillRect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE); } } } }
+        function drawPellets() {
+            ctx.fillStyle = '#FFFFFF'; pellets.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI * 2); ctx.fill(); });
+            ctx.fillStyle = '#FFFF00'; powerPellets.forEach(pp => { if (pp.active) { ctx.beginPath(); if(Math.floor(Date.now() / 200) % 2 === 0) { ctx.arc(pp.x, pp.y, 6, 0, Math.PI * 2); ctx.fill(); } } });
+        }
+        function checkCollisions() {
+            for (let i = pellets.length - 1; i >= 0; i--) { const p = pellets[i]; if (Math.hypot(pacman.x - p.x, pacman.y - p.y) < pacman.radius) { pellets.splice(i, 1); score += 10; scoreEl.textContent = score; } }
+            for (let i = powerPellets.length - 1; i >= 0; i--) { const pp = powerPellets[i]; if (pp.active && Math.hypot(pacman.x - pp.x, pacman.y - pp.y) < pacman.radius + 4) { pp.active = false; score += 50; scoreEl.textContent = score; ghosts.forEach(ghost => ghost.frighten()); } }
+            ghosts.forEach(ghost => { if (Math.hypot(pacman.x - ghost.x, pacman.y - ghost.y) < pacman.radius + ghost.radius) { if (ghost.state === 'frightened') { ghost.state = 'eaten'; score += 200; scoreEl.textContent = score; } else if (ghost.state === 'chasing') { gameActive = false; caughtGhost = ghost; showQuestion(); } } });
+            if (pellets.length === 0) { gameActive = false; if(level < 5) showLevelClear(); else showWinScreen(); }
+        }
+        function showQuestion() {
+            if (availableQuestions.length === 0) { availableQuestions = [...askedQuestions]; askedQuestions = []; }
+            const questionIndex = Math.floor(Math.random() * availableQuestions.length); currentQuestion = availableQuestions[questionIndex];
+            questionTextEl.textContent = currentQuestion.q; optionsContainer.innerHTML = '';
+            currentQuestion.o.forEach((option, index) => { const button = document.createElement('button'); button.textContent = `${String.fromCharCode(65 + index)}. ${option}`; button.classList.add('modal-button', 'w-full', 'p-4', 'border-2', 'border-blue-500', 'rounded-lg', 'text-left', 'text-lg'); button.onclick = () => handleAnswer(index, questionIndex); optionsContainer.appendChild(button); });
+            if (gameMode === 'advanced') { timerContainer.classList.remove('hidden'); let timeLeft = 15; timerCountdownEl.textContent = timeLeft; countdownInterval = setInterval(() => { timeLeft--; timerCountdownEl.textContent = timeLeft; }, 1000); questionTimer = setTimeout(() => { handleAnswer(-1, questionIndex); }, 15000); } else { timerContainer.classList.add('hidden'); }
+            questionModal.classList.remove('hidden');
+        }
+        function handleAnswer(selectedIndex, questionIndex) {
+            clearTimeout(questionTimer); clearInterval(countdownInterval); questionModal.classList.add('hidden');
+            const isCorrect = selectedIndex === currentQuestion.a;
+            if (isCorrect) { correctAnswersCount++; askedQuestions.push(availableQuestions.splice(questionIndex, 1)[0]); showMessage("CORRECT!", "The ghost is returning to its base.", () => { if(caughtGhost) caughtGhost.state = 'eaten'; gameActive = true; gameLoop(); }); } else { const reason = selectedIndex === -1 ? "You ran out of time!" : "Wrong answer!"; showMessage("GAME OVER", `Final Score: ${score}\nQuestions Correct: ${correctAnswersCount}\n\n${reason}`, () => { restartGame(); }); }
+        }
+        function showMessage(title, text, buttonAction) { messageTitleEl.textContent = title; messageTextEl.textContent = text; messageButton.onclick = () => { messageModal.classList.add('hidden'); buttonAction(); }; messageModal.classList.remove('hidden'); }
+        function showLevelClear() { showMessage(`LEVEL ${level} CLEARED!`, `Your score: ${score}`, () => { level++; init(); }); }
+        function showWinScreen() { showMessage("YOU WIN!", `Congratulations!\n\nFinal Score: ${score}\nQuestions Correct: ${correctAnswersCount}`, () => { restartGame(); }); }
+        
+        // --- [NEW] Joystick Logic ---
+        function setupJoystick() {
+            const joystickRect = joystickContainer.getBoundingClientRect();
+            const knobRect = joystickKnob.getBoundingClientRect();
+            const joystickCenterX = joystickRect.left + joystickRect.width / 2;
+            const joystickCenterY = joystickRect.top + joystickRect.height / 2;
+            const maxKnobDisplacement = joystickRect.width / 2 - knobRect.width / 2;
+
+            let isDragging = false;
+
+            function handleTouchStart(e) {
+                e.preventDefault();
+                if (e.target === joystickContainer || e.target === joystickKnob) {
+                    isDragging = true;
+                }
+            }
+
+            function handleTouchMove(e) {
+                e.preventDefault();
+                if (!isDragging) return;
+
+                const touch = e.changedTouches[0];
+                const deltaX = touch.clientX - joystickCenterX;
+                const deltaY = touch.clientY - joystickCenterY;
+                const angle = Math.atan2(deltaY, deltaX);
+                const distance = Math.min(Math.hypot(deltaX, deltaY), maxKnobDisplacement);
+                
+                // Update knob position
+                const knobX = Math.cos(angle) * distance;
+                const knobY = Math.sin(angle) * distance;
+                joystickKnob.style.transform = `translate(${knobX}px, ${knobY}px)`;
+
+                // Determine Pac-Man direction based on angle
+                const angleDeg = angle * 180 / Math.PI;
+                if (angleDeg > -45 && angleDeg <= 45) { // Right
+                    pacman.nextVelX = 1; pacman.nextVelY = 0;
+                } else if (angleDeg > 45 && angleDeg <= 135) { // Down
+                    pacman.nextVelX = 0; pacman.nextVelY = 1;
+                } else if (angleDeg > 135 || angleDeg <= -135) { // Left
+                    pacman.nextVelX = -1; pacman.nextVelY = 0;
+                } else { // Up
+                    pacman.nextVelX = 0; pacman.nextVelY = -1;
+                }
+            }
+
+            function handleTouchEnd(e) {
+                e.preventDefault();
+                isDragging = false;
+                joystickKnob.style.transform = `translate(0px, 0px)`; // Reset knob position
+            }
+
+            joystickContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
+            window.addEventListener('touchmove', handleTouchMove, { passive: false });
+            window.addEventListener('touchend', handleTouchEnd, { passive: false });
+        }
+
+
+        // Event Listeners
+        window.addEventListener('keydown', (e) => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) { e.preventDefault(); }
+            switch (e.key) {
+                case 'ArrowUp': pacman.nextVelX = 0; pacman.nextVelY = -1; break;
+                case 'ArrowDown': pacman.nextVelX = 0; pacman.nextVelY = 1; break;
+                case 'ArrowLeft': pacman.nextVelX = -1; pacman.nextVelY = 0; break;
+                case 'ArrowRight': pacman.nextVelX = 1; pacman.nextVelY = 0; break;
+            }
+        });
+
+        normalModeBtn.addEventListener('click', () => { gameMode = 'normal'; normalModeBtn.classList.add('selected'); advancedModeBtn.classList.remove('selected'); });
+        advancedModeBtn.addEventListener('click', () => { gameMode = 'advanced'; advancedModeBtn.classList.add('selected'); normalModeBtn.classList.remove('selected'); });
+
+        startGameBtn.addEventListener('click', () => {
+            startModal.classList.add('hidden');
+            gameContainer.classList.remove('hidden');
+            // Show joystick only on touch devices (approximated by screen width)
+            if (window.innerWidth < 768) {
+                joystickContainer.classList.remove('hidden');
+            }
+            initializeQuestions();
+            init();
+            setupJoystick();
+        });
+
+    </script>
+</body>
+</html>
