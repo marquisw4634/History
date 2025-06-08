@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Infinite Maze Runner V6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        body { font-family: 'Press Start 2P', cursive; background-color: #000; color: #e0e0e0; overflow: hidden; touch-action: none; }
+        .pixel-border { border: 4px solid #333; box-shadow: 0 0 25px rgba(0, 220, 255, 0.3); }
+        canvas { background-color: #1a1a1a; display: block; width: 100%; height: 100%; }
+        #ability-controls { position: absolute; bottom: 20px; left: 20px; display: flex; gap: 10px; z-index: 10; }
+        .ability-button { width: 50px; height: 50px; background-color: rgba(0,0,0,0.4); border: 2px solid rgba(0, 220, 255, 0.2); border-radius: 10px; color: white; font-size: 24px; display: flex; align-items: center; justify-content: center; user-select: none; transition: all 0.2s; }
+        .ability-button.disabled { background-color: rgba(0,0,0,0.6); color: #666; border-color: #444; }
+        .ability-button.can-use { border-color: #00dcff; box-shadow: 0 0 15px #00dcff; transform: scale(1.1); }
+        .ability-icon { width: 28px; height: 28px; stroke-width: 2; stroke: currentColor; fill: none; }
+        
+        #dpad-container { position: absolute; bottom: 10px; right: 10px; width: 180px; height: 180px; z-index: 10; display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
+        .dpad-button { background-color: rgba(0, 220, 255, 0.1); border: 2px solid rgba(0, 220, 255, 0.15); color: rgba(255, 255, 255, 0.7); display: flex; align-items: center; justify-content: center; font-size: 24px; user-select: none; transition: background-color 0.1s; }
+        .dpad-button:active { background-color: rgba(0, 220, 255, 0.3); }
+        #dpad-up { grid-column: 2; grid-row: 1; border-radius: 10px 10px 0 0; }
+        #dpad-left { grid-column: 1; grid-row: 2; border-radius: 10px 0 0 10px; }
+        #dpad-right { grid-column: 3; grid-row: 2; border-radius: 0 10px 10px 0; }
+        #dpad-down { grid-column: 2; grid-row: 3; border-radius: 0 0 10px 10px; }
+        #mute-button, #pause-button { position: absolute; top: 20px; z-index: 20; width: 40px; height: 40px; background-color: rgba(0,0,0,0.4); border: 2px solid rgba(0, 220, 255, 0.2); border-radius: 10px; color: white; display:flex; align-items:center; justify-content:center; }
+        #mute-button { right: 20px; }
+        #pause-button { left: 20px; }
+        .modal { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: rgba(0,0,0,0.8); z-index: 30; }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center h-screen p-2">
+
+    <div class="w-full max-w-lg mb-2 text-center">
+        <div class="flex justify-between items-center px-2">
+            <div id="health-bar" class="text-2xl"></div>
+            <div class="text-lg flex items-center gap-2">
+                 <span>🔋</span>
+                 <span id="ability-charge-display">0</span>
+            </div>
+             <div class="text-lg">Lvl: <span id="level-display">1</span></div>
+            <div class="text-lg">Score: <span id="score">0</span></div>
+        </div>
+    </div>
+
+    <div id="game-container" class="relative w-full max-w-lg aspect-square pixel-border">
+        <canvas id="gameCanvas"></canvas>
+        <button id="mute-button">🔇</button>
+        <button id="pause-button">⏸️</button>
+        <div id="gameOverModal" class="modal hidden">
+            <h2 class="text-4xl text-red-500">SYSTEM OFFLINE</h2>
+            <p class="mt-2">Final Score: <span id="finalScore">0</span></p>
+            <button id="newGameButton" class="mt-6 px-6 py-3 bg-green-500 text-white rounded-lg text-xl hover:bg-green-600">REBOOT</button>
+        </div>
+        <div id="pauseMenu" class="modal hidden">
+            <h2 class="text-4xl text-cyan-400">PAUSED</h2>
+            <div class="mt-8 flex flex-col gap-4 text-lg">
+                <div class="flex items-center gap-4">
+                    <label for="dpad-toggle">Show D-Pad</label>
+                    <input type="checkbox" id="dpad-toggle" class="form-checkbox h-6 w-6 text-cyan-400 bg-gray-800 border-gray-600 rounded focus:ring-cyan-500"/>
+                </div>
+            </div>
+            <button id="resume-button" class="mt-8 px-6 py-3 bg-cyan-500 text-white rounded-lg text-xl hover:bg-cyan-600">RESUME</button>
+        </div>
+        
+        <div id="dpad-container">
+            <div id="dpad-up" class="dpad-button">▲</div>
+            <div id="dpad-left" class="dpad-button">◄</div>
+            <div id="dpad-right" class="dpad-button">►</div>
+            <div id="dpad-down" class="dpad-button">▼</div>
+        </div>
+        <div id="ability-controls">
+            <div id="slash-button" class="ability-button" title="Shoot (J) - Cost: 2"><svg class="ability-icon" viewBox="0 0 24 24"><path d="M5 12h17M4 12h1m-2-2l2 2-2 2"/></svg></div>
+            <div id="burst-button" class="ability-button" title="EMP (K) - Cost: 4"><svg class="ability-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M16 8l-2 2-2-2M8 16l2-2 2 2M16 16l-2-2-2 2M8 8l2 2 2-2"/><path d="M12 2v2M2 12h2M12 22v-2M22 12h-2"/></svg></div>
+            <div id="bomb-button" class="ability-button" title="Bomb (L) - Cost: 10"><svg class="ability-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M9 9h6v6H9z"/><path d="M16 7l2-2M18 5c.5-1.5-1-2.5-2-2"/></svg></div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const ui = {
+            healthBar: document.getElementById('health-bar'),
+            score: document.getElementById('score'),
+            levelDisplay: document.getElementById('level-display'),
+            abilityChargeDisplay: document.getElementById('ability-charge-display'),
+            gameOverModal: document.getElementById('gameOverModal'),
+            finalScore: document.getElementById('finalScore'),
+            newGameButton: document.getElementById('newGameButton'),
+            gameContainer: document.getElementById('game-container'),
+            pauseMenu: document.getElementById('pauseMenu'),
+            resumeButton: document.getElementById('resume-button'),
+            dpadToggle: document.getElementById('dpad-toggle'),
+            dpadContainer: document.getElementById('dpad-container'),
+            buttons: {
+                slash: document.getElementById('slash-button'),
+                burst: document.getElementById('burst-button'),
+                bomb: document.getElementById('bomb-button'),
+            }
+        };
+
+        const GRID_SIZE = 23;
+        let tileSize;
+        let state = {};
+
+        const ABILITY_COSTS = { SLASH: 2, BURST: 4, BOMB: 10 };
+        const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
+        let audioReady = false;
+        const sfx = {};
+        
+        function safeAudio(fn) {
+            if (audioReady) {
+                try { fn(); } catch (e) { console.error("Audio error:", e); }
+            }
+        }
+
+        function initAudio() {
+            if (audioReady) return;
+            try {
+                Tone.start();
+                const laserFilter = new Tone.Filter(800, "lowpass").toDestination();
+                sfx.laser = new Tone.Synth({ oscillator: { type: 'sawtooth' }, envelope: { attack: 0.01, decay: 0.05, sustain: 0, release: 0.1 } }).connect(laserFilter);
+                sfx.explosion = new Tone.MembraneSynth().toDestination();
+                const afterburnerFilter = new Tone.Filter(400, "lowpass").toDestination();
+                sfx.afterburner = new Tone.Noise("pink").connect(afterburnerFilter);
+                sfx.afterburner.volume.value = -Infinity;
+                sfx.afterburner.start(); 
+                sfx.emp = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 0.01, decay: 0.4, sustain: 0, release: 0.1 } }).toDestination();
+                sfx.enemyDestroy = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 } }).toDestination();
+                sfx.playerDamage = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.1 } }).toDestination();
+                sfx.coin = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+                sfx.nextLevel = new Tone.Synth().toDestination();
+                const music = new Tone.Loop(time => {
+                    const notes = ['C2', 'G2', 'C3', 'D#3'];
+                    safeAudio(() => sfx.nextLevel.triggerAttackRelease(notes[Math.floor(Math.random() * notes.length)], '16n', time));
+                }, '4n').start(0);
+                Tone.Transport.start();
+                audioReady = true;
+                document.getElementById('mute-button').textContent = '🔈';
+            } catch (e) { console.error("Audio could not be initialized:", e); }
+        }
+
+        const startAudio = () => { 
+            initAudio(); 
+            window.removeEventListener('keydown', startAudio); 
+            window.removeEventListener('mousedown', startAudio); 
+        };
+        window.addEventListener('keydown', startAudio);
+        window.addEventListener('mousedown', startAudio);
+        document.getElementById('mute-button').addEventListener('click', () => {
+             if (!audioReady) return;
+             Tone.Destination.mute = !Tone.Destination.mute;
+             document.getElementById('mute-button').textContent = Tone.Destination.mute ? '🔇' : '🔈';
+        });
+
+        function initGameState(isNextLevel = false) {
+            const oldState = isNextLevel ? { ...state } : {};
+            state = {
+                maze: [], 
+                player: { x: 1.5, y: 1.5, radius: 0.35, health: 3, maxHealth: 3, lastDamageTime: 0, lastFacingAngle: oldState.player?.lastFacingAngle || 0, abilityCharge: isNextLevel ? oldState.player.abilityCharge : 0, anim: 0, isMoving: false },
+                coins: [], particles: [], activeEffects: [], bombs: [],
+                patrolTraps: [], chaserTraps: [], rangerEnemies: [], ghostEnemies: [], projectiles: [],
+                exit: null, chest: null,
+                score: isNextLevel ? oldState.score : 0,
+                highScore: localStorage.getItem('mazeRunnerHighScore') || 0,
+                level: isNextLevel ? oldState.level + 1 : 1,
+                gameOver: false, 
+                isPaused: false,
+                dpadVisible: localStorage.getItem('dpadVisible') === 'true',
+                animationFrame: null,
+                lastUpdateTime: 0, 
+                pulse: 0,
+            };
+        }
+
+        function newGame(isNextLevel = false) {
+            if (state.animationFrame) cancelAnimationFrame(state.animationFrame);
+            initGameState(isNextLevel);
+            resizeCanvas();
+            ui.gameOverModal.classList.add('hidden');
+            ui.gameOverModal.classList.remove('flex');
+            ui.pauseMenu.classList.add('hidden');
+            ui.pauseMenu.classList.remove('flex');
+            updateScore(0);
+            updateHealthUI();
+            updateAbilityUI();
+            ui.levelDisplay.textContent = state.level;
+            state.maze = generateMaze(GRID_SIZE);
+            addLoopsToMaze(state.maze, state.level * 8);
+            placeItems();
+            updateDpadVisibility();
+            state.lastUpdateTime = performance.now();
+            gameLoop(performance.now());
+        }
+
+        function togglePause() {
+            state.isPaused = !state.isPaused;
+            if(state.isPaused) {
+                ui.pauseMenu.classList.remove('hidden');
+                ui.pauseMenu.classList.add('flex');
+                if(audioReady) Tone.Destination.mute = true;
+                cancelAnimationFrame(state.animationFrame);
+            } else {
+                ui.pauseMenu.classList.add('hidden');
+                ui.pauseMenu.classList.remove('flex');
+                 if(audioReady && document.getElementById('mute-button').textContent === '🔈') {
+                    Tone.Destination.mute = false;
+                 }
+                state.lastUpdateTime = performance.now();
+                gameLoop(performance.now());
+            }
+        }
+        
+        function updateDpadVisibility() {
+            ui.dpadContainer.style.display = state.dpadVisible ? 'grid' : 'none';
+            ui.dpadToggle.checked = state.dpadVisible;
+        }
+
+        function gameLoop(timestamp) {
+            if (state.isPaused || state.gameOver) return;
+            const elapsed = timestamp - state.lastUpdateTime;
+            state.lastUpdateTime = timestamp;
+            update(elapsed);
+            draw();
+            state.animationFrame = requestAnimationFrame(gameLoop);
+        }
+
+        function update(elapsed) {
+            state.pulse = (state.pulse + elapsed * 0.005) % (Math.PI * 2);
+            state.player.anim += elapsed;
+            updatePlayer(elapsed);
+            updateEnemies(elapsed);
+            updateBombs(elapsed);
+            updateParticles(elapsed);
+            updateActiveEffects(elapsed);
+            checkCollisions();
+        }
+
+        function draw() {
+            if (!ctx || canvas.width === 0) return;
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0,0,canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(-state.player.x * tileSize + canvas.width / 2, -state.player.y * tileSize + canvas.height / 2);
+            drawMaze();
+            drawItems();
+            drawBombs();
+            drawParticles();
+            drawEnemies();
+            drawActiveEffects();
+            drawPlayer();
+            ctx.restore();
+            drawFogOfWar();
+        }
+        
+        function drawMaze() {
+            const wallHeight = tileSize * 0.1;
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    ctx.fillStyle = (x + y) % 2 === 0 ? '#1a1d2a' : '#171a27';
+                    ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+                    if (state.maze[y][x] === 1) {
+                        ctx.fillStyle = '#2d3748';
+                        ctx.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
+                        ctx.fillStyle = '#4a5568';
+                        ctx.fillRect(x * tileSize, y * tileSize, tileSize, wallHeight);
+                    }
+                }
+            }
+        }
+        
+        function drawFogOfWar() {
+            const baseLightRadius = 5;
+            const lightRadiusDecay = 0.3;
+            const innerRadius = Math.max(1.5, baseLightRadius - (state.level - 1) * lightRadiusDecay);
+            const outerRadius = innerRadius + 5;
+            const center = { x: canvas.width / 2, y: canvas.height / 2 };
+            const gradient = ctx.createRadialGradient(center.x, center.y, tileSize * innerRadius, center.x, center.y, tileSize * outerRadius);
+            gradient.addColorStop(0, 'rgba(0,0,0,0)');
+            gradient.addColorStop(0.7, 'rgba(0,0,0,0.95)');
+            gradient.addColorStop(1, 'rgba(0,0,0,1)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawPlayer() {
+            const p = state.player;
+            const x = p.x * tileSize;
+            const y = p.y * tileSize;
+            const radius = p.radius * tileSize;
+            
+            if (Date.now() - p.lastDamageTime < 1000) {
+                 ctx.globalAlpha = Math.abs(Math.sin(Date.now() * 0.02));
+            }
+            
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(p.lastFacingAngle + Math.PI / 2);
+
+            if (p.isMoving) {
+                const thrusterGlow = Math.random() * 5 + 5;
+                ctx.fillStyle = '#ff8c00';
+                ctx.shadowColor = '#ff8c00';
+                ctx.shadowBlur = thrusterGlow;
+                ctx.beginPath();
+                ctx.moveTo(-radius * 0.4, radius * 0.8);
+                ctx.lineTo(radius * 0.4, radius * 0.8);
+                ctx.lineTo(0, radius * 0.8 + (thrusterGlow));
+                ctx.closePath();
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            ctx.fillStyle = '#718096';
+            ctx.beginPath();
+            ctx.moveTo(0, -radius);
+            ctx.lineTo(-radius * 0.8, radius * 0.5);
+            ctx.lineTo(-radius * 0.5, radius * 0.9);
+            ctx.lineTo(radius * 0.5, radius * 0.9);
+            ctx.lineTo(radius * 0.8, radius * 0.5);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.fillStyle = '#a0aec0';
+            ctx.fillRect(-radius * 0.9, -radius * 0.2, radius * 1.8, radius * 0.6);
+
+            const coreGlow = Math.sin(p.anim * 0.001) * 3 + 5;
+            ctx.fillStyle = '#00dcff';
+            ctx.shadowColor = '#00dcff';
+            ctx.shadowBlur = coreGlow;
+            ctx.beginPath();
+            ctx.arc(0, radius * 0.3, radius * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = '#4a5568';
+            ctx.beginPath();
+            ctx.arc(0, -radius*0.5, radius * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#4299e1';
+            ctx.fillRect(-radius * 0.5, -radius * 0.6, radius, radius * 0.2);
+
+
+            ctx.restore();
+            ctx.globalAlpha = 1.0;
+        }
+
+        function drawItems() {
+            if (state.chest && !state.chest.opened) {
+                const x = (state.chest.x + 0.5) * tileSize;
+                const y = (state.chest.y + 0.5) * tileSize;
+                ctx.font = `${tileSize * 0.8}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('🧰', x, y);
+            }
+
+            state.coins.forEach(c => {
+                 ctx.fillStyle = '#48bb78';
+                 const width = tileSize * 0.4;
+                 const height = tileSize * 0.25;
+                 const x = (c.x + 0.5) * tileSize;
+                 const y = (c.y + 0.5) * tileSize;
+                 ctx.shadowColor = '#48bb78';
+                 ctx.shadowBlur = 10;
+                 ctx.fillRect(x - width/2, y - height/2, width, height);
+                 ctx.fillStyle = '#9ae6b4';
+                 ctx.fillRect(x - width/4, y - height/2 - 2, width/2, 2);
+                 ctx.shadowBlur = 0;
+            });
+
+            if(state.exit) {
+                const x = (state.exit.x + 0.5) * tileSize;
+                const y = (state.exit.y + 0.5) * tileSize;
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(state.pulse);
+                const size = tileSize * 0.8;
+                ctx.strokeStyle = '#9f7aea';
+                ctx.lineWidth = 3;
+                ctx.shadowColor = '#9f7aea';
+                ctx.shadowBlur = 15;
+                ctx.strokeRect(-size/2, -size/2, size, size);
+                ctx.restore();
+            }
+        }
+        
+        function drawBombs() {
+            state.bombs.forEach(bomb => {
+                const x = (bomb.x + 0.5) * tileSize;
+                const y = (bomb.y + 0.5) * tileSize;
+                const flash = Math.abs(Math.sin(bomb.timer * 0.02));
+                ctx.fillStyle = `rgb(255, ${100 * (1-flash)}, ${100 * (1-flash)})`;
+                ctx.beginPath();
+                ctx.arc(x, y, tileSize * 0.4, 0, Math.PI*2);
+                ctx.fill();
+            });
+        }
+        
+        function drawEnemies() {
+            state.patrolTraps.forEach(t => {
+                const x = t.x * tileSize, y = t.y * tileSize;
+                const radius = t.radius * tileSize;
+                ctx.shadowColor = '#f56565';
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = '#c53030';
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.save();
+                ctx.translate(x,y);
+                ctx.rotate(state.pulse * 3);
+                for (let i = 0; i < 4; i++) {
+                    ctx.rotate(Math.PI / 2);
+                    ctx.fillStyle = '#e53e3e';
+                    ctx.beginPath();
+                    ctx.moveTo(radius * 0.8, 0);
+                    ctx.lineTo(radius * 1.5, -radius*0.1);
+                    ctx.lineTo(radius * 1.5, radius*0.1);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                ctx.restore();
+            });
+            state.chaserTraps.forEach(t => {
+                const x = t.x * tileSize, y = t.y * tileSize;
+                const size = t.radius * tileSize;
+                ctx.shadowColor = '#f6e05e';
+                ctx.shadowBlur = Math.sin(t.life * 0.01) * 5 + 10;
+                ctx.fillStyle = '#b7791f';
+                ctx.save();
+                ctx.translate(x,y);
+                const angle = Math.atan2(state.player.y - t.y, state.player.x - t.x);
+                ctx.rotate(angle + Math.PI/2);
+                ctx.beginPath();
+                ctx.moveTo(0, -size);
+                ctx.lineTo(-size * 0.8, size * 0.8);
+                ctx.lineTo(size * 0.8, size * 0.8);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            });
+            state.rangerEnemies.forEach(t => {
+                if (Date.now() - t.lastHitTime < 200) {
+                     ctx.globalAlpha = Math.abs(Math.sin(Date.now() * 0.05));
+                }
+                const x = (t.x + 0.5) * tileSize;
+                const y = (t.y + 0.5) * tileSize;
+                const size = tileSize * 0.4;
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.fillStyle = '#4a5568';
+                ctx.fillRect(-size, -size, size*2, size*2);
+                const angle = Math.atan2(state.player.y - (t.y+0.5), state.player.x - (t.x+0.5));
+                ctx.rotate(angle);
+                ctx.fillStyle = '#6b46c1';
+                ctx.fillRect(0, -size*0.2, size, size*0.4);
+                if (t.state === 'charging') {
+                    const chargeRatio = 1 - t.timer / 1000;
+                    ctx.fillStyle = `rgba(226, 88, 255, ${chargeRatio})`;
+                    ctx.shadowColor = '#e258ff';
+                    ctx.shadowBlur = 15;
+                    ctx.beginPath();
+                    ctx.arc(size, 0, size * 0.3 * chargeRatio, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+                ctx.restore();
+                ctx.globalAlpha = 1.0;
+            });
+            ctx.globalAlpha = 0.6;
+            state.ghostEnemies.forEach(t => {
+                const x = t.x * tileSize;
+                const y = t.y * tileSize;
+                ctx.shadowColor = '#fff';
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = `rgba(160, 174, 192, ${0.4 + Math.sin(t.x + state.pulse)*0.2})`;
+                ctx.beginPath();
+                ctx.arc(x, y, t.radius * tileSize, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+            ctx.shadowBlur = 0;
+            state.projectiles.forEach(p => {
+                ctx.shadowColor = p.owner === 'player' ? '#00dcff' : '#fefcbf';
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = p.owner === 'player' ? '#00dcff' : '#fefcbf';
+                ctx.beginPath();
+                ctx.arc(p.x * tileSize, p.y * tileSize, tileSize * 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+        }
+        
+        function drawActiveEffects() {
+            state.activeEffects.forEach(effect => {
+                if(effect.type === 'burst' || effect.type === 'explosion') {
+                    ctx.globalAlpha = effect.life / effect.maxLife;
+                    ctx.strokeStyle = effect.type === 'burst' ? '#63b3ed' : '#f6e05e';
+                    ctx.lineWidth = tileSize * 0.2 * (effect.life/effect.maxLife);
+                    ctx.beginPath();
+                    ctx.arc(effect.x*tileSize, effect.y*tileSize, effect.radius * tileSize, 0, Math.PI*2);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1.0;
+                }
+            });
+        }
+        
+        function drawParticles() {
+            state.particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life / p.maxLife;
+                ctx.beginPath();
+                ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+                ctx.globalAlpha = 1.0;
+            });
+        }
+
+        // --- Updates ---
+        function updatePlayer(elapsed) {
+            const p = state.player;
+            const speed = 0.0055 * elapsed;
+            let moveDx = 0;
+            let moveDy = 0;
+            if (keys.w || keys.ArrowUp) moveDy = -1;
+            if (keys.s || keys.ArrowDown) moveDy = 1;
+            if (keys.a || keys.ArrowLeft) moveDx = -1;
+            if (keys.d || keys.ArrowRight) moveDx = 1;
+
+            const isCurrentlyMoving = moveDx !== 0 || moveDy !== 0;
+
+            if (isCurrentlyMoving && !p.isMoving) { 
+                safeAudio(() => sfx.afterburner.volume.rampTo(-15, 0.1));
+            } else if (!isCurrentlyMoving && p.isMoving) {
+                safeAudio(() => sfx.afterburner.volume.rampTo(-Infinity, 0.2));
+            }
+            p.isMoving = isCurrentlyMoving;
+
+            if (p.isMoving) {
+                p.lastFacingAngle = Math.atan2(moveDy, moveDx);
+                let moveX = moveDx * speed;
+                let moveY = moveDy * speed;
+                if(moveX !== 0 && moveY !== 0){
+                    moveX /= Math.sqrt(2);
+                    moveY /= Math.sqrt(2);
+                }
+                
+                p.x += moveX;
+                for(const tile of getTilesForEntity(p)) if (state.maze[tile.y]?.[tile.x] === 1) { p.x -= moveX; break; }
+                p.y += moveY;
+                for(const tile of getTilesForEntity(p)) if (state.maze[tile.y]?.[tile.x] === 1) { p.y -= moveY; break; }
+            }
+        }
+        
+        function updateEnemies(elapsed) {
+            const patrolSpeed = 0.0015 * elapsed;
+            const chaserSpeed = 0.0035 * elapsed;
+            const ghostSpeed = 0.001 * elapsed;
+
+            state.patrolTraps.forEach(t => {
+                if (!t.target) {
+                    t.pathIndex = (t.pathIndex + 1) % t.path.length;
+                    t.target = t.path[t.pathIndex];
+                }
+                const dx = t.target.x - t.x;
+                const dy = t.target.y - t.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist < patrolSpeed) {
+                    t.x = t.target.x;
+                    t.y = t.target.y;
+                    t.target = null;
+                } else {
+                    t.x += (dx / dist) * patrolSpeed;
+                    t.y += (dy / dist) * patrolSpeed;
+                }
+            });
+            
+            for (let i = state.chaserTraps.length - 1; i >= 0; i--) {
+                const t = state.chaserTraps[i];
+                t.life -= elapsed;
+                if(t.life <= 0) {
+                    createParticles(t.x, t.y, '#b7791f', 20, 3);
+                    state.chaserTraps.splice(i,1);
+                    continue;
+                }
+                const dx = state.player.x - t.x;
+                const dy = state.player.y - t.y;
+                const dist = Math.hypot(dx, dy);
+                if(dist < t.sightRange && hasLineOfSight(t, state.player)) {
+                    let moveX = (dx / dist) * chaserSpeed;
+                    let moveY = (dy / dist) * chaserSpeed;
+                    t.x += moveX;
+                    for(const tile of getTilesForEntity(t)) if (state.maze[tile.y]?.[tile.x] === 1) { t.x -= moveX; break; }
+                    t.y += moveY;
+                    for(const tile of getTilesForEntity(t)) if (state.maze[tile.y]?.[tile.x] === 1) { t.y -= moveY; break; }
+                }
+            }
+            
+            for (let i = state.rangerEnemies.length - 1; i >= 0; i--) {
+                const t = state.rangerEnemies[i];
+                if (t.state === 'idle') {
+                    if (hasLineOfSight({x: t.x + 0.5, y: t.y + 0.5, radius: 0}, state.player)) {
+                        t.state = 'charging';
+                        t.timer = 1000;
+                    }
+                } else if (t.state === 'charging') {
+                    t.timer -= elapsed;
+                    if (t.timer <= 0) {
+                        t.state = 'cooldown';
+                        t.timer = 2000;
+                        const dx = state.player.x - (t.x + 0.5);
+                        const dy = state.player.y - (t.y + 0.5);
+                        const dist = Math.hypot(dx, dy);
+                        state.projectiles.push({
+                            owner: 'ranger',
+                            x: t.x + 0.5, y: t.y + 0.5,
+                            vx: (dx/dist) * 0.008,
+                            vy: (dy/dist) * 0.008,
+                        });
+                    }
+                } else if (t.state === 'cooldown') {
+                    t.timer -= elapsed;
+                    if (t.timer <= 0) {
+                        t.state = 'idle';
+                    }
+                }
+            }
+
+            state.ghostEnemies.forEach(t => {
+                if (!t.target) {
+                    t.pathIndex = (t.pathIndex + 1) % t.path.length;
+                    t.target = t.path[t.pathIndex];
+                }
+                const dx = t.target.x - t.x;
+                const dy = t.target.y - t.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist < ghostSpeed) {
+                    t.x = t.target.x;
+                    t.y = t.target.y;
+                    t.target = null;
+                } else {
+                    t.x += (dx / dist) * ghostSpeed;
+                    t.y += (dy / dist) * ghostSpeed;
+                }
+            });
+            
+            for (let i = state.projectiles.length - 1; i >= 0; i--) {
+                const p = state.projectiles[i];
+                p.x += p.vx * elapsed;
+                p.y += p.vy * elapsed;
+                if (p.life !== undefined) p.life -= elapsed;
+
+                const gridX = Math.floor(p.x);
+                const gridY = Math.floor(p.y);
+                if (state.maze[gridY]?.[gridX] === 1 || (p.life !== undefined && p.life <=0)) {
+                    createParticles(p.x, p.y, p.owner === 'player' ? '#00dcff' : '#fefcbf', 5, 2);
+                    state.projectiles.splice(i, 1);
+                }
+            }
+        }
+        
+        function updateBombs(elapsed) {
+            for(let i = state.bombs.length - 1; i >= 0; i--) {
+                const bomb = state.bombs[i];
+                bomb.timer -= elapsed;
+                if(bomb.timer <= 0) {
+                    triggerBomb(bomb);
+                    state.bombs.splice(i, 1);
+                }
+            }
+        }
+
+        function updateParticles(elapsed) {
+            for (let i = state.particles.length - 1; i >= 0; i--) {
+                const p = state.particles[i];
+                p.x += p.vx; p.y += p.vy; p.vy += 0.1; p.life--;
+                if (p.life <= 0) state.particles.splice(i, 1);
+            }
+        }
+        
+        function updateActiveEffects(elapsed) {
+            for(let i = state.activeEffects.length - 1; i >= 0; i--) {
+                const effect = state.activeEffects[i];
+                effect.life -= elapsed;
+                if(effect.type === 'burst' || effect.type === 'explosion') {
+                    effect.radius += 0.01 * elapsed;
+                }
+                if (effect.life <= 0) {
+                     if (effect.type === 'burst' || effect.type === 'explosion') checkAbilityHits(effect);
+                    state.activeEffects.splice(i, 1);
+                }
+            }
+        }
+
+        function useAbility(type) {
+            const p = state.player;
+            if(type === 'slash' && p.abilityCharge >= ABILITY_COSTS.SLASH) {
+                p.abilityCharge -= ABILITY_COSTS.SLASH;
+                safeAudio(() => sfx.laser.triggerAttackRelease('C5', '8n'));
+                state.projectiles.push({
+                    x: p.x, y: p.y,
+                    vx: Math.cos(p.lastFacingAngle) * 0.01,
+                    vy: Math.sin(p.lastFacingAngle) * 0.01,
+                    owner: 'player',
+                    life: 300,
+                });
+            }
+            if(type === 'burst' && p.abilityCharge >= ABILITY_COSTS.BURST) {
+                p.abilityCharge -= ABILITY_COSTS.BURST;
+                safeAudio(() => sfx.emp.triggerAttackRelease('0.4'));
+                state.activeEffects.push({ type:'burst', x: p.x, y: p.y, radius: 0, life: 500, maxLife: 500 });
+            }
+            if(type === 'bomb' && p.abilityCharge >= ABILITY_COSTS.BOMB) {
+                p.abilityCharge -= ABILITY_COSTS.BOMB;
+                state.bombs.push({x: Math.floor(p.x), y: Math.floor(p.y), timer: 2000, radius: 3 });
+            }
+            updateAbilityUI();
+        }
+        
+        function triggerBomb(bomb) {
+             const effect = { type:'explosion', x: bomb.x + 0.5, y: bomb.y + 0.5, radius: 0, life: 500, maxLife: 500 };
+             safeAudio(() => sfx.explosion.triggerAttackRelease("C1", "1n"));
+             state.activeEffects.push(effect);
+             createParticles(bomb.x + 0.5, bomb.y + 0.5, 'white', 50, 8);
+             
+             for(let y = bomb.y - bomb.radius; y <= bomb.y + bomb.radius; y++) {
+                 for(let x = bomb.x - bomb.radius; x <= bomb.x + bomb.radius; x++) {
+                     if (x > 0 && x < GRID_SIZE - 1 && y > 0 && y < GRID_SIZE - 1) {
+                        if(state.maze[y]?.[x] === 1 && Math.hypot(x - bomb.x, y - bomb.y) < bomb.radius) {
+                             state.maze[y][x] = 0;
+                             createParticles(x+0.5, y+0.5, '#555', 10, 2);
+                         }
+                     }
+                 }
+             }
+        }
+
+        function checkCollisions() {
+            const p = state.player;
+            if (state.chest && !state.chest.opened) {
+                if (Math.hypot(p.x - (state.chest.x + 0.5), p.y - (state.chest.y + 0.5)) < p.radius + 0.4) {
+                    state.player.abilityCharge += 4;
+                    state.chest.opened = true;
+                    safeAudio(() => sfx.coin.triggerAttackRelease('G5', '8n'));
+                    updateAbilityUI();
+                    createParticles(state.chest.x + 0.5, state.chest.y + 0.5, '#f6e05e');
+                }
+            }
+            for (let i = state.coins.length - 1; i >= 0; i--) {
+                const c = state.coins[i];
+                if (Math.hypot(p.x - (c.x + 0.5), p.y - (c.y + 0.5)) < p.radius + 0.3) {
+                    state.player.abilityCharge++;
+                    updateAbilityUI();
+                    safeAudio(() => sfx.coin.triggerAttackRelease('C5', '8n'));
+                    createParticles(c.x + 0.5, c.y + 0.5, '#48bb78'); 
+                    state.coins.splice(i, 1); 
+                    updateScore(10);
+                }
+            }
+            if (Date.now() - p.lastDamageTime > 1000) {
+                let tookDamage = false;
+                for (const t of state.patrolTraps) if (Math.hypot(p.x - t.x, p.y - t.y) < p.radius + t.radius) tookDamage = true;
+                for (const t of state.chaserTraps) if (Math.hypot(p.x - t.x, p.y - t.y) < p.radius + t.radius) tookDamage = true;
+                for (const t of state.ghostEnemies) if (Math.hypot(p.x - t.x, p.y - t.y) < p.radius + t.radius) tookDamage = true;
+                for (let i = state.projectiles.length - 1; i >= 0; i--) {
+                    const proj = state.projectiles[i];
+                    if (proj.owner !== 'player' && Math.hypot(p.x - proj.x, p.y - proj.y) < p.radius + 0.15) {
+                        tookDamage = true;
+                        state.projectiles.splice(i, 1);
+                        break;
+                    }
+                }
+                if(tookDamage) takeDamage();
+            }
+            if(state.exit && Math.hypot(p.x - (state.exit.x + 0.5), p.y - (state.exit.y + 0.5)) < p.radius + 0.4) {
+                safeAudio(() => {
+                    sfx.nextLevel.triggerAttackRelease('C4', '8n', Tone.now());
+                    sfx.nextLevel.triggerAttackRelease('E4', '8n', Tone.now() + 0.1);
+                    sfx.nextLevel.triggerAttackRelease('G4', '8n', Tone.now() + 0.2);
+                    sfx.nextLevel.triggerAttackRelease('C5', '8n', Tone.now() + 0.3);
+                });
+                newGame(true);
+            }
+            checkPlayerProjectileHits();
+        }
+        
+        function checkPlayerProjectileHits() {
+            for(let i = state.projectiles.length - 1; i >= 0; i--) {
+                const p = state.projectiles[i];
+                if(p.owner !== 'player') continue;
+                const checkAndKill = (enemies, isStationary = false) => {
+                    for(let j = enemies.length - 1; j >= 0; j--) {
+                        const enemy = enemies[j];
+                        const enemyX = isStationary ? enemy.x + 0.5 : enemy.x;
+                        const enemyY = isStationary ? enemy.y + 0.5 : enemy.y;
+                        if(Math.hypot(p.x - enemyX, p.y - enemyY) < enemy.radius) {
+                             if (enemy.health) {
+                                enemy.health--;
+                                enemy.lastHitTime = Date.now();
+                                if (enemy.health > 0) {
+                                    state.projectiles.splice(i, 1);
+                                    safeAudio(() => sfx.playerDamage.triggerAttackRelease('A3', '16n'));
+                                    return true;
+                                }
+                            }
+                             createParticles(enemyX, enemyY, '#f56565', 20);
+                             safeAudio(() => sfx.enemyDestroy.triggerAttackRelease('G4'));
+                             enemies.splice(j, 1);
+                             state.projectiles.splice(i, 1);
+                             updateScore(50);
+                             return true;
+                        }
+                    }
+                    return false;
+                };
+                if(checkAndKill(state.patrolTraps)) break;
+                if(checkAndKill(state.chaserTraps)) break;
+                if(checkAndKill(state.rangerEnemies, true)) break;
+            }
+        }
+        
+        function checkAbilityHits(effect) {
+            const checkAndKill = (enemies, isStationary = false, onlyEMP = false) => {
+                for(let i = enemies.length-1; i>=0; i--) {
+                    const enemy = enemies[i];
+                    if(onlyEMP && effect.type !== 'burst') continue;
+                    const enemyX = isStationary ? enemy.x + 0.5 : enemy.x;
+                    const enemyY = isStationary ? enemy.y + 0.5 : enemy.y;
+                    let hit = false;
+                    if(effect.type === 'burst' || effect.type === 'explosion') {
+                        if(Math.hypot(enemyX - effect.x, enemyY - effect.y) < effect.radius) hit = true;
+                    }
+                    if(hit) {
+                        if (enemy.health) {
+                            const damage = (effect.type === 'burst') ? 2 : 1;
+                            enemy.health -= damage;
+                            enemy.lastHitTime = Date.now();
+                            if (enemy.health > 0) continue;
+                        }
+                        createParticles(enemyX, enemyY, '#f56565', 20);
+                        safeAudio(() => sfx.enemyDestroy.triggerAttackRelease('G4', Tone.now() + i * 0.02));
+                        enemies.splice(i, 1);
+                        updateScore(50);
+                    }
+                }
+            };
+            checkAndKill(state.patrolTraps);
+            checkAndKill(state.chaserTraps);
+            checkAndKill(state.ghostEnemies, false, true);
+            checkAndKill(state.rangerEnemies, true);
+        }
+        
+        function takeDamage() {
+            state.player.health--;
+            state.player.lastDamageTime = Date.now();
+            safeAudio(() => sfx.playerDamage.triggerAttackRelease('C3', '8n'));
+            updateHealthUI();
+            createParticles(state.player.x, state.player.y, '#fff', 20, 4);
+            if(state.player.health <= 0) endGame();
+        }
+
+        function updateHealthUI() {
+            ui.healthBar.innerHTML = '';
+            for(let i=0; i<state.player.maxHealth; i++) {
+                ui.healthBar.innerHTML += i < state.player.health ? '❤️' : '🖤';
+            }
+        }
+
+        function updateAbilityUI() {
+            const charge = state.player.abilityCharge;
+            ui.abilityChargeDisplay.textContent = charge;
+            ui.buttons.slash.classList.toggle('can-use', charge >= ABILITY_COSTS.SLASH);
+            ui.buttons.burst.classList.toggle('can-use', charge >= ABILITY_COSTS.BURST);
+            ui.buttons.bomb.classList.toggle('can-use', charge >= ABILITY_COSTS.BOMB);
+        }
+
+        function getTilesForEntity(entity) {
+            const r = entity.radius;
+            const c = new Set();
+            c.add(JSON.stringify({x: Math.floor(entity.x - r), y: Math.floor(entity.y - r)}));
+            c.add(JSON.stringify({x: Math.floor(entity.x + r), y: Math.floor(entity.y - r)}));
+            c.add(JSON.stringify({x: Math.floor(entity.x - r), y: Math.floor(entity.y + r)}));
+            c.add(JSON.stringify({x: Math.floor(entity.x + r), y: Math.floor(entity.y + r)}));
+            return Array.from(c).map(s => JSON.parse(s));
+        }
+        
+        function generateMaze(size) {
+            const maze = Array(size).fill(0).map(() => Array(size).fill(1));
+            const stack = [[1, 1]];
+            maze[1][1] = 0;
+            while (stack.length > 0) {
+                const [cx, cy] = stack[stack.length - 1];
+                const dirs = [[0, -2], [2, 0], [0, 2], [-2, 0]].sort(() => 0.5 - Math.random());
+                let moved = false;
+                for (const [dx, dy] of dirs) {
+                    const nx = cx + dx;
+                    const ny = cy + dy;
+                    if (nx > 0 && nx < size - 1 && ny > 0 && ny < size - 1 && maze[ny][nx] === 1) {
+                        maze[ny][nx] = 0;
+                        maze[cy + dy / 2][cx + dx / 2] = 0;
+                        stack.push([nx, ny]);
+                        moved = true;
+                        break;
+                    }
+                }
+                if (!moved) {
+                    stack.pop();
+                }
+            }
+            return maze;
+        }
+
+        function addLoopsToMaze(maze, count) {
+            const walls = [];
+            for (let y = 1; y < GRID_SIZE - 1; y++) {
+                for (let x = 1; x < GRID_SIZE - 1; x++) if (maze[y][x] === 1) walls.push({ x, y });
+            }
+            walls.sort(() => 0.5 - Math.random());
+            for (let i = 0; i < count && walls.length > 0; i++) {
+                const wa = walls.pop();
+                if ((maze[wa.y - 1]?.[wa.x] === 0 && maze[wa.y + 1]?.[wa.x] === 0) || (maze[wa.y][wa.x - 1] === 0 && maze[wa.y][wa.x + 1] === 0)) {
+                    maze[wa.y][wa.x] = 0;
+                }
+            }
+        }
+        
+        function hasLineOfSight(entity1, entity2) {
+            let x1 = entity1.x; let y1 = entity1.y;
+            const x2 = entity2.x; const y2 = entity2.y;
+            const dx = x2 - x1; const dy = y2 - y1;
+            const steps = Math.max(Math.abs(dx), Math.abs(dy)) * 2;
+            if (steps === 0) return true;
+            const xIncrement = dx / steps; const yIncrement = dy / steps;
+            for (let i = 0; i <= steps; i++) {
+                if (state.maze[Math.floor(y1)]?.[Math.floor(x1)] === 1) return false;
+                x1 += xIncrement; y1 += yIncrement;
+            }
+            return true;
+        }
+
+        function placeItems() {
+            const empty = [];
+            for (let y = 1; y < GRID_SIZE - 1; y++) for (let x = 1; x < GRID_SIZE - 1; x++) {
+                if (state.maze[y][x] === 0 && (x > 6 || y > 6)) empty.push({ x, y });
+            }
+            empty.sort(() => .5 - Math.random());
+            
+            state.exit = {x: GRID_SIZE - 2, y: GRID_SIZE - 2};
+
+            if(state.level === 1) {
+                if (state.maze[2]?.[1] === 0) state.chest = { x: 1, y: 2, opened: false };
+                else if (state.maze[1]?.[2] === 0) state.chest = { x: 2, y: 1, opened: false };
+            }
+
+            const numCoins = 25 + state.level * 5;
+            for(let i=0; i < numCoins && empty.length > 0; i++) state.coins.push(empty.pop());
+            
+            const numPatrol = 12 + state.level * 4;
+            for(let i=0; i<numPatrol && empty.length > 0; i++) {
+                const cell = empty.pop();
+                if (!cell) continue;
+                const path = findPatrolPath(cell.x, cell.y);
+                if (path.length > 1) {
+                    state.patrolTraps.push({ x: cell.x + 0.5, y: cell.y + 0.5, radius: 0.3, path: path.map(p => ({x: p.x + 0.5, y: p.y + 0.5})), pathIndex: 0, target: null });
+                }
+            }
+            
+            const numChaser = 8 + state.level * 3;
+            for(let i=0; i<numChaser && empty.length > 0; i++) {
+                const cell = empty.pop();
+                 if (!cell) continue;
+                state.chaserTraps.push({ ...cell, x:cell.x+0.5, y:cell.y+0.5, radius: 0.35, life: 5000 + Math.random()*2000, sightRange: 3 });
+            }
+
+            const numRangers = 2 + state.level;
+            for(let i=0; i<numRangers && empty.length > 0; i++) {
+                const cell = empty.pop();
+                if (cell) state.rangerEnemies.push({ ...cell, radius: 0.5, state: 'idle', timer: 0, health: 2, lastHitTime: 0 });
+            }
+            
+            const numGhosts = 1 + state.level;
+            for(let i=0; i<numGhosts && empty.length > 0; i++) {
+                const cell = empty.pop();
+                if (cell) {
+                    const path = findGhostPath(cell.x, cell.y);
+                    state.ghostEnemies.push({ x: cell.x + 0.5, y: cell.y + 0.5, radius: 0.3, path: path.map(p => ({x: p.x + 0.5, y: p.y + 0.5})), pathIndex: 0, target: null });
+                }
+            }
+        }
+        function findPatrolPath(x, y) {
+            const path = [{x, y}];
+            const dir = Math.random() > 0.5 ? {x:1, y:0} : {x:0, y:1};
+            let cx = x, cy = y;
+            while(state.maze[cy + dir.y]?.[cx + dir.x] === 0) { cx += dir.x; cy += dir.y; }
+            if (cx !== x || cy !== y) path.push({x:cx, y:cy});
+            return path;
+        }
+        function findGhostPath(x, y) {
+            const path = [{x,y}];
+            const endX = Math.floor(Math.random() * (GRID_SIZE - 2)) + 1;
+            const endY = Math.floor(Math.random() * (GRID_SIZE - 2)) + 1;
+            path.push({x: endX, y: endY});
+            return path;
+        }
+        function createParticles(x, y, color, count=15, speed=5) { for(let i=0;i<count;i++){const ml=Math.random()*20+10;state.particles.push({x:x*tileSize,y:y*tileSize,vx:(Math.random()-.5)*speed,vy:(Math.random()-.5)*speed,life:ml,maxLife:ml,color:color,size:3*Math.random()+1})}}
+
+        function endGame() { state.gameOver = true; ui.finalScore.textContent = state.score; ui.gameOverModal.classList.remove('hidden'); ui.gameOverModal.classList.add('flex'); }
+        function updateScore(p=0) { state.score+=p; ui.score.textContent=state.score; if(state.score > state.highScore){state.highScore=state.score;localStorage.setItem('mazeRunnerHighScore',state.highScore)}}
+        function resizeCanvas(){const s=ui.gameContainer.clientWidth;canvas.width=s;canvas.height=s;tileSize=s/GRID_SIZE}
+        
+        window.addEventListener('keydown', (e) => {
+            if (keys[e.key] !== undefined) keys[e.key] = true;
+            if (e.key === 'j' || e.key === 'J') useAbility('slash');
+            if (e.key === 'k' || e.key === 'K') useAbility('burst');
+            if (e.key === 'l' || e.key === 'L') useAbility('bomb');
+            if(e.key === 'p' || e.key === 'P') togglePause();
+        });
+        window.addEventListener('keyup', (e) => {
+             if (keys[e.key] !== undefined) keys[e.key] = false;
+        });
+        
+        let lastAbilityTime = 0;
+        function setupAbilityButton(button, abilityType) {
+            const fire = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (Date.now() - lastAbilityTime > 100) {
+                    useAbility(abilityType);
+                    lastAbilityTime = Date.now();
+                }
+            };
+            button.addEventListener('mousedown', fire);
+            button.addEventListener('touchstart', fire);
+        }
+        setupAbilityButton(ui.buttons.slash, 'slash');
+        setupAbilityButton(ui.buttons.burst, 'burst');
+        setupAbilityButton(ui.buttons.bomb, 'bomb');
+
+        function setupDpadButton(elementId, key) {
+            const button = document.getElementById(elementId);
+            const press = (e) => {
+                e.preventDefault();
+                keys[key] = true;
+            };
+            const release = (e) => {
+                e.preventDefault();
+                keys[key] = false;
+            };
+            button.addEventListener('mousedown', press);
+            button.addEventListener('touchstart', press, { passive: false });
+            button.addEventListener('mouseup', release);
+            button.addEventListener('mouseleave', release);
+            button.addEventListener('touchend', release);
+        }
+        setupDpadButton('dpad-up', 'ArrowUp');
+        setupDpadButton('dpad-down', 'ArrowDown');
+        setupDpadButton('dpad-left', 'ArrowLeft');
+        setupDpadButton('dpad-right', 'ArrowRight');
+        
+        ui.newGameButton.addEventListener('click',() => newGame(false));
+        ui.resumeButton.addEventListener('click', togglePause);
+        document.getElementById('pause-button').addEventListener('click', togglePause);
+        ui.dpadToggle.addEventListener('change', () => {
+            state.dpadVisible = ui.dpadToggle.checked;
+            localStorage.setItem('dpadVisible', state.dpadVisible);
+            updateDpadVisibility();
+        });
+
+        window.addEventListener('resize',resizeCanvas);
+        window.addEventListener('load', () => newGame(false));
+    </script>
+</body>
+</html>
