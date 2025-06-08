@@ -10,14 +10,19 @@
         body { font-family: 'Press Start 2P', cursive; background-color: #000; color: #e0e0e0; overflow: hidden; touch-action: none; }
         .pixel-border { border: 4px solid #333; box-shadow: 0 0 25px rgba(0, 220, 255, 0.3); }
         canvas { background-color: #1a1a1a; display: block; width: 100%; height: 100%; }
-        #joystick-container { position: absolute; bottom: 20px; right: 20px; width: 120px; height: 120px; z-index: 10; }
-        #joystick-base { position: absolute; width: 100%; height: 100%; background-color: rgba(0, 220, 255, 0.05); border-radius: 50%; border: 2px solid rgba(0, 220, 255, 0.1); }
-        #joystick-stick { position: absolute; width: 60px; height: 60px; top: 30px; left: 30px; background-color: rgba(0, 220, 255, 0.2); border-radius: 50%; cursor: grab; }
         #ability-controls { position: absolute; bottom: 20px; left: 20px; display: flex; gap: 10px; z-index: 10; }
         .ability-button { width: 50px; height: 50px; background-color: rgba(0,0,0,0.4); border: 2px solid rgba(0, 220, 255, 0.2); border-radius: 10px; color: white; font-size: 24px; display: flex; align-items: center; justify-content: center; user-select: none; transition: all 0.2s; }
         .ability-button.disabled { background-color: rgba(0,0,0,0.6); color: #666; border-color: #444; }
         .ability-button.can-use { border-color: #00dcff; box-shadow: 0 0 15px #00dcff; transform: scale(1.1); }
         .ability-icon { width: 28px; height: 28px; stroke-width: 2; stroke: currentColor; fill: none; }
+        
+        #dpad-container { position: absolute; bottom: 20px; right: 20px; width: 150px; height: 150px; z-index: 10; display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
+        .dpad-button { background-color: rgba(0, 220, 255, 0.1); border: 2px solid rgba(0, 220, 255, 0.15); color: rgba(255, 255, 255, 0.7); display: flex; align-items: center; justify-content: center; font-size: 24px; user-select: none; transition: background-color 0.1s; }
+        .dpad-button:active { background-color: rgba(0, 220, 255, 0.3); }
+        #dpad-up { grid-column: 2; grid-row: 1; border-radius: 10px 10px 0 0; }
+        #dpad-left { grid-column: 1; grid-row: 2; border-radius: 10px 0 0 10px; }
+        #dpad-right { grid-column: 3; grid-row: 2; border-radius: 0 10px 10px 0; }
+        #dpad-down { grid-column: 2; grid-row: 3; border-radius: 0 0 10px 10px; }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center h-screen p-2">
@@ -42,11 +47,16 @@
             <button id="newGameButton" class="mt-6 px-6 py-3 bg-green-500 text-white rounded-lg text-xl hover:bg-green-600">REBOOT</button>
         </div>
         
-        <div id="joystick-container"><div id="joystick-base"></div><div id="joystick-stick"></div></div>
+        <div id="dpad-container">
+            <div id="dpad-up" class="dpad-button">▲</div>
+            <div id="dpad-left" class="dpad-button">◄</div>
+            <div id="dpad-right" class="dpad-button">►</div>
+            <div id="dpad-down" class="dpad-button">▼</div>
+        </div>
         <div id="ability-controls">
             <div id="slash-button" class="ability-button" title="Shoot (J) - Cost: 2"><svg class="ability-icon" viewBox="0 0 24 24"><path d="M5 12h17M4 12h1m-2-2l2 2-2 2"/></svg></div>
             <div id="burst-button" class="ability-button" title="EMP (K) - Cost: 4"><svg class="ability-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M16 8l-2 2-2-2M8 16l2-2 2 2M16 16l-2-2-2 2M8 8l2 2 2-2"/><path d="M12 2v2M2 12h2M12 22v-2M22 12h-2"/></svg></div>
-            <div id="bomb-button" class="ability-button" title="Bomb (L) - Cost: 20"><svg class="ability-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M9 9h6v6H9z"/><path d="M16 7l2-2M18 5c.5-1.5-1-2.5-2-2"/></svg></div>
+            <div id="bomb-button" class="ability-button" title="Bomb (L) - Cost: 10"><svg class="ability-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M9 9h6v6H9z"/><path d="M16 7l2-2M18 5c.5-1.5-1-2.5-2-2"/></svg></div>
         </div>
     </div>
 
@@ -62,7 +72,6 @@
             finalScore: document.getElementById('finalScore'),
             newGameButton: document.getElementById('newGameButton'),
             gameContainer: document.getElementById('game-container'),
-            joystick: { container: document.getElementById('joystick-container'), stick: document.getElementById('joystick-stick'), baseRadius: 60, stickRadius: 30, active: false, dx: 0, dy: 0 },
             buttons: {
                 slash: document.getElementById('slash-button'),
                 burst: document.getElementById('burst-button'),
@@ -74,7 +83,7 @@
         let tileSize;
         let state = {};
 
-        const ABILITY_COSTS = { SLASH: 2, BURST: 4, BOMB: 20 };
+        const ABILITY_COSTS = { SLASH: 2, BURST: 4, BOMB: 10 };
         const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
 
         function initGameState(isNextLevel = false) {
@@ -184,7 +193,7 @@
             const x = p.x * tileSize;
             const y = p.y * tileSize;
             const radius = p.radius * tileSize;
-            const isMoving = ui.joystick.dx !== 0 || ui.joystick.dy !== 0 || keys.w || keys.a || keys.s || keys.d || keys.ArrowUp || keys.ArrowDown || keys.ArrowLeft || keys.ArrowRight;
+            const isMoving = keys.w || keys.a || keys.s || keys.d || keys.ArrowUp || keys.ArrowDown || keys.ArrowLeft || keys.ArrowRight;
 
             if (Date.now() - p.lastDamageTime < 1000) {
                  ctx.globalAlpha = Math.abs(Math.sin(Date.now() * 0.02));
@@ -418,8 +427,9 @@
         function updatePlayer(elapsed) {
             const p = state.player;
             const speed = 0.0055 * elapsed;
-            let moveDx = ui.joystick.dx;
-            let moveDy = ui.joystick.dy;
+            let moveDx = 0;
+            let moveDy = 0;
+
             if (keys.w || keys.ArrowUp) moveDy = -1;
             if (keys.s || keys.ArrowDown) moveDy = 1;
             if (keys.a || keys.ArrowLeft) moveDx = -1;
@@ -700,7 +710,6 @@
                 };
                 if(checkAndKill(state.patrolTraps)) break;
                 if(checkAndKill(state.chaserTraps)) break;
-                if(checkAndKill(state.ghostEnemies)) break;
                 if(checkAndKill(state.rangerEnemies, true)) break;
             }
         }
@@ -710,17 +719,16 @@
                 for(let i = enemies.length-1; i>=0; i--) {
                     const enemy = enemies[i];
                     if(onlyEMP && effect.type !== 'burst') continue;
-
                     const enemyX = isStationary ? enemy.x + 0.5 : enemy.x;
                     const enemyY = isStationary ? enemy.y + 0.5 : enemy.y;
                     let hit = false;
-                    
                     if(effect.type === 'burst' || effect.type === 'explosion') {
                         if(Math.hypot(enemyX - effect.x, enemyY - effect.y) < effect.radius) hit = true;
                     }
                     if(hit) {
                         if (enemy.health) {
-                            enemy.health--;
+                            const damage = (effect.type === 'burst') ? 2 : 1;
+                            enemy.health -= damage;
                             enemy.lastHitTime = Date.now();
                             if (enemy.health > 0) continue;
                         }
@@ -833,7 +841,8 @@
             state.exit = {x: GRID_SIZE - 2, y: GRID_SIZE - 2};
 
             if(state.level === 1) {
-                state.chest = { x: 1, y: 2, opened: false };
+                if (state.maze[2]?.[1] === 0) state.chest = { x: 1, y: 2, opened: false };
+                else if (state.maze[1]?.[2] === 0) state.chest = { x: 2, y: 1, opened: false };
             }
 
             const numCoins = 25 + state.level * 5;
@@ -891,8 +900,6 @@
         function endGame() { state.gameOver = true; ui.finalScore.textContent = state.score; ui.gameOverModal.classList.remove('hidden'); ui.gameOverModal.classList.add('flex'); }
         function updateScore(p=0) { state.score+=p; ui.score.textContent=state.score; if(state.score > state.highScore){state.highScore=state.score;localStorage.setItem('mazeRunnerHighScore',state.highScore)}}
         function resizeCanvas(){const s=ui.gameContainer.clientWidth;canvas.width=s;canvas.height=s;tileSize=s/GRID_SIZE}
-        function handleJoystickMove(e){if(!ui.joystick.active)return;e.preventDefault();const t=e.touches?e.touches[0]:e,a=ui.joystick.container.getBoundingClientRect(),l=t.clientX-a.left-ui.joystick.baseRadius,o=t.clientY-a.top-ui.joystick.baseRadius,r=Math.min(ui.joystick.baseRadius-ui.joystick.stickRadius,Math.hypot(l,o)),c=Math.atan2(o,l),i=Math.cos(c)*r,n=Math.sin(c)*r;ui.joystick.stick.style.transform=`translate(${i}px,${n}px)`;ui.joystick.dx=Math.cos(c)*(r/(ui.joystick.baseRadius-ui.joystick.stickRadius));ui.joystick.dy=Math.sin(c)*(r/(ui.joystick.baseRadius-ui.joystick.stickRadius))}
-        function handleJoystickEnd(){if(!ui.joystick.active)return;ui.joystick.active=!1;ui.joystick.stick.style.transform='translate(0,0)';ui.joystick.dx=0;ui.joystick.dy=0}
         
         window.addEventListener('keydown', (e) => {
             if (keys[e.key] !== undefined) keys[e.key] = true;
@@ -904,13 +911,6 @@
              if (keys[e.key] !== undefined) keys[e.key] = false;
         });
 
-        ui.joystick.container.addEventListener('mousedown',e=>{ui.joystick.active=!0;handleJoystickMove(e)});
-        ui.joystick.container.addEventListener('touchstart',e=>{ui.joystick.active=!0;handleJoystickMove(e)}, {passive: false});
-        window.addEventListener('mousemove',handleJoystickMove);
-        window.addEventListener('touchmove',handleJoystickMove,{passive:!1});
-        window.addEventListener('mouseup',handleJoystickEnd);
-        window.addEventListener('touchend',handleJoystickEnd);
-        
         let lastAbilityTime = 0;
         function setupAbilityButton(button, abilityType) {
             const fire = (e) => {
@@ -927,6 +927,27 @@
         setupAbilityButton(ui.buttons.slash, 'slash');
         setupAbilityButton(ui.buttons.burst, 'burst');
         setupAbilityButton(ui.buttons.bomb, 'bomb');
+
+        function setupDpadButton(elementId, key) {
+            const button = document.getElementById(elementId);
+            const press = (e) => {
+                e.preventDefault();
+                keys[key] = true;
+            };
+            const release = (e) => {
+                e.preventDefault();
+                keys[key] = false;
+            };
+            button.addEventListener('mousedown', press);
+            button.addEventListener('touchstart', press, { passive: false });
+            button.addEventListener('mouseup', release);
+            button.addEventListener('mouseleave', release);
+            button.addEventListener('touchend', release);
+        }
+        setupDpadButton('dpad-up', 'ArrowUp');
+        setupDpadButton('dpad-down', 'ArrowDown');
+        setupDpadButton('dpad-left', 'ArrowLeft');
+        setupDpadButton('dpad-right', 'ArrowRight');
         
         ui.newGameButton.addEventListener('click',() => newGame(false));
         window.addEventListener('resize',resizeCanvas);
