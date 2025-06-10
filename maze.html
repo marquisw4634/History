@@ -3,61 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Infinite Maze Runner V6</title>
+    <title>CYBER MAZE: ANOMALY</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <style>
         body { font-family: 'Press Start 2P', cursive; background-color: #000; color: #e0e0e0; overflow: hidden; touch-action: none; }
         .pixel-border { border: 4px solid #333; box-shadow: 0 0 25px rgba(0, 220, 255, 0.3); }
         canvas { background-color: #1a1a1a; display: block; width: 100%; height: 100%; }
         #ability-controls { position: absolute; bottom: 20px; left: 20px; display: flex; gap: 10px; z-index: 10; }
-        .ability-button { width: 50px; height: 50px; background-color: rgba(0,0,0,0.4); border: 2px solid rgba(0, 220, 255, 0.2); border-radius: 10px; color: white; font-size: 24px; display: flex; align-items: center; justify-content: center; user-select: none; transition: all 0.2s; }
+        .ability-button { width: 50px; height: 50px; background-color: rgba(0,0,0,0.4); border: 2px solid rgba(0, 220, 255, 0.2); border-radius: 10px; color: white; font-size: 24px; display: flex; flex-direction:column; align-items: center; justify-content: center; user-select: none; transition: all 0.2s; position: relative;}
         .ability-button.disabled { background-color: rgba(0,0,0,0.6); color: #666; border-color: #444; }
         .ability-button.can-use { border-color: #00dcff; box-shadow: 0 0 15px #00dcff; transform: scale(1.1); }
         .ability-icon { width: 28px; height: 28px; stroke-width: 2; stroke: currentColor; fill: none; }
+        .ability-key { position: absolute; top: 1px; right: 3px; font-size: 10px; color: #aaa; }
+        .ability-cost { font-size: 10px; color: #f6e05e; margin-top: 2px; }
         
-        #dpad-container { position: absolute; bottom: 20px; right: 20px; width: 150px; height: 150px; z-index: 10; display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr; }
-        .dpad-button { background-color: rgba(0, 220, 255, 0.1); border: 2px solid rgba(0, 220, 255, 0.15); color: rgba(255, 255, 255, 0.7); display: flex; align-items: center; justify-content: center; font-size: 24px; user-select: none; transition: background-color 0.1s; }
-        .dpad-button:active { background-color: rgba(0, 220, 255, 0.3); }
-        #dpad-up { grid-column: 2; grid-row: 1; border-radius: 10px 10px 0 0; }
-        #dpad-left { grid-column: 1; grid-row: 2; border-radius: 10px 0 0 10px; }
-        #dpad-right { grid-column: 3; grid-row: 2; border-radius: 0 10px 10px 0; }
-        #dpad-down { grid-column: 2; grid-row: 3; border-radius: 0 0 10px 10px; }
+        #joystick-container { position: absolute; bottom: 10px; right: 10px; width: 180px; height: 180px; z-index: 10; }
+        #joystick-base { position: absolute; width: 100%; height: 100%; background-color: rgba(0, 220, 255, 0.1); border-radius: 50%; border: 2px solid rgba(0, 220, 255, 0.15); }
+        #joystick-stick { position: absolute; width: 80px; height: 80px; top: 50px; left: 50px; background-color: rgba(0, 220, 255, 0.3); border-radius: 50%; cursor: grab; }
+        
+        #mute-button, #pause-button { position: absolute; top: 20px; z-index: 20; width: 40px; height: 40px; background-color: rgba(0,0,0,0.4); border: 2px solid rgba(0, 220, 255, 0.2); border-radius: 10px; color: white; display:flex; align-items:center; justify-content:center; }
+        #mute-button { right: 20px; }
+        #pause-button { left: 20px; }
+        .modal { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: rgba(0,0,0,0.9); z-index: 30; }
+        .menu-button { background-color: #2d3748; border: 2px solid #4a5568; padding: 1rem 2rem; border-radius: 8px; text-transform: uppercase; letter-spacing: 2px; }
+        .menu-button:hover:not(:disabled) { background-color: #4a5568; }
+        .menu-button:disabled { background-color: #1a202c; border-color: #2d3748; color: #718096; cursor: not-allowed; }
+        .title-glitch { text-shadow: 2px 2px 0 #f56565, -2px -2px 0 #4299e1; }
+        .ability-card { background-color: #2d3748; border: 2px solid #4a5568; padding: 1rem; border-radius: 8px; width: 150px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .ability-card.selected { border-color: #00dcff; box-shadow: 0 0 15px #00dcff; transform: scale(1.05); }
+        .readable-font { font-family: sans-serif; }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center h-screen p-2">
-
-    <div class="w-full max-w-lg mb-2 text-center">
-        <div class="flex justify-between items-center px-2">
-            <div id="health-bar" class="text-2xl"></div>
-            <div class="text-lg flex items-center gap-2">
-                 <span>🔋</span>
-                 <span id="ability-charge-display">0</span>
+    
+    <div id="main-menu" class="w-full h-full flex flex-col items-center justify-center gap-6 text-center">
+        <div>
+            <h1 class="text-4xl md:text-6xl font-bold title-glitch">CYBER MAZE</h1>
+            <h2 class="text-2xl md:text-4xl text-cyan-400">ANOMALY</h2>
+        </div>
+        <div class="flex flex-col gap-4">
+            <button id="start-game-button" class="menu-button">Start Game</button>
+            <div class="flex items-center gap-2">
+                 <input type="number" id="level-start-input" min="1" max="20" value="1" class="bg-gray-800 border border-gray-600 text-white text-center rounded p-2 w-24 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                 <button id="start-at-level-button" class="menu-button !p-2 !text-sm">Start at Level</button>
             </div>
-             <div class="text-lg">Lvl: <span id="level-display">1</span></div>
-            <div class="text-lg">Score: <span id="score">0</span></div>
+            <button id="how-to-play-button" class="menu-button">How to Play</button>
+            <button id="options-button" class="menu-button">Options</button>
         </div>
     </div>
 
-    <div id="game-container" class="relative w-full max-w-lg aspect-square pixel-border">
-        <canvas id="gameCanvas"></canvas>
-        <div id="gameOverModal" class="absolute inset-0 flex-col items-center justify-center bg-black bg-opacity-80 hidden">
-            <h2 class="text-4xl text-red-500">SYSTEM OFFLINE</h2>
-            <p class="mt-2">Final Score: <span id="finalScore">0</span></p>
-            <button id="newGameButton" class="mt-6 px-6 py-3 bg-green-500 text-white rounded-lg text-xl hover:bg-green-600">REBOOT</button>
+    <div id="game-ui" class="hidden flex-col items-center w-full">
+        <div class="w-full max-w-lg mb-2 text-center">
+            <div class="flex justify-between items-center px-2">
+                <div id="health-bar" class="text-2xl"></div>
+                <div class="text-lg flex items-center gap-2">
+                     <span>🔋</span>
+                     <span id="ability-charge-display">0</span>
+                </div>
+                 <div class="text-lg">Lvl: <span id="level-display">1</span></div>
+                <div class="text-lg">Score: <span id="score">0</span></div>
+            </div>
         </div>
-        
-        <div id="dpad-container">
-            <div id="dpad-up" class="dpad-button">▲</div>
-            <div id="dpad-left" class="dpad-button">◄</div>
-            <div id="dpad-right" class="dpad-button">►</div>
-            <div id="dpad-down" class="dpad-button">▼</div>
+
+        <div id="game-container" class="relative w-full max-w-lg aspect-square pixel-border">
+            <canvas id="gameCanvas"></canvas>
+            <button id="mute-button">🔇</button>
+            <button id="pause-button">⏸️</button>
+            <div id="gameOverModal" class="modal hidden">
+                <h2 class="text-4xl text-red-500">SYSTEM OFFLINE</h2>
+                <p class="mt-2">Final Score: <span id="finalScore">0</span></p>
+                <div class="flex gap-4 mt-6">
+                    <button id="restart-level-button" class="menu-button">Restart Level</button>
+                    <button id="newGameButton" class="menu-button">Main Menu</button>
+                </div>
+            </div>
+            <div id="pauseMenu" class="modal hidden">
+                <h2 class="text-4xl text-cyan-400">PAUSED</h2>
+                <button id="resume-button" class="mt-8 px-6 py-3 bg-cyan-500 text-white rounded-lg text-xl hover:bg-cyan-600">RESUME</button>
+            </div>
+             <div id="level-cleared-modal" class="modal hidden">
+                <h2 class="text-4xl text-green-400">LEVEL CLEARED!</h2>
+                <div id="level-summary" class="mt-4 text-center"></div>
+                <div class="flex gap-4 mt-8">
+                    <button id="next-level-button" class="menu-button">Next Level</button>
+                    <button id="switch-loadout-button" class="menu-button">Switch Loadout</button>
+                </div>
+            </div>
+            
+            <div id="joystick-container">
+                <div id="joystick-base"></div>
+                <div id="joystick-stick"></div>
+            </div>
+            <div id="ability-controls">
+            </div>
         </div>
-        <div id="ability-controls">
-            <div id="slash-button" class="ability-button" title="Shoot (J) - Cost: 2"><svg class="ability-icon" viewBox="0 0 24 24"><path d="M5 12h17M4 12h1m-2-2l2 2-2 2"/></svg></div>
-            <div id="burst-button" class="ability-button" title="EMP (K) - Cost: 4"><svg class="ability-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M16 8l-2 2-2-2M8 16l2-2 2 2M16 16l-2-2-2 2M8 8l2 2 2-2"/><path d="M12 2v2M2 12h2M12 22v-2M22 12h-2"/></svg></div>
-            <div id="bomb-button" class="ability-button" title="Bomb (L) - Cost: 10"><svg class="ability-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M9 9h6v6H9z"/><path d="M16 7l2-2M18 5c.5-1.5-1-2.5-2-2"/></svg></div>
+    </div>
+    
+    <div id="how-to-play-modal" class="modal hidden bg-black/90 p-4 overflow-y-auto readable-font">
+        <h2 class="text-3xl text-cyan-400 mb-4 font-['Press_Start_2P']">How to Play</h2>
+        <div class="max-w-lg text-left text-sm space-y-4">
+            <p><strong class="text-cyan-400 font-semibold">Objective:</strong> Navigate the maze, destroy corrupted programs, collect batteries, and reach the exit portal to advance to the next level.</p>
+            <div><strong class="text-cyan-400 font-semibold">Controls:</strong>
+                <ul class="list-disc list-inside ml-4 space-y-1">
+                    <li><span class="font-bold">Movement:</span> Use <strong class="text-yellow-300">WASD</strong> or <strong class="text-yellow-300">Arrow Keys</strong>, or the on-screen <strong class="text-yellow-300">Joystick</strong>.</li>
+                    <li><span class="font-bold">Abilities (1, 2, 3):</span> Use your chosen abilities with the on-screen buttons or keys <strong class="text-yellow-300">1, 2, 3</strong>.</li>
+                    <li><span class="font-bold">Pause (P):</span> Pauses the game and opens the menu.</li>
+                </ul>
+            </div>
+             <div><strong class="text-cyan-400 font-semibold">Enemies:</strong>
+                <ul class="list-disc list-inside ml-4 space-y-1">
+                    <li><strong class="text-red-400">Patrol Drone:</strong> Standard security. Predictable but dangerous.</li>
+                    <li><strong class="text-yellow-400">Glitch Hound:</strong> Aggressively chases on sight. Self-destructs.</li>
+                    <li><strong class="text-purple-400">Sentry Turret:</strong> Fires projectiles. Takes two hits to destroy.</li>
+                    <li><strong class="text-gray-400">Phantasm:</strong> Moves through walls. Can only be destroyed by the EMP.</li>
+                </ul>
+            </div>
         </div>
+        <button id="close-how-to-play" class="menu-button mt-6">Back</button>
+    </div>
+
+    <div id="options-modal" class="modal hidden bg-black/90 p-4">
+        <h2 class="text-3xl text-cyan-400 mb-4">Options</h2>
+         <div class="mt-8 flex flex-col gap-6 text-lg">
+             <div class="flex flex-col items-center gap-2">
+                <label>Background Music:</label>
+                <div id="music-options" class="flex gap-2"></div>
+            </div>
+        </div>
+        <button id="close-options" class="menu-button mt-8">Back</button>
+    </div>
+
+    <div id="loadout-modal" class="modal hidden bg-black/90 p-4">
+        <h2 class="text-3xl text-cyan-400 mb-4">CHOOSE LOADOUT</h2>
+        <p class="text-sm mb-4">Select 3 abilities for the next levels.</p>
+        <div id="ability-selection" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+        </div>
+        <button id="confirm-loadout-button" class="menu-button mt-6" disabled>Confirm (0/3)</button>
     </div>
 
     <script>
@@ -72,57 +155,145 @@
             finalScore: document.getElementById('finalScore'),
             newGameButton: document.getElementById('newGameButton'),
             gameContainer: document.getElementById('game-container'),
-            buttons: {
-                slash: document.getElementById('slash-button'),
-                burst: document.getElementById('burst-button'),
-                bomb: document.getElementById('bomb-button'),
-            }
+            pauseMenu: document.getElementById('pauseMenu'),
+            resumeButton: document.getElementById('resume-button'),
+            abilityControls: document.getElementById('ability-controls'),
+            levelClearedModal: document.getElementById('level-cleared-modal'),
+            levelSummary: document.getElementById('level-summary'),
+            nextLevelButton: document.getElementById('next-level-button'),
+            switchLoadoutButton: document.getElementById('switch-loadout-button'),
+            restartLevelButton: document.getElementById('restart-level-button'),
+            joystick: { container: document.getElementById('joystick-container'), stick: document.getElementById('joystick-stick'), baseRadius: 90, stickRadius: 40, active: false, dx: 0, dy: 0 },
         };
 
         const GRID_SIZE = 23;
         let tileSize;
         let state = {};
 
-        const ABILITY_COSTS = { SLASH: 2, BURST: 4, BOMB: 10 };
-        const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
+        const ABILITY_DEFINITIONS = {
+            shoot: { name: 'Shoot', cost: 2, icon: '<svg class="ability-icon" viewBox="0 0 24 24"><path d="M5 12h17M4 12h1m-2-2l2 2-2 2"/></svg>' },
+            emp: { name: 'EMP', cost: 4, icon: '<svg class="ability-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M16 8l-2 2-2-2M8 16l2-2 2 2M16 16l-2-2-2 2M8 8l2 2 2-2"/><path d="M12 2v2M2 12h2M12 22v-2M22 12h-2"/></svg>' },
+            bomb: { name: 'Bomb', cost: 10, icon: '<svg class="ability-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M9 9h6v6H9z"/><path d="M16 7l2-2M18 5c.5-1.5-1-2.5-2-2"/></svg>' },
+            regen: { name: 'Regen', cost: 5, icon: '<svg class="ability-icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/><path d="M12 9v6M9 12h6"/></svg>' },
+            speed: { name: 'Speed', cost: 1, icon: '<svg class="ability-icon" viewBox="0 0 24 24"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg>' },
+            shield: { name: 'Shield', cost: 2, icon: '<svg class="ability-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' },
+        };
 
-        function initGameState(isNextLevel = false) {
-            const oldState = isNextLevel ? { ...state } : {};
+        const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
+        let audioReady = false;
+        const sfx = {};
+        
+        function safeAudio(fn) {
+            if (audioReady) {
+                try { fn(); } catch (e) { console.error("Audio error:", e); }
+            }
+        }
+
+        function initAudio() {
+            if (audioReady) return;
+            try {
+                Tone.start();
+                const laserFilter = new Tone.Filter(800, "lowpass").toDestination();
+                sfx.laser = new Tone.Synth({ oscillator: { type: 'sawtooth' }, envelope: { attack: 0.01, decay: 0.05, sustain: 0, release: 0.1 } }).connect(laserFilter);
+                sfx.explosion = new Tone.MembraneSynth().toDestination();
+                const afterburnerFilter = new Tone.Filter(400, "lowpass").toDestination();
+                sfx.afterburner = new Tone.Noise("pink").connect(afterburnerFilter);
+                sfx.afterburner.volume.value = -Infinity;
+                sfx.afterburner.start(); 
+                sfx.emp = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 0.01, decay: 0.4, sustain: 0, release: 0.1 } }).toDestination();
+                sfx.enemyDestroy = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 } }).toDestination();
+                sfx.playerDamage = new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.1 } }).toDestination();
+                sfx.coin = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+                sfx.nextLevel = new Tone.Synth().toDestination();
+                sfx.regen = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.2, decay: 0.5, sustain: 0.3, release: 1 } }).toDestination();
+                sfx.speed = new Tone.Synth({ oscillator: { type: 'pulse' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination();
+                sfx.shield = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.1, decay: 0.2, sustain: 0.5, release: 0.3 } }).toDestination();
+                
+                audioReady = true;
+                document.getElementById('mute-button').textContent = '🔈';
+            } catch (e) {
+                console.error("Audio could not be initialized:", e);
+            }
+        }
+        
+        const startAudio = () => { 
+            initAudio(); 
+            window.removeEventListener('keydown', startAudio); 
+            window.removeEventListener('mousedown', startAudio); 
+        };
+        
+        function initGameState(options = {}) {
+            const {
+                isRestart = false,
+                isNextLevel = false,
+                startLevel = 1,
+                persistedState = {}
+            } = options;
+
+            const oldPlayer = persistedState.player || {};
+            
             state = {
                 maze: [], 
-                player: { x: 1.5, y: 1.5, radius: 0.35, health: 3, maxHealth: 3, lastDamageTime: 0, lastFacingAngle: oldState.player?.lastFacingAngle || 0, abilityCharge: isNextLevel ? oldState.player.abilityCharge : 0, anim: 0 },
+                player: { 
+                    x: 1.5, y: 1.5, radius: 0.35, 
+                    health: 3, maxHealth: 3, 
+                    lastDamageTime: 0, 
+                    lastFacingAngle: oldPlayer.lastFacingAngle || 0, 
+                    abilityCharge: (isNextLevel || isRestart) ? oldPlayer.abilityCharge : 0, 
+                    anim: 0, isMoving: false, 
+                    abilities: oldPlayer.abilities || [], 
+                    speedBoostTimer: 0, shieldTimer: 0 
+                },
                 coins: [], particles: [], activeEffects: [], bombs: [],
                 patrolTraps: [], chaserTraps: [], rangerEnemies: [], ghostEnemies: [], projectiles: [],
                 exit: null, chest: null,
-                score: isNextLevel ? oldState.score : 0,
+                score: (isNextLevel || isRestart) ? persistedState.score : 0,
                 highScore: localStorage.getItem('mazeRunnerHighScore') || 0,
-                level: isNextLevel ? oldState.level + 1 : 1,
+                level: startLevel,
+                enemiesKilledThisLevel: 0,
                 gameOver: false, 
+                isPaused: false,
+                isLevelTransition: false,
+                dpadVisible: localStorage.getItem('dpadVisible') !== 'false',
                 animationFrame: null,
                 lastUpdateTime: 0, 
                 pulse: 0,
             };
+            if(isNextLevel) state.player.health = 3;
         }
 
-        function newGame(isNextLevel = false) {
+        function newGame(isNextLevel = false, startLevel = 1) {
             if (state.animationFrame) cancelAnimationFrame(state.animationFrame);
-            initGameState(isNextLevel);
-            resizeCanvas();
-            ui.gameOverModal.classList.add('hidden');
-            ui.gameOverModal.classList.remove('flex');
-            updateScore(0);
-            updateHealthUI();
-            updateAbilityUI();
-            ui.levelDisplay.textContent = state.level;
-            state.maze = generateMaze(GRID_SIZE);
-            addLoopsToMaze(state.maze, state.level * 8);
-            placeItems();
-            state.lastUpdateTime = performance.now();
-            gameLoop(performance.now());
+            
+            const effectiveLevel = isNextLevel ? state.level + 1 : startLevel;
+            if (!isNextLevel || (effectiveLevel > 1 && (effectiveLevel - 1) % 3 === 0)) {
+                showLoadoutScreen(isNextLevel, startLevel);
+                return;
+            }
+            
+            startGameplay(isNextLevel, state.player.abilities, startLevel);
+        }
+
+        function togglePause() {
+            if (state.gameOver || state.isLevelTransition) return;
+            state.isPaused = !state.isPaused;
+            if(state.isPaused) {
+                ui.pauseMenu.classList.remove('hidden');
+                ui.pauseMenu.classList.add('flex');
+                if(audioReady && sfx.afterburner) safeAudio(() => sfx.afterburner.volume.rampTo(-Infinity, 0.1));
+                if(audioReady) Tone.Transport.pause();
+                cancelAnimationFrame(state.animationFrame);
+            } else {
+                ui.pauseMenu.classList.add('hidden');
+                ui.pauseMenu.classList.remove('flex');
+                if(audioReady && Tone.Transport.state !== 'started') Tone.Transport.start();
+                state.lastUpdateTime = performance.now();
+                gameLoop(performance.now());
+            }
         }
 
         function gameLoop(timestamp) {
-            if (state.gameOver) return;
+            if (state.isPaused || state.gameOver || state.isLevelTransition) return;
             const elapsed = timestamp - state.lastUpdateTime;
             state.lastUpdateTime = timestamp;
             update(elapsed);
@@ -193,8 +364,7 @@
             const x = p.x * tileSize;
             const y = p.y * tileSize;
             const radius = p.radius * tileSize;
-            const isMoving = keys.w || keys.a || keys.s || keys.d || keys.ArrowUp || keys.ArrowDown || keys.ArrowLeft || keys.ArrowRight;
-
+            
             if (Date.now() - p.lastDamageTime < 1000) {
                  ctx.globalAlpha = Math.abs(Math.sin(Date.now() * 0.02));
             }
@@ -203,7 +373,7 @@
             ctx.translate(x, y);
             ctx.rotate(p.lastFacingAngle + Math.PI / 2);
 
-            if (isMoving) {
+            if (p.isMoving) {
                 const thrusterGlow = Math.random() * 5 + 5;
                 ctx.fillStyle = '#ff8c00';
                 ctx.shadowColor = '#ff8c00';
@@ -248,6 +418,15 @@
 
 
             ctx.restore();
+            
+            if (p.shieldTimer > 0) {
+                const shieldAlpha = p.shieldTimer > 500 ? 1 : p.shieldTimer / 500;
+                ctx.strokeStyle = `rgba(0, 220, 255, ${shieldAlpha * 0.8})`;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(x, y, radius * 1.2, 0, Math.PI * 2);
+                ctx.stroke();
+            }
             ctx.globalAlpha = 1.0;
         }
 
@@ -423,19 +602,34 @@
             });
         }
 
-        // --- Updates ---
         function updatePlayer(elapsed) {
             const p = state.player;
-            const speed = 0.0055 * elapsed;
+            const speed = (p.speedBoostTimer > 0 ? 1.8 : 1) * 0.0055 * elapsed;
             let moveDx = 0;
             let moveDy = 0;
-
             if (keys.w || keys.ArrowUp) moveDy = -1;
             if (keys.s || keys.ArrowDown) moveDy = 1;
             if (keys.a || keys.ArrowLeft) moveDx = -1;
             if (keys.d || keys.ArrowRight) moveDx = 1;
+            
+            if (ui.joystick.active) {
+                moveDx = ui.joystick.dx;
+                moveDy = ui.joystick.dy;
+            }
+            
+            p.speedBoostTimer -= elapsed;
+            p.shieldTimer -= elapsed;
 
-            if (moveDx !== 0 || moveDy !== 0) {
+            const isCurrentlyMoving = moveDx !== 0 || moveDy !== 0;
+
+            if (isCurrentlyMoving && !p.isMoving) { 
+                safeAudio(() => sfx.afterburner.volume.rampTo(-15, 0.1));
+            } else if (!isCurrentlyMoving && p.isMoving) {
+                safeAudio(() => sfx.afterburner.volume.rampTo(-Infinity, 0.2));
+            }
+            p.isMoving = isCurrentlyMoving;
+
+            if (p.isMoving) {
                 p.lastFacingAngle = Math.atan2(moveDy, moveDx);
                 let moveX = moveDx * speed;
                 let moveY = moveDy * speed;
@@ -443,20 +637,11 @@
                     moveX /= Math.sqrt(2);
                     moveY /= Math.sqrt(2);
                 }
+                
                 p.x += moveX;
-                for(const tile of getTilesForEntity(p)) {
-                    if (state.maze[tile.y]?.[tile.x] === 1) { 
-                        p.x -= moveX; 
-                        break; 
-                    }
-                }
+                for(const tile of getTilesForEntity(p)) if (state.maze[tile.y]?.[tile.x] === 1) { p.x -= moveX; break; }
                 p.y += moveY;
-                for(const tile of getTilesForEntity(p)) {
-                    if (state.maze[tile.y]?.[tile.x] === 1) { 
-                        p.y -= moveY; 
-                        break; 
-                    }
-                }
+                for(const tile of getTilesForEntity(p)) if (state.maze[tile.y]?.[tile.x] === 1) { p.y -= moveY; break; }
             }
         }
         
@@ -601,30 +786,47 @@
         }
 
         function useAbility(type) {
+            if (!type) return;
             const p = state.player;
-            if(type === 'slash' && p.abilityCharge >= ABILITY_COSTS.SLASH) {
-                p.abilityCharge -= ABILITY_COSTS.SLASH;
-                state.projectiles.push({
-                    x: p.x, y: p.y,
-                    vx: Math.cos(p.lastFacingAngle) * 0.01,
-                    vy: Math.sin(p.lastFacingAngle) * 0.01,
-                    owner: 'player',
-                    life: 300,
-                });
-            }
-            if(type === 'burst' && p.abilityCharge >= ABILITY_COSTS.BURST) {
-                p.abilityCharge -= ABILITY_COSTS.BURST;
-                state.activeEffects.push({ type:'burst', x: p.x, y: p.y, radius: 0, life: 500, maxLife: 500 });
-            }
-            if(type === 'bomb' && p.abilityCharge >= ABILITY_COSTS.BOMB) {
-                p.abilityCharge -= ABILITY_COSTS.BOMB;
-                state.bombs.push({x: Math.floor(p.x), y: Math.floor(p.y), timer: 2000, radius: 3 });
+            const cost = ABILITY_DEFINITIONS[type].cost;
+            if (p.abilityCharge < cost) return;
+            
+            p.abilityCharge -= cost;
+            
+            switch(type) {
+                case 'shoot':
+                    safeAudio(() => sfx.laser.triggerAttackRelease('C5', '8n'));
+                    state.projectiles.push({ x: p.x, y: p.y, vx: Math.cos(p.lastFacingAngle) * 0.01, vy: Math.sin(p.lastFacingAngle) * 0.01, owner: 'player', life: 300 });
+                    break;
+                case 'emp':
+                    safeAudio(() => sfx.emp.triggerAttackRelease('0.4'));
+                    state.activeEffects.push({ type:'burst', x: p.x, y: p.y, radius: 0, life: 500, maxLife: 500 });
+                    break;
+                case 'bomb':
+                    state.bombs.push({x: Math.floor(p.x), y: Math.floor(p.y), timer: 2000, radius: 3 });
+                    break;
+                case 'regen':
+                    if (p.health < p.maxHealth) {
+                        p.health++;
+                        safeAudio(() => sfx.regen.triggerAttackRelease('A4', '2n'));
+                        updateHealthUI();
+                    } else { p.abilityCharge += cost; }
+                    break;
+                case 'speed':
+                    p.speedBoostTimer = 2000;
+                    safeAudio(() => sfx.speed.triggerAttackRelease('G5', '16n'));
+                    break;
+                case 'shield':
+                    p.shieldTimer = 2000;
+                    safeAudio(() => sfx.shield.triggerAttackRelease('C4', '1n'));
+                    break;
             }
             updateAbilityUI();
         }
         
         function triggerBomb(bomb) {
              const effect = { type:'explosion', x: bomb.x + 0.5, y: bomb.y + 0.5, radius: 0, life: 500, maxLife: 500 };
+             safeAudio(() => sfx.explosion.triggerAttackRelease("C1", "1n"));
              state.activeEffects.push(effect);
              createParticles(bomb.x + 0.5, bomb.y + 0.5, 'white', 50, 8);
              
@@ -646,6 +848,7 @@
                 if (Math.hypot(p.x - (state.chest.x + 0.5), p.y - (state.chest.y + 0.5)) < p.radius + 0.4) {
                     state.player.abilityCharge += 4;
                     state.chest.opened = true;
+                    safeAudio(() => sfx.coin.triggerAttackRelease('G5', '8n'));
                     updateAbilityUI();
                     createParticles(state.chest.x + 0.5, state.chest.y + 0.5, '#f6e05e');
                 }
@@ -655,12 +858,13 @@
                 if (Math.hypot(p.x - (c.x + 0.5), p.y - (c.y + 0.5)) < p.radius + 0.3) {
                     state.player.abilityCharge++;
                     updateAbilityUI();
+                    safeAudio(() => sfx.coin.triggerAttackRelease('C5', '8n'));
                     createParticles(c.x + 0.5, c.y + 0.5, '#48bb78'); 
                     state.coins.splice(i, 1); 
                     updateScore(10);
                 }
             }
-            if (Date.now() - p.lastDamageTime > 1000) {
+            if (Date.now() - p.lastDamageTime > 1000 && p.shieldTimer <= 0) {
                 let tookDamage = false;
                 for (const t of state.patrolTraps) if (Math.hypot(p.x - t.x, p.y - t.y) < p.radius + t.radius) tookDamage = true;
                 for (const t of state.chaserTraps) if (Math.hypot(p.x - t.x, p.y - t.y) < p.radius + t.radius) tookDamage = true;
@@ -676,7 +880,7 @@
                 if(tookDamage) takeDamage();
             }
             if(state.exit && Math.hypot(p.x - (state.exit.x + 0.5), p.y - (state.exit.y + 0.5)) < p.radius + 0.4) {
-                newGame(true);
+                showLevelClearedScreen();
             }
             checkPlayerProjectileHits();
         }
@@ -688,6 +892,7 @@
                 const checkAndKill = (enemies, isStationary = false) => {
                     for(let j = enemies.length - 1; j >= 0; j--) {
                         const enemy = enemies[j];
+                        if (enemy.type === 'ghost') continue;
                         const enemyX = isStationary ? enemy.x + 0.5 : enemy.x;
                         const enemyY = isStationary ? enemy.y + 0.5 : enemy.y;
                         if(Math.hypot(p.x - enemyX, p.y - enemyY) < enemy.radius) {
@@ -696,13 +901,16 @@
                                 enemy.lastHitTime = Date.now();
                                 if (enemy.health > 0) {
                                     state.projectiles.splice(i, 1);
+                                    safeAudio(() => sfx.playerDamage.triggerAttackRelease('A3', '16n'));
                                     return true;
                                 }
                             }
                              createParticles(enemyX, enemyY, '#f56565', 20);
+                             safeAudio(() => sfx.enemyDestroy.triggerAttackRelease('G4'));
                              enemies.splice(j, 1);
                              state.projectiles.splice(i, 1);
                              updateScore(50);
+                             state.enemiesKilledThisLevel++;
                              return true;
                         }
                     }
@@ -733,8 +941,10 @@
                             if (enemy.health > 0) continue;
                         }
                         createParticles(enemyX, enemyY, '#f56565', 20);
+                        safeAudio(() => sfx.enemyDestroy.triggerAttackRelease('G4', Tone.now() + i * 0.02));
                         enemies.splice(i, 1);
                         updateScore(50);
+                        state.enemiesKilledThisLevel++;
                     }
                 }
             };
@@ -747,6 +957,7 @@
         function takeDamage() {
             state.player.health--;
             state.player.lastDamageTime = Date.now();
+            safeAudio(() => sfx.playerDamage.triggerAttackRelease('C3', '8n'));
             updateHealthUI();
             createParticles(state.player.x, state.player.y, '#fff', 20, 4);
             if(state.player.health <= 0) endGame();
@@ -762,9 +973,13 @@
         function updateAbilityUI() {
             const charge = state.player.abilityCharge;
             ui.abilityChargeDisplay.textContent = charge;
-            ui.buttons.slash.classList.toggle('can-use', charge >= ABILITY_COSTS.SLASH);
-            ui.buttons.burst.classList.toggle('can-use', charge >= ABILITY_COSTS.BURST);
-            ui.buttons.bomb.classList.toggle('can-use', charge >= ABILITY_COSTS.BOMB);
+            Array.from(ui.abilityControls.children).forEach((button, index) => {
+                const abilityKey = state.player.abilities[index];
+                if(abilityKey) {
+                    const cost = ABILITY_DEFINITIONS[abilityKey].cost;
+                    button.classList.toggle('can-use', charge >= cost);
+                }
+            });
         }
 
         function getTilesForEntity(entity) {
@@ -848,7 +1063,7 @@
             const numCoins = 25 + state.level * 5;
             for(let i=0; i < numCoins && empty.length > 0; i++) state.coins.push(empty.pop());
             
-            const numPatrol = 12 + state.level * 4;
+            const numPatrol = Math.min(empty.length - 5, 12 + state.level * 4);
             for(let i=0; i<numPatrol && empty.length > 0; i++) {
                 const cell = empty.pop();
                 if (!cell) continue;
@@ -858,20 +1073,20 @@
                 }
             }
             
-            const numChaser = 8 + state.level * 3;
+            const numChaser = Math.min(empty.length - 5, 8 + state.level * 3);
             for(let i=0; i<numChaser && empty.length > 0; i++) {
                 const cell = empty.pop();
                  if (!cell) continue;
                 state.chaserTraps.push({ ...cell, x:cell.x+0.5, y:cell.y+0.5, radius: 0.35, life: 5000 + Math.random()*2000, sightRange: 3 });
             }
 
-            const numRangers = 2 + state.level;
+            const numRangers = Math.min(empty.length - 2, 2 + state.level);
             for(let i=0; i<numRangers && empty.length > 0; i++) {
                 const cell = empty.pop();
                 if (cell) state.rangerEnemies.push({ ...cell, radius: 0.5, state: 'idle', timer: 0, health: 2, lastHitTime: 0 });
             }
             
-            const numGhosts = 1 + state.level;
+            const numGhosts = Math.min(empty.length - 1, 1 + state.level);
             for(let i=0; i<numGhosts && empty.length > 0; i++) {
                 const cell = empty.pop();
                 if (cell) {
@@ -902,15 +1117,20 @@
         function resizeCanvas(){const s=ui.gameContainer.clientWidth;canvas.width=s;canvas.height=s;tileSize=s/GRID_SIZE}
         
         window.addEventListener('keydown', (e) => {
+            if (state.isPaused || document.getElementById('loadout-modal').classList.contains('flex')) {
+                if(e.key === 'p' || e.key === 'P' || e.key === 'Escape') togglePause();
+                return;
+            }
             if (keys[e.key] !== undefined) keys[e.key] = true;
-            if (e.key === 'j' || e.key === 'J') useAbility('slash');
-            if (e.key === 'k' || e.key === 'K') useAbility('burst');
-            if (e.key === 'l' || e.key === 'L') useAbility('bomb');
+            if (e.key === '1') useAbility(state.player.abilities[0]);
+            if (e.key === '2') useAbility(state.player.abilities[1]);
+            if (e.key === '3') useAbility(state.player.abilities[2]);
+            if(e.key === 'p' || e.key === 'P' || e.key === 'Escape') togglePause();
         });
         window.addEventListener('keyup', (e) => {
              if (keys[e.key] !== undefined) keys[e.key] = false;
         });
-
+        
         let lastAbilityTime = 0;
         function setupAbilityButton(button, abilityType) {
             const fire = (e) => {
@@ -924,34 +1144,221 @@
             button.addEventListener('mousedown', fire);
             button.addEventListener('touchstart', fire);
         }
-        setupAbilityButton(ui.buttons.slash, 'slash');
-        setupAbilityButton(ui.buttons.burst, 'burst');
-        setupAbilityButton(ui.buttons.bomb, 'bomb');
-
-        function setupDpadButton(elementId, key) {
-            const button = document.getElementById(elementId);
-            const press = (e) => {
-                e.preventDefault();
-                keys[key] = true;
-            };
-            const release = (e) => {
-                e.preventDefault();
-                keys[key] = false;
-            };
-            button.addEventListener('mousedown', press);
-            button.addEventListener('touchstart', press, { passive: false });
-            button.addEventListener('mouseup', release);
-            button.addEventListener('mouseleave', release);
-            button.addEventListener('touchend', release);
-        }
-        setupDpadButton('dpad-up', 'ArrowUp');
-        setupDpadButton('dpad-down', 'ArrowDown');
-        setupDpadButton('dpad-left', 'ArrowLeft');
-        setupDpadButton('dpad-right', 'ArrowRight');
         
-        ui.newGameButton.addEventListener('click',() => newGame(false));
+        function handleJoystickMove(e){if(!ui.joystick.active)return;e.preventDefault();const t=e.touches?e.touches[0]:e,r=ui.joystick.container.getBoundingClientRect(),c=t.clientX-r.left-ui.joystick.baseRadius,d=t.clientY-r.top-ui.joystick.baseRadius,s=Math.min(ui.joystick.baseRadius-ui.joystick.stickRadius,Math.hypot(c,d)),a=Math.atan2(d,c),sx=Math.cos(a)*s,sy=Math.sin(a)*s;ui.joystick.stick.style.transform=`translate(${sx}px,${sy}px)`;ui.joystick.dx=Math.cos(a)*(s/(ui.joystick.baseRadius-ui.joystick.stickRadius));ui.joystick.dy=Math.sin(a)*(s/(ui.joystick.baseRadius-ui.joystick.stickRadius))}
+        function handleJoystickEnd(){if(!ui.joystick.active)return;ui.joystick.active=!1;ui.joystick.stick.style.transform='translate(0,0)';ui.joystick.dx=0;ui.joystick.dy=0}
+        
+        let selectedAbilities = [];
+        function showLoadoutScreen(isNextLevel, startLevel = 1) {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'none';
+            const container = document.getElementById('ability-selection');
+            const confirmButton = document.getElementById('confirm-loadout-button');
+            container.innerHTML = '';
+            selectedAbilities = [];
+            confirmButton.disabled = true;
+            confirmButton.classList.add('disabled');
+            confirmButton.textContent = `Confirm (0/3)`;
+
+            Object.entries(ABILITY_DEFINITIONS).forEach(([key, ability]) => {
+                const card = document.createElement('div');
+                card.className = 'ability-card';
+                card.dataset.ability = key;
+                card.innerHTML = `<div class="flex items-center justify-center h-12">${ability.icon}</div><div class="text-sm">${ability.name}</div><div class="text-xs text-cyan-400">Cost: ${ability.cost}</div>`;
+                card.addEventListener('click', () => {
+                    if (selectedAbilities.includes(key)) {
+                        selectedAbilities = selectedAbilities.filter(a => a !== key);
+                        card.classList.remove('selected');
+                    } else if (selectedAbilities.length < 3) {
+                        selectedAbilities.push(key);
+                        card.classList.add('selected');
+                    }
+                    confirmButton.disabled = selectedAbilities.length !== 3;
+                    confirmButton.classList.toggle('disabled', selectedAbilities.length !== 3);
+                    confirmButton.textContent = `Confirm (${selectedAbilities.length}/3)`;
+                });
+                container.appendChild(card);
+            });
+
+            document.getElementById('loadout-modal').classList.remove('hidden');
+            document.getElementById('loadout-modal').classList.add('flex');
+            
+            confirmButton.onclick = () => confirmLoadout(isNextLevel, startLevel);
+        }
+
+        function confirmLoadout(isNextLevel, startLevel) {
+            document.getElementById('loadout-modal').classList.add('hidden');
+            document.getElementById('loadout-modal').classList.remove('flex');
+            startGameplay(isNextLevel, selectedAbilities, startLevel);
+        }
+
+        function startGameplay(isNextLevel, abilities, startLevel) {
+            document.getElementById('game-ui').style.display = 'flex';
+            const oldPlayerState = state.player || {};
+            const oldScore = state.score || 0;
+            const isRestart = state.gameOver;
+
+            initGameState({
+                isRestart,
+                isNextLevel, 
+                startLevel: startLevel, 
+                persistedState: { player: oldPlayerState, score: oldScore }
+            });
+
+            state.player.abilities = abilities || oldPlayerState.abilities || ['shoot', 'emp', 'bomb'];
+            
+            const abilityControls = ui.abilityControls;
+            abilityControls.innerHTML = '';
+            
+            state.player.abilities.forEach((abilityKey, index) => {
+                const ability = ABILITY_DEFINITIONS[abilityKey];
+                const button = document.createElement('div');
+                button.id = `ability-button-${index}`;
+                button.className = 'ability-button';
+                button.title = `${ability.name} (${index + 1}) - Cost: ${ability.cost}`;
+                button.innerHTML = `${ability.icon}<span class="ability-key">${index + 1}</span><span class="ability-cost">${ability.cost}</span>`;
+                setupAbilityButton(button, abilityKey);
+                abilityControls.appendChild(button);
+            });
+            
+            resizeCanvas();
+            updateHealthUI();
+            updateAbilityUI();
+            ui.levelDisplay.textContent = state.level;
+            state.maze = generateMaze(GRID_SIZE);
+            addLoopsToMaze(state.maze, state.level * 8);
+            placeItems();
+            state.lastUpdateTime = performance.now();
+            gameLoop(performance.now());
+        }
+        
+        function showLevelClearedScreen() {
+            state.isLevelTransition = true;
+            if(audioReady && sfx.afterburner) safeAudio(() => sfx.afterburner.volume.rampTo(-Infinity, 0.1));
+            ui.levelSummary.innerHTML = `<p>Total Score: ${state.score}</p><p>Enemies Destroyed: ${state.enemiesKilledThisLevel}</p>`;
+            ui.levelClearedModal.classList.remove('hidden');
+            ui.levelClearedModal.classList.add('flex');
+        }
+
+        document.getElementById('start-game-button').addEventListener('click', () => {
+            document.getElementById('main-menu').style.display = 'none';
+            startAudio();
+            showLoadoutScreen(false, 1);
+        });
+        
+        document.getElementById('start-at-level-button').addEventListener('click', () => {
+            const level = parseInt(document.getElementById('level-start-input').value) || 1;
+            document.getElementById('main-menu').style.display = 'none';
+            startAudio();
+            showLoadoutScreen(false, level);
+        });
+
+        document.getElementById('how-to-play-button').addEventListener('click', () => {
+            document.getElementById('how-to-play-modal').classList.remove('hidden');
+        });
+        document.getElementById('close-how-to-play').addEventListener('click', () => {
+            document.getElementById('how-to-play-modal').classList.add('hidden');
+        });
+
+        document.getElementById('options-button').addEventListener('click', () => {
+            document.getElementById('options-modal').classList.remove('hidden');
+        });
+        document.getElementById('close-options').addEventListener('click', () => {
+            document.getElementById('options-modal').classList.add('hidden');
+        });
+        
+        ui.newGameButton.addEventListener('click',() => {
+            document.getElementById('gameOverModal').classList.add('hidden');
+            document.getElementById('game-ui').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'flex';
+        });
+        ui.resumeButton.addEventListener('click', togglePause);
+        document.getElementById('pause-button').addEventListener('click', togglePause);
+        
+        ui.nextLevelButton.addEventListener('click', () => {
+            ui.levelClearedModal.classList.add('hidden');
+            newGame(true, state.level + 1);
+        });
+        
+        ui.switchLoadoutButton.addEventListener('click', () => {
+            ui.levelClearedModal.classList.add('hidden');
+            showLoadoutScreen(true, state.level + 1);
+        });
+        
+        ui.restartLevelButton.addEventListener('click', () => {
+            ui.gameOverModal.classList.add('hidden');
+            const persistedState = { player: state.player, score: state.score };
+            startGameplay(false, persistedState.player.abilities, state.level);
+        });
+        
+        const musicOptionsContainer = document.getElementById('music-options');
+        const musicTracks = [
+            { name: "Cyber-Runner", notes: ['C2', 'G2', 'C3', 'D#3'], interval: '4n' },
+            { name: "Dungeon Pulse", notes: ['C2', 'D2', 'A#2'], interval: '2n' },
+            { name: "Tense Infiltration", notes: ['F2', 'F#2', 'G2', 'G#2'], interval: '8n' }
+        ];
+        let currentMusicLoop;
+
+        function playMusic(trackIndex) {
+            if (!audioReady) initAudio();
+            if (currentMusicLoop) {
+                currentMusicLoop.stop(0);
+                currentMusicLoop.dispose();
+            }
+            
+            if (trackIndex < 0) {
+                if(Tone.Transport.state === 'started') Tone.Transport.pause();
+                return;
+            }
+            if(Tone.Transport.state !== 'started') Tone.Transport.start();
+
+            const track = musicTracks[trackIndex];
+            currentMusicLoop = new Tone.Loop(time => {
+                const note = track.notes[Math.floor(Math.random() * track.notes.length)];
+                safeAudio(() => sfx.nextLevel.triggerAttackRelease(note, '16n', time));
+            }, track.interval).start(0);
+        }
+
+        musicTracks.forEach((track, index) => {
+             const button = document.createElement('button');
+             button.textContent = track.name;
+             button.className = "px-2 py-1 text-sm menu-button";
+             button.onclick = () => {
+                playMusic(index);
+                localStorage.setItem('musicTrack', index);
+             };
+             musicOptionsContainer.appendChild(button);
+        });
+        const musicOffButton = document.createElement('button');
+        musicOffButton.textContent = "Off";
+        musicOffButton.className = "px-2 py-1 text-sm menu-button";
+        musicOffButton.onclick = () => {
+            playMusic(-1);
+            localStorage.setItem('musicTrack', -1);
+        };
+        musicOptionsContainer.appendChild(musicOffButton);
+        
         window.addEventListener('resize',resizeCanvas);
-        window.addEventListener('load', () => newGame(false));
+        window.addEventListener('load', () => {
+            document.getElementById('game-ui').style.display = 'none';
+            const savedMusic = localStorage.getItem('musicTrack');
+            if(savedMusic !== null) {
+                const playOnFirstInteraction = () => {
+                    initAudio();
+                    playMusic(parseInt(savedMusic));
+                    window.removeEventListener('click', playOnFirstInteraction);
+                    window.removeEventListener('keydown', playOnFirstInteraction);
+                };
+                 window.addEventListener('click', playOnFirstInteraction);
+                 window.addEventListener('keydown', playOnFirstInteraction);
+            }
+            ui.joystick.container.addEventListener('mousedown',e=>{ui.joystick.active=!0;handleJoystickMove(e)});
+            ui.joystick.container.addEventListener('touchstart',e=>{ui.joystick.active=!0;handleJoystickMove(e)});
+            window.addEventListener('mousemove',handleJoystickMove);
+            window.addEventListener('touchmove',handleJoystickMove,{passive:!1});
+            window.addEventListener('mouseup',handleJoystickEnd);
+            window.addEventListener('touchend',handleJoystickEnd);
+        });
     </script>
 </body>
 </html>
