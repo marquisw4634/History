@@ -44,6 +44,50 @@
         .sorter-item.dragging { opacity: 0.5; }
         .sorter-box { border: 2px dashed rgba(0,0,0,0.2); min-height: 100px; }
         .sorter-box.drag-over { background-color: rgba(0,0,0,0.05); }
+
+        /* Fun Fact Button Style */
+        .fun-fact-btn {
+            display: inline-block;
+            background-color: rgba(129, 140, 248, 0.2);
+            border-radius: 9999px;
+            padding: 0.2rem;
+            margin-left: 0.25rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            vertical-align: middle;
+        }
+        .fun-fact-btn:hover {
+            background-color: rgba(129, 140, 248, 0.5);
+            transform: scale(1.1);
+        }
+
+        /* Fun Fact Modal Style */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            /* Brighter, more opaque background for the modal */
+            background-color: rgba(255, 255, 255, 0.75); 
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -74,7 +118,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-xl mb-2">Conflict on the Western Frontier</h3>
-                        <p>Since the 1783 Treaty of Paris ended the Revolution, Britain had violated the treaty by maintaining forts on U.S. soil and continuing the fur trade with Native Americans. For American settlers pushing west, this was a source of constant friction. They coveted the fertile lands of the Ohio River Valley and blamed the British for inciting Native resistance. This resistance found a powerful leader in the Shawnee chief <strong class="font-semibold">Tecumseh</strong>. A brilliant strategist, he envisioned a unified, independent Indian nation between the U.S. and Canada. He traveled from the Great Lakes to the Gulf of Mexico, urging tribes to reject American treaties and join his confederacy. He argued, "Sell a country! Why not sell the air, the clouds and the great sea?"<a href="#" class="citation" title="Sugden, John. Tecumseh: A Life. Henry Holt and Co., 1997.">2</a> This movement alarmed American leaders, who saw it as a British-backed threat to their expansion.</div>
+                        <p>Since the 1783 Treaty of Paris ended the Revolution, Britain had violated the treaty by maintaining forts on U.S. soil and continuing the fur trade with Native Americans. For American settlers pushing west, this was a source of constant friction. They coveted the fertile lands of the Ohio River Valley and blamed the British for inciting Native resistance. This resistance found a powerful leader in the Shawnee chief <strong class="font-semibold">Tecumseh</strong>. <button class="fun-fact-btn" data-title="Tecumseh's Curse?" data-text="A legend, likely created decades after his death, claims that Tecumseh placed a curse on the American presidency. Starting with William Henry Harrison (who led the attack at Tippecanoe), every president elected in a year ending in '0' (1840, 1860, 1880, etc.) died in office, a pattern that continued for over a century until Ronald Reagan, elected in 1980, survived an assassination attempt."><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg></button> A brilliant strategist, he envisioned a unified, independent Indian nation between the U.S. and Canada. He traveled from the Great Lakes to the Gulf of Mexico, urging tribes to reject American treaties and join his confederacy. He argued, "Sell a country! Why not sell the air, the clouds and the great sea?"<a href="#" class="citation" title="Sugden, John. Tecumseh: A Life. Henry Holt and Co., 1997.">2</a> This movement alarmed American leaders, who saw it as a British-backed threat to their expansion.</div>
                 </div>
             </section>
 
@@ -94,11 +138,11 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-xl mb-2">The Naval Front: Pride and Privateers</h3>
-                        <p>While the army struggled, the small U.S. Navy achieved stunning single-ship successes. The American frigates, like the USS <strong class="font-semibold">Constitution</strong> and USS <strong class="font-semibold">United States</strong>, were larger and more heavily armed than their British counterparts. In 1812, the *Constitution* defeated HMS *Guerriere*, earning the nickname <strong class="font-semibold">"Old Ironsides"</strong> as British cannonballs seemed to bounce off its hull. These victories, while not strategically decisive, were enormous morale boosters. Additionally, hundreds of American <strong class="font-semibold">privateers</strong>—privately owned armed ships—raided British merchant shipping across the Atlantic, disrupting their commerce.</p>
+                        <p>While the army struggled, the small U.S. Navy achieved stunning single-ship successes. The American frigates, like the USS <strong class="font-semibold">Constitution</strong> and USS <strong class="font-semibold">United States</strong>, were larger and more heavily armed than their British counterparts. In 1812, the *Constitution* defeated HMS *Guerriere*, earning the nickname <strong class="font-semibold">"Old Ironsides"</strong><button class="fun-fact-btn" data-title="The World's Oldest Warship" data-text="The USS Constitution is the world's oldest commissioned warship still afloat. Launched in 1797, its hull was made of incredibly dense Southern live oak, which proved so resilient that British cannonballs were said to have bounced off it. Today, you can visit 'Old Ironsides' in Boston, Massachusetts."><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg></button> as British cannonballs seemed to bounce off its hull. These victories, while not strategically decisive, were enormous morale boosters. Additionally, hundreds of American <strong class="font-semibold">privateers</strong>—privately owned armed ships—raided British merchant shipping across the Atlantic, disrupting their commerce.</p>
                     </div>
                      <div>
                         <h3 class="font-bold text-xl mb-2">The Chesapeake & Southern Fronts</h3>
-                        <p>After defeating Napoleon in 1814, Britain sent thousands of veteran troops to America. In August, they landed in Maryland, routed the American militia at Bladensburg, and marched on Washington D.C., burning the White House and Capitol.<a href="#" class="citation" title="Taylor, Alan. The Civil War of 1812. Vintage, 2011.">3</a> Their next target was Baltimore, but the city was saved by the resolute defense of <strong class="font-semibold">Fort McHenry</strong>, which inspired Francis Scott Key's poem. In the South, Andrew Jackson waged a brutal campaign against the Creek Nation, culminating in the <strong class="font-semibold">Battle of Horseshoe Bend</strong> in 1814. The war's most famous battle occurred in New Orleans in January 1815. Unaware the <strong class="font-semibold">Treaty of Ghent</strong> had already been signed, General Jackson led a decisive victory that created a surge of national pride and made him a hero.<a href="#" class="citation" title="Remini, Robert V. The Battle of New Orleans. Penguin Books, 1999.">4</a></p>
+                        <p>After defeating Napoleon in 1814, Britain sent thousands of veteran troops to America. In August, they landed in Maryland, routed the American militia at Bladensburg, and marched on Washington D.C., burning the White House and Capitol.<a href="#" class="citation" title="Taylor, Alan. The Civil War of 1812. Vintage, 2011.">3</a> First Lady Dolley Madison famously saved Gilbert Stuart's portrait of George Washington before fleeing.<button class="fun-fact-btn" data-title="Dolley Madison's Red Velvet" data-text="In addition to the famous portrait of Washington, Dolley Madison also saved crucial cabinet papers and, according to legend, she had her personal enslaved servant, a young boy named Paul Jennings, help her. She reportedly even took the red velvet curtains from the Oval Room, which were later found."><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg></button> The British then moved on to Baltimore, but the city was saved by the resolute defense of <strong class="font-semibold">Fort McHenry</strong>, which inspired Francis Scott Key's poem. In the South, Andrew Jackson waged a brutal campaign against the Creek Nation, culminating in the <strong class="font-semibold">Battle of Horseshoe Bend</strong> in 1814. The war's most famous battle occurred in New Orleans in January 1815. Unaware the <strong class="font-semibold">Treaty of Ghent</strong> had already been signed, General Jackson<button class="fun-fact-btn" data-title="Old Hickory" data-text="Andrew Jackson earned his nickname 'Old Hickory' from his own troops. They said that he was 'as tough as old hickory wood' on the march and in battle. The name stuck, representing his reputation for being a rugged, unyielding leader."><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg></button> led a decisive victory that created a surge of national pride and made him a hero.<a href="#" class="citation" title="Remini, Robert V. The Battle of New Orleans. Penguin Books, 1999.">4</a></p>
                     </div>
                 </div>
             </section>
@@ -127,7 +171,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-xl mb-2">Collapse of the Federalist Party</h3>
-                        <p>The Federalist Party, which had dominated American politics in the 1790s, was deeply unpopular for its opposition to the war. In 1814, Federalist delegates from New England met at the <strong class="font-semibold">Hartford Convention</strong> to discuss their grievances, with some even proposing secession. When news of the victory at New Orleans and the peace treaty arrived, the Federalists were branded as traitors and fools. The party collapsed on a national level, unable to recover from the stigma of disloyalty during a time of intense national pride.</p>
+                        <p>The Federalist Party, which had dominated American politics in the 1790s, was deeply unpopular for its opposition to the war. In 1814, Federalist delegates from New England met at the <strong class="font-semibold">Hartford Convention</strong><button class="fun-fact-btn" data-title="Secret Meetings & Bad Timing" data-text="The meetings of the Hartford Convention were held in secret, which fueled rumors of treason and conspiracy. Their final report, which proposed several constitutional amendments to protect New England's interests, was released to the public just as news of Jackson's victory at New Orleans arrived, making them look foolish and unpatriotic."><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg></button> to discuss their grievances, with some even proposing secession. When news of the victory at New Orleans and the peace treaty arrived, the Federalists were branded as traitors and fools. The party collapsed on a national level, unable to recover from the stigma of disloyalty during a time of intense national pride.</p>
                     </div>
                 </div>
             </section>
@@ -148,7 +192,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-xl mb-2">Core Principles, Initial Response, and Legacy</h3>
-                        <p>In his 1823 message to Congress, Monroe outlined the doctrine's two main principles: 1) The Western Hemisphere was closed to future European colonization, and 2) The U.S. would view any European attempt to interfere with the new independent nations as a hostile act.<a href="#" class="citation" title="James Monroe, Seventh Annual Message to Congress, December 2, 1823.">6</a> In return, the U.S. would not interfere in European affairs. At the time, this was a "bold bluff." The U.S. had no real military power to enforce it. European powers were dismissive, knowing the real deterrent was the powerful British Royal Navy. However, the doctrine's legacy was immense. It became a cornerstone of U.S. foreign policy. In the late 19th and early 20th centuries, as the U.S. became a world power, presidents like Theodore Roosevelt used it to justify American intervention throughout Latin America, transforming it from a warning against Europe into a justification for American dominance in the hemisphere. </p>
+                        <p>In his 1823 message to Congress, Monroe outlined the doctrine's two main principles: 1) The Western Hemisphere was closed to future European colonization, and 2) The U.S. would view any European attempt to interfere with the new independent nations as a hostile act.<a href="#" class="citation" title="James Monroe, Seventh Annual Message to Congress, December 2, 1823.">6</a> In return, the U.S. would not interfere in European affairs. At the time, this was a "bold bluff." The U.S. had no real military power to enforce it. European powers were dismissive, knowing the real deterrent was the powerful British Royal Navy. However, the doctrine's legacy was immense. It became a cornerstone of U.S. foreign policy. In the late 19th and early 20th centuries, as the U.S. became a world power, presidents like Theodore Roosevelt used it to justify American intervention throughout Latin America, transforming it from a warning against Europe into a justification for American dominance in the hemisphere.<button class="fun-fact-btn" data-title="The Roosevelt Corollary" data-text="In 1904, President Theodore Roosevelt added the 'Roosevelt Corollary' to the doctrine. It stated that the U.S. would intervene as an 'international police power' in Latin American nations to prevent European intervention, dramatically shifting the doctrine's original meaning."><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg></button></p>
                     </div>
                 </div>
             </section>
@@ -193,8 +237,20 @@
         </footer>
     </div>
     
+    <!-- Fun Fact Modal -->
+    <div id="fun-fact-modal" class="modal-overlay">
+        <div class="modal-content glass-panel rounded-2xl max-w-lg w-full p-6 m-4" role="dialog" aria-modal="true">
+            <h3 id="modal-title" class="text-2xl font-bold text-gray-900 mb-4"></h3>
+            <p id="modal-text" class="text-gray-700 leading-relaxed"></p>
+            <div class="text-right mt-6">
+                <button id="modal-close-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg transition-colors">Close</button>
+            </div>
+        </div>
+    </div>
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- Animate sections on scroll ---
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
@@ -205,6 +261,7 @@
             }, { threshold: 0.15 });
             document.querySelectorAll('.infographic-section').forEach(section => observer.observe(section));
 
+            // --- Sorter Logic ---
             const sorterItems = document.querySelectorAll('.sorter-item');
             const sorterBoxes = document.querySelectorAll('.sorter-box');
             const originalSorterContainer = document.getElementById('sortable-items');
@@ -253,10 +310,32 @@
                 addSorterEvents(document.querySelectorAll('.sorter-item'));
             });
             
+            // --- Citation Logic ---
             document.querySelectorAll('.citation').forEach(citation => {
                 citation.addEventListener('click', e => e.preventDefault());
+            });
+
+            // --- Fun Fact Modal Logic ---
+            const modal = document.getElementById('fun-fact-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalText = document.getElementById('modal-text');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+
+            document.querySelectorAll('.fun-fact-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    modalTitle.textContent = button.dataset.title;
+                    modalText.textContent = button.dataset.text;
+                    modal.classList.add('active');
+                });
+            });
+
+            const closeModal = () => modal.classList.remove('active');
+            modalCloseBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if(e.target === modal) closeModal();
             });
         });
     </script>
 </body>
 </html>
+
