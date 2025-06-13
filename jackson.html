@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Age of Jackson: Democracy, Dissent, and Dispossession</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e5e7eb;
+            background-image: 
+                radial-gradient(at 10% 85%, hsla(215, 80%, 75%, 0.4) 0px, transparent 50%),
+                radial-gradient(at 80% 15%, hsla(25, 90%, 75%, 0.4) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, hsla(160, 80%, 70%, 0.4) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(40px) saturate(150%);
+            -webkit-backdrop-filter: blur(40px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+        .infographic-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            transition-delay: 0.2s;
+        }
+        .infographic-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .citation {
+            font-size: 0.65em; vertical-align: super; text-decoration: none; color: #4b5563; margin-left: 2px; padding: 0 2px; cursor: help;
+        }
+        .citation:hover { color: #1d4ed8; }
+        .sorter-item { cursor: grab; user-select: none; }
+        .sorter-item.dragging { opacity: 0.5; }
+        .sorter-box { border: 2px dashed rgba(0,0,0,0.2); min-height: 80px; }
+        .sorter-box.drag-over { background-color: rgba(0,0,0,0.05); }
+
+        .quiz-option { cursor: pointer; transition: all 0.2s ease; border: 1px solid rgba(0, 0, 0, 0.1); background-color: rgba(255, 255, 255, 0.2); }
+        .quiz-option:hover { background-color: rgba(255, 255, 255, 0.4); }
+        .quiz-option.correct { background-color: rgba(22, 163, 74, 0.2); border-color: rgba(34, 197, 94, 1); font-weight: 600; }
+        .quiz-option.incorrect { background-color: rgba(220, 38, 38, 0.2); border-color: rgba(239, 68, 68, 1); }
+        .quiz-feedback { padding: 1rem; border-radius: 0.5rem; font-weight: 500; }
+        .quiz-feedback.correct { background-color: rgba(22, 163, 74, 0.1); color: #14532d; }
+        .quiz-feedback.incorrect { background-color: rgba(220, 38, 38, 0.1); color: #7f1d1d; }
+
+        /* Fun Fact Button Style */
+        .fun-fact-btn {
+            display: inline-block;
+            background-color: rgba(129, 140, 248, 0.2);
+            border-radius: 9999px;
+            padding: 0.2rem;
+            margin-left: 0.25rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            vertical-align: middle;
+        }
+        .fun-fact-btn:hover {
+            background-color: rgba(129, 140, 248, 0.5);
+            transform: scale(1.1);
+        }
+
+        /* Fun Fact Modal Style */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 50;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background-color: rgba(255, 255, 255, 0.75); 
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <header class="text-center mb-16 infographic-section">
+            <h1 class="text-5xl md:text-7xl font-black text-blue-900 mb-2">The Age of Jackson</h1>
+            <p class="text-lg md:text-xl text-gray-500">Democracy, Dissent, and Dispossession</p>
+        </header>
+
+        <main class="space-y-12">
+            <!-- Jackson's Election Section -->
+            <section class="infographic-section">
+                <div class="text-center mb-8">
+                    <div class="inline-block p-1 bg-blue-200/50 rounded-2xl"> <!-- Changed from rounded-full -->
+                        <!-- *** IMAGE PLACEHOLDER: Replace the 'src' attribute below with your image URL *** -->
+                        <img src="Revolutionimages/jackson.jpg" 
+                             alt="Portrait of Andrew Jackson"
+                             class="h-24 w-24 rounded-xl object-cover border-4 border-white"> <!-- Changed from rounded-full -->
+                    </div>
+                    <h2 class="text-4xl font-bold mt-4">The Rise of the Common Man</h2>
+                    <p class="text-gray-600 mt-2">The election of Andrew Jackson marked a dramatic shift in American politics.</p>
+                </div>
+                <div class="glass-panel p-6 md:p-8 rounded-2xl space-y-6">
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">The "Corrupt Bargain" of 1824</h3>
+                        <p>The story of Jackson's presidency begins with his defeat in 1824. In that four-way election between Jackson, John Quincy Adams, Henry Clay, and William Crawford, Jackson won the most popular and electoral votes, but failed to secure the majority needed to win outright. The election was thrown to the House of Representatives. Henry Clay, as Speaker of the House and a political rival of Jackson, used his considerable influence to swing the vote in favor of Adams. Shortly after his victory, Adams appointed Clay as his Secretary of State, a position then seen as a stepping-stone to the presidency. Jackson's supporters were enraged, claiming a <strong class="font-semibold">"corrupt bargain"</strong> had cheated their candidate and the will of the people. This accusation galvanized the Jacksonian movement and became their rallying cry for the next four years.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">The Revolution of 1828 & Jacksonian Democracy</h3>
+                        <p>The 1828 election was a rematch and one of the most vicious in history. Jackson's supporters portrayed him as a rugged war hero and a man of the people, while Adams was painted as an out-of-touch elitist. Jackson won in a landslide. His victory represented the rise of the "common man" and a new political era. <strong class="font-semibold">Jacksonian Democracy</strong> was characterized by a belief in the wisdom of the common person, the expansion of voting rights to virtually all white males (as property requirements were dropped in many states), and a deep suspicion of the wealthy and powerful, especially eastern bankers. Jackson championed the <strong class="font-semibold">spoils system</strong> (also called rotation in office), rewarding his political supporters with government jobs. He argued it prevented the creation of a permanent, corrupt bureaucracy and made government more responsive to the people.<button class="fun-fact-btn" data-title="A Raucous Inauguration" data-text="Jackson's inauguration in 1829 was a wild affair. Thousands of his supporters, from farmers to city laborers, flocked to Washington to celebrate. They crowded into the White House for a public reception, climbing on furniture with muddy boots to get a glimpse of their hero. The scene became so chaotic that Jackson himself had to be ushered out a side door for his safety."><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg></button></p>
+                    </div>
+                </div>
+                <!-- Check for Understanding -->
+                <div class="glass-panel p-6 rounded-2xl mt-8">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">Check for Understanding</h3>
+                    <p class="text-lg mb-4 text-gray-600">The "corrupt bargain" referred to the belief that...</p>
+                    <div id="q1-options" class="space-y-3">
+                        <div class="quiz-option p-4 rounded-lg" onclick="handleAnswer('q1', 0, false)">Andrew Jackson illegally paid voters to win the election.</div>
+                        <div class="quiz-option p-4 rounded-lg" onclick="handleAnswer('q1', 1, true)">Henry Clay helped John Quincy Adams win the 1824 election in exchange for a cabinet position.</div>
+                        <div class="quiz-option p-4 rounded-lg" onclick="handleAnswer('q1', 2, false)">John Quincy Adams sold public land to his political supporters for a low price.</div>
+                    </div>
+                    <div id="q1-feedback" class="hidden mt-4"></div>
+                </div>
+            </section>
+
+            <!-- Indian Removal Section -->
+            <section class="infographic-section">
+                <div class="text-center mb-8">
+                     <div class="inline-block p-4 bg-red-200/50 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-red-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657l-4.243-4.243m0 0l-4.243 4.243m4.243-4.243l4.243 4.243m-4.243-4.243L12 18.414M12 3c-4.418 0-8 3.582-8 8s3.582 8 8 8 8-3.582 8-8-3.582-8-8-8z" /></svg>
+                    </div>
+                    <h2 class="text-4xl font-bold mt-4">Indian Removal and the Trail of Tears</h2>
+                    <p class="text-gray-600 mt-2">Jackson's presidency is forever stained by the forced relocation of Native American tribes.</p>
+                </div>
+                <div class="glass-panel p-6 md:p-8 rounded-2xl space-y-6">
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">The Indian Removal Act of 1830</h3>
+                        <p>For decades, the U.S. government had recognized tribes like the Cherokee, Choctaw, Chickasaw, Creek, and Seminole—known as the "Five Civilized Tribes"—as distinct nations. Many, especially the Cherokee, had adopted American customs, creating farms, schools, and a written constitution. However, southern states, hungry for their land for cotton cultivation, demanded their removal. Jackson, a veteran of campaigns against Native Americans, shared this view. In 1830, he pushed the <strong class="font-semibold">Indian Removal Act</strong> through Congress. The act did not order removal by force, but authorized the president to grant land west of the Mississippi River to tribes that agreed to give up their ancestral homelands.<a href="#" class="citation" title="Meacham, Jon. American Lion: Andrew Jackson in the White House. Random House, 2008.">1</a></p>
+                    </div>
+                     <div>
+                        <h3 class="font-bold text-xl mb-2">Worcester v. Georgia and Jackson's Defiance</h3>
+                        <p>The Cherokee Nation refused to leave and challenged Georgia's attempts to seize their land in court. In the 1832 Supreme Court case <strong class="font-semibold">Worcester v. Georgia</strong>, Chief Justice <strong class="font-semibold">John Marshall</strong> sided with the Cherokee, ruling that the state of Georgia had no authority over them as they were a distinct political community. Upon hearing of the ruling, President Jackson allegedly remarked, "John Marshall has made his decision; now let him enforce it."<a href="#" class="citation" title="This quote is widely cited but may be apocryphal. See Remini, Robert V., 'The Life of Andrew Jackson'.">2</a> While he may not have said those exact words, Jackson's actions spoke louder: he refused to enforce the Court's decision and continued to pressure the tribes to leave.</p>
+                    </div>
+                     <div>
+                        <h3 class="font-bold text-xl mb-2">The Trail of Tears</h3>
+                        <p>Under immense pressure, a small, unauthorized faction of the Cherokee signed the Treaty of New Echota, selling all tribal land to the U.S. The vast majority of the Cherokee, led by Chief John Ross, protested, but the U.S. government ratified the fraudulent treaty. In 1838, the U.S. army began to forcibly round up the remaining 16,000 Cherokee. They were held in squalid camps before being forced to march over 1,000 miles to "Indian Territory" (modern-day Oklahoma). On this brutal journey, known as the <strong class="font-semibold">Trail of Tears</strong>, an estimated 4,000 Cherokee—nearly a quarter of their population—died from disease, starvation, and exposure.<button class="fun-fact-btn" data-title="A Soldier's Account" data-text="A private who served during the removal later recalled, 'I fought through the civil war and have seen men shot to pieces and slaughtered by thousands, but the Cherokee removal was the cruelest work I ever knew.' This firsthand account highlights the profound human tragedy of the event."><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg></button></p>
+                    </div>
+                </div>
+                 <!-- Check for Understanding -->
+                <div class="glass-panel p-6 rounded-2xl mt-8">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">Check for Understanding</h3>
+                    <p class="text-lg mb-4 text-gray-600">In the case of *Worcester v. Georgia*, the Supreme Court ruled that...</p>
+                    <div id="q2-options" class="space-y-3">
+                        <div class="quiz-option p-4 rounded-lg" onclick="handleAnswer('q2', 0, true)">The state of Georgia had no legal authority over the sovereign Cherokee Nation.</div>
+                        <div class="quiz-option p-4 rounded-lg" onclick="handleAnswer('q2', 1, false)">The Cherokee must sell their land and move west immediately.</div>
+                        <div class="quiz-option p-4 rounded-lg" onclick="handleAnswer('q2', 2, false)">The Indian Removal Act was constitutional.</div>
+                    </div>
+                    <div id="q2-feedback" class="hidden mt-4"></div>
+                </div>
+            </section>
+            
+            <!-- Nullification Crisis Section -->
+            <section class="infographic-section">
+                 <div class="text-center mb-8">
+                     <div class="inline-block p-4 bg-purple-200/50 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    </div>
+                    <h2 class="text-4xl font-bold mt-4">The Nullification Crisis</h2>
+                    <p class="text-gray-600 mt-2">A battle over tariffs brought the nation to the brink of civil war.</p>
+                </div>
+                <div class="glass-panel p-6 md:p-8 rounded-2xl space-y-6">
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">The "Tariff of Abominations"</h3>
+                        <p>In 1828, Congress passed a very high protective tariff, which northern manufacturers favored but southern planters despised. Southerners, who relied on imported British goods, called it the <strong class="font-semibold">"Tariff of Abominations"</strong> because it raised their costs and they felt it unfairly benefited the North at their expense. This economic grievance tapped into deeper southern fears about the power of the federal government to one day interfere with the institution of slavery.</p>
+                    </div>
+                     <div>
+                        <h3 class="font-bold text-xl mb-2">Calhoun and the Doctrine of Nullification</h3>
+                        <p>In response, Vice President <strong class="font-semibold">John C. Calhoun</strong> of South Carolina secretly wrote the "South Carolina Exposition and Protest." He resurrected the doctrine of <strong class="font-semibold">nullification</strong>, first argued by Jefferson and Madison. Calhoun claimed that the states, having created the federal government, had the final say on the constitutionality of its laws. He argued that if a state found a federal law unconstitutional, it could declare that law "null and void" within its borders. This was a direct challenge to federal authority.<button class="fun-fact-btn" data-title="A Tense Toast" data-text="The growing rift between Jackson and Calhoun became public at a dinner celebrating Jefferson's birthday. Jackson, staring directly at Calhoun, offered a toast: 'Our federal Union: It must be preserved!' Calhoun then rose and offered his own: 'The Union: Next to our liberty, the most dear!' The exchange made their opposing views clear to everyone."><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg></button></p>
+                    </div>
+                     <div>
+                        <h3 class="font-bold text-xl mb-2">Showdown and Compromise</h3>
+                        <p>When Congress passed another tariff in 1832, South Carolina held a convention and formally nullified the federal law. They threatened to <strong class="font-semibold">secede</strong> (withdraw from the Union) if the government tried to collect the taxes by force. President Jackson, though a supporter of states' rights, was a staunch nationalist who saw nullification as treason. He declared, "Disunion by armed force is treason. Are you ready to incur its guilt?" He asked Congress to pass a <strong class="font-semibold">Force Bill</strong> authorizing him to use the military to enforce the law. A civil war seemed imminent, but Henry Clay, the "Great Compromiser," stepped in again. He engineered a compromise tariff that would gradually lower the rates over a decade. South Carolina accepted the compromise and repealed its nullification ordinance, ending the immediate crisis but leaving the fundamental question of states' rights versus federal power unresolved.<a href="#" class="citation" title="Freehling, William W. Prelude to Civil War: The Nullification Controversy in South Carolina, 1816-1836. Oxford University Press, 1992.">3</a></p>
+                    </div>
+                </div>
+                 <!-- Check for Understanding -->
+                <div class="glass-panel p-6 rounded-2xl mt-8">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">Check for Understanding</h3>
+                    <p class="text-lg mb-4 text-gray-600">The Nullification Crisis was a dispute over...</p>
+                    <div id="q3-options" class="space-y-3">
+                        <div class="quiz-option p-4 rounded-lg" onclick="handleAnswer('q3', 0, false)">The Indian Removal Act.</div>
+                        <div class="quiz-option p-4 rounded-lg" onclick="handleAnswer('q3', 1, false)">The results of the 1832 presidential election.</div>
+                        <div class="quiz-option p-4 rounded-lg" onclick="handleAnswer('q3', 2, true)">A state's right to declare a federal law unconstitutional.</div>
+                    </div>
+                    <div id="q3-feedback" class="hidden mt-4"></div>
+                </div>
+            </section>
+
+            <!-- Sorter Section -->
+            <section class="infographic-section">
+                <div class="text-center mb-8">
+                     <div class="inline-block p-4 bg-green-200/50 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <h2 class="text-4xl font-bold mt-4">Interactive: Key Legislation & Rulings</h2>
+                    <p class="text-gray-600 mt-2">Drag each item to its correct description.</p>
+                </div>
+                <div class="glass-panel p-6 md:p-8 rounded-2xl">
+                    <div id="sortable-items" class="mb-6 flex flex-wrap justify-center gap-3">
+                        <div class="sorter-item glass-panel p-3 rounded-lg" draggable="true" data-match="desc-1">Indian Removal Act</div>
+                        <div class="sorter-item glass-panel p-3 rounded-lg" draggable="true" data-match="desc-2">Worcester v. Georgia</div>
+                        <div class="sorter-item glass-panel p-3 rounded-lg" draggable="true" data-match="desc-3">"Tariff of Abominations"</div>
+                        <div class="sorter-item glass-panel p-3 rounded-lg" draggable="true" data-match="desc-4">Force Bill</div>
+                    </div>
+                    <div class="space-y-4">
+                        <div id="desc-1" data-match="desc-1" class="sorter-box p-4 rounded-lg flex items-center justify-center text-center text-gray-700">Authorized the president to grant land west of the Mississippi in exchange for Native lands within state borders.</div>
+                        <div id="desc-2" data-match="desc-2" class="sorter-box p-4 rounded-lg flex items-center justify-center text-center text-gray-700">Supreme Court decision that recognized the Cherokee as a sovereign nation, a ruling Jackson ignored.</div>
+                        <div id="desc-3" data-match="desc-3" class="sorter-box p-4 rounded-lg flex items-center justify-center text-center text-gray-700">Protective tariff of 1828 that enraged southern states and led to the Nullification Crisis.</div>
+                        <div id="desc-4" data-match="desc-4" class="sorter-box p-4 rounded-lg flex items-center justify-center text-center text-gray-700">Law passed authorizing the president to use the military to enforce federal tariffs.</div>
+                    </div>
+                    <div class="text-center mt-6">
+                        <button id="reset-sorter-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg transition-colors">Reset</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="text-center mt-16 text-gray-500">
+            <p>An interactive learning module.</p>
+        </footer>
+    </div>
+    
+    <!-- Fun Fact Modal -->
+    <div id="fun-fact-modal" class="modal-overlay">
+        <div class="modal-content glass-panel rounded-2xl max-w-lg w-full p-6 m-4" role="dialog" aria-modal="true">
+            <h3 id="modal-title" class="text-2xl font-bold text-gray-900 mb-4"></h3>
+            <p id="modal-text" class="text-gray-700 leading-relaxed"></p>
+            <div class="text-right mt-6">
+                <button id="modal-close-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg transition-colors">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15 });
+            document.querySelectorAll('.infographic-section').forEach(section => observer.observe(section));
+
+            // --- Quiz Logic ---
+            window.answeredQuizzes = {};
+            window.handleAnswer = function(quizId, optionIndex, isCorrect) {
+                if (window.answeredQuizzes[quizId]) return;
+                window.answeredQuizzes[quizId] = true;
+
+                const optionsContainer = document.getElementById(`${quizId}-options`);
+                const feedbackContainer = document.getElementById(`${quizId}-feedback`);
+                const options = Array.from(optionsContainer.children);
+                const selectedOption = options[optionIndex];
+
+                options.forEach(opt => opt.style.pointerEvents = 'none');
+                
+                let text;
+                if (isCorrect) {
+                    selectedOption.classList.add('correct');
+                    feedbackContainer.classList.add('correct', 'quiz-feedback');
+                    if (quizId === 'q1') text = '<strong>Correct!</strong> The deal between Clay and Adams infuriated Jackson\'s supporters and set the stage for the 1828 election.';
+                    if (quizId === 'q2') text = '<strong>Correct!</strong> The Court sided with the Cherokee, but President Jackson refused to enforce the ruling.';
+                    if (quizId === 'q3') text = '<strong>Correct!</strong> The crisis centered on South Carolina\'s claim that it could nullify federal tariff laws.';
+                } else {
+                    selectedOption.classList.add('incorrect');
+                    feedbackContainer.classList.add('incorrect', 'quiz-feedback');
+                    let correctIndex = -1;
+                    if(quizId === 'q1') correctIndex = 1;
+                    if(quizId === 'q2') correctIndex = 0;
+                    if(quizId === 'q3') correctIndex = 2;
+                    options[correctIndex].classList.add('correct');
+                    text = '<strong>Not quite.</strong> The highlighted answer is the correct one.';
+                }
+                feedbackContainer.innerHTML = text;
+                feedbackContainer.classList.remove('hidden');
+            }
+
+            // --- Sorter Logic ---
+            const originalSorterContainer = document.getElementById('sortable-items');
+            const resetSorterBtn = document.getElementById('reset-sorter-btn');
+            
+            function initializeSorters() {
+                const sorterItems = document.querySelectorAll('.sorter-item');
+                const sorterBoxes = document.querySelectorAll('.sorter-box');
+                const originalItems = Array.from(sorterItems).map(item => item.cloneNode(true));
+                let draggedItem = null;
+
+                function addSorterEvents(items) {
+                    items.forEach(item => {
+                        item.addEventListener('dragstart', (e) => {
+                            draggedItem = e.target;
+                            setTimeout(() => e.target.classList.add('dragging'), 0);
+                        });
+                        item.addEventListener('dragend', () => draggedItem.classList.remove('dragging'));
+                    });
+                }
+                addSorterEvents(sorterItems);
+
+                sorterBoxes.forEach(box => {
+                    box.addEventListener('dragover', e => { e.preventDefault(); box.classList.add('drag-over'); });
+                    box.addEventListener('dragleave', () => box.classList.remove('drag-over'));
+                    box.addEventListener('drop', e => {
+                        e.preventDefault();
+                        if(draggedItem) {
+                            if(box.dataset.match === draggedItem.dataset.match) {
+                               box.innerHTML = ''; // Clear the box before adding
+                               box.appendChild(draggedItem);
+                               draggedItem.classList.add('bg-green-100', 'border-green-400');
+                               box.classList.add('border-green-500', 'bg-green-100/50');
+                            } else {
+                               draggedItem.classList.add('bg-red-100', 'border-red-400');
+                               setTimeout(() => draggedItem.classList.remove('bg-red-100', 'border-red-400'), 1000);
+                            }
+                        }
+                        box.classList.remove('drag-over');
+                    });
+                });
+
+                resetSorterBtn.addEventListener('click', () => {
+                    originalSorterContainer.innerHTML = '';
+                    originalItems.forEach(item => {
+                        item.classList.remove('bg-green-100', 'border-green-400', 'bg-red-100', 'border-red-400');
+                        originalSorterContainer.appendChild(item);
+                    });
+                    
+                    sorterBoxes.forEach(box => {
+                        const descriptions = {
+                            'desc-1': "Authorized the president to grant land west of the Mississippi in exchange for Native lands within state borders.",
+                            'desc-2': "Supreme Court decision that recognized the Cherokee as a sovereign nation, a ruling Jackson ignored.",
+                            'desc-3': "Protective tariff of 1828 that enraged southern states and led to the Nullification Crisis.",
+                            'desc-4': "Law passed authorizing the president to use the military to enforce federal tariffs."
+                        };
+                        box.innerHTML = descriptions[box.id];
+                        box.classList.remove('border-green-500', 'bg-green-100/50');
+                    });
+                    
+                    addSorterEvents(document.querySelectorAll('.sorter-item'));
+                });
+            }
+            initializeSorters();
+            
+            // --- Citation Logic ---
+            document.querySelectorAll('.citation').forEach(citation => {
+                citation.addEventListener('click', e => e.preventDefault());
+            });
+
+            // --- Fun Fact Modal Logic ---
+            const modal = document.getElementById('fun-fact-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalText = document.getElementById('modal-text');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+
+            document.querySelectorAll('.fun-fact-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    modalTitle.textContent = button.dataset.title;
+                    modalText.textContent = button.dataset.text;
+                    modal.classList.add('active');
+                });
+            });
+
+            const closeModal = () => modal.classList.remove('active');
+            modalCloseBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if(e.target === modal) closeModal();
+            });
+        });
+    </script>
+</body>
+</html>
