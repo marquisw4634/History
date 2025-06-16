@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Market Revolution: Forging a New Economy</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e5e7eb;
+            background-image: 
+                radial-gradient(at 10% 15%, hsla(215, 80%, 75%, 0.4) 0px, transparent 50%),
+                radial-gradient(at 80% 20%, hsla(160, 70%, 80%, 0.4) 0px, transparent 50%),
+                radial-gradient(at 50% 85%, hsla(30, 80%, 80%, 0.4) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(40px) saturate(150%);
+            -webkit-backdrop-filter: blur(40px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+        .infographic-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            transition-delay: 0.2s;
+        }
+        .infographic-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .citation {
+            font-size: 0.65em; vertical-align: super; text-decoration: none; color: #4b5563; margin-left: 2px; padding: 0 2px; cursor: help;
+        }
+        .citation:hover { color: #1d4ed8; }
+        .sorter-item { cursor: grab; user-select: none; }
+        .sorter-item.dragging { opacity: 0.5; }
+        .sorter-box { border: 2px dashed rgba(0,0,0,0.2); min-height: 80px; }
+        .sorter-box.drag-over { background-color: rgba(0,0,0,0.05); }
+
+        /* Fun Fact Button & Modal Styles */
+        .fun-fact-btn {
+            display: inline-block;
+            background-color: rgba(129, 140, 248, 0.2);
+            border-radius: 9999px;
+            padding: 0.2rem;
+            margin-left: 0.25rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            vertical-align: middle;
+        }
+        .fun-fact-btn:hover {
+            background-color: rgba(129, 140, 248, 0.5);
+            transform: scale(1.1);
+        }
+        .modal-overlay {
+            position: fixed; inset: 0; background-color: rgba(17, 24, 39, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 50;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content { background-color: rgba(255, 255, 255, 0.75); transform: scale(0.95); transition: transform 0.3s ease; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+    </style>
+</head>
+<body class="text-gray-800">
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <header class="text-center mb-16 infographic-section">
+            <h1 class="text-5xl md:text-7xl font-black text-gray-800 mb-2">The Market Revolution</h1>
+            <p class="text-lg md:text-xl text-gray-600">How Factories, Inventions, and Transportation Forged a New American Economy</p>
+        </header>
+
+        <main class="space-y-12">
+            <!-- Introduction Section -->
+            <section class="infographic-section">
+                <div class="glass-panel p-6 md:p-8 rounded-2xl">
+                    <h2 class="text-3xl font-bold text-center mb-4 text-gray-800">Introduction: A Nation Transformed</h2>
+                    <p class="text-lg text-gray-700 leading-relaxed">In the early 19th century, the United States underwent a profound economic transformation known as the <strong class="font-semibold">Market Revolution</strong>. Before this period, most Americans lived in a <strong class="font-semibold">subsistence economy</strong>, where families produced the majority of their own food, clothing, and tools. Life was local, and there was little incentive to produce a surplus because there was no easy way to get goods to distant buyers. This all changed with a series of interconnected revolutions in industry and transportation. New inventions created a surge in manufacturing, while canals, steamboats, and railroads created a national network for commerce. Together, these forces broke down the isolation of the past and knit the nation together into a single, dynamic market economy.</p>
+                </div>
+            </section>
+
+            <!-- The Seeds of Change Section -->
+            <section class="infographic-section">
+                <div class="text-center mb-8">
+                    <div class="inline-block p-4 bg-yellow-200/50 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-yellow-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                    </div>
+                    <h2 class="text-4xl font-bold mt-4">The Engine of Change: New Inventions</h2>
+                    <p class="text-gray-600 mt-2">Key inventions created new demands and possibilities, laying the groundwork for massive economic change.</p>
+                </div>
+                <div class="glass-panel p-6 md:p-8 rounded-2xl space-y-6">
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">The Cotton Gin and the Rise of "King Cotton"</h3>
+                        <p>Before 1793, separating cotton fibers from their seeds was a slow, manual process. That year, New England inventor <strong class="font-semibold">Eli Whitney</strong> created the <strong class="font-semibold">cotton gin</strong> (short for "engine"), a machine that could clean cotton 50 times faster than a person could by hand. This innovation transformed the American economy. Southern planters, now able to process cotton profitably, vastly expanded production. Cotton output soared from 3,000 bales in 1790 to 300,000 by 1820. This explosion made cotton America's biggest export and entrenched the institution of slavery in the South, as slave labor was used to grow and pick the crop. The North also profited, as its growing textile mills relied on this massive supply of southern cotton.<a href="#" class="citation" title="U.S. History, Chapter 10, pp. 245, Chapter 11, pp. 267">1</a></p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">Interchangeable Parts and Mass Production</h3>
+                        <p>After his invention of the cotton gin was widely copied, Eli Whitney turned his attention to manufacturing. Tasked with producing 10,000 muskets for the U.S. Army, he developed a system of creating identical, <strong class="font-semibold">interchangeable parts</strong>. Instead of one artisan building a whole musket, unskilled workers could mass-produce individual components that could be assembled quickly. This method, also refined by innovators like Simeon North, drastically lowered the cost and time needed for manufacturing. It was soon applied to countless other products, from clocks to farm equipment, fueling the growth of factories across the North.<a href="#" class="citation" title="U.S. History, Chapter 11, pp. 267, 270">2</a></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- The Factory System -->
+            <section class="infographic-section">
+                <div class="text-center mb-8">
+                     <div class="inline-block p-4 bg-blue-200/50 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m-1 4h1m5-8h1m-1 4h1m-1 4h1M9 21v-3.072a2 2 0 01.732-1.566L12 15l2.268 1.362A2 2 0 0115 17.928V21" /></svg>
+                    </div>
+                    <h2 class="text-4xl font-bold mt-4">The Rise of the American Factory</h2>
+                    <p class="text-gray-600 mt-2">New England became the cradle of the Industrial Revolution, thanks to geography and enterprising individuals.</p>
+                </div>
+                <div class="glass-panel p-6 md:p-8 rounded-2xl space-y-6">
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">Samuel Slater and the First Factories</h3>
+                        <p>The American Industrial Revolution began by borrowing British technology. Great Britain fiercely guarded its industrial secrets, even making it illegal for textile workers to emigrate. In 1789, a mill superintendent named <strong class="font-semibold">Samuel Slater</strong> defied this law. Disguising himself and memorizing the complex designs for a water-powered spinning machine, he sailed to America. In Rhode Island, he set up the first successful cotton-spinning mill in the United States. Slater's initial system involved hiring entire families to work in his mills, a practice that maintained the traditional family structure while introducing them to factory labor. His success proved that industrial manufacturing could thrive in America and earned him the nickname "Father of the American Industrial Revolution."<a href="#" class="citation" title="U.S. History, Chapter 11, p. 263">3</a></p>
+                    </div>
+                     <div>
+                        <h3 class="font-bold text-xl mb-2">The Lowell System: A New Industrial Model</h3>
+                        <p>In 1813, Boston merchant <strong class="font-semibold">Francis Cabot Lowell</strong> expanded on Slater's model. After also observing British factories, Lowell created a revolutionary factory system in Lowell, Massachusetts. Unlike earlier mills that only spun thread, the Lowell mills integrated all steps of textile manufacturing under one roof—from raw cotton to finished cloth. To attract a workforce, the company recruited young, unmarried farm women, known as <strong class="font-semibold">"mill girls."</strong> They were housed in supervised dormitories and held to a strict schedule of work, curfews, and mandatory church attendance, which convinced many fathers that mill life was respectable. Though the work was difficult and the hours long (often 12 hours a day, six days a week), it offered many women their first taste of economic independence.<button class="fun-fact-btn" data-title="The Lowell Offering" data-text="The women working in the Lowell mills were highly literate. They organized 'improvement circles' and even published their own literary magazine, The Lowell Offering, which featured their stories, poems, and essays. It was a rare public platform for female voices at the time."><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg></button> Despite the dangers and strict control, these women found a new sense of sisterhood and solidarity, organizing strikes to protest wage cuts and poor conditions.<a href="#" class="citation" title="U.S. History, Chapter 11, pp. 265-267">4</a></p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Transportation Revolution Section -->
+            <section class="infographic-section">
+                <div class="text-center mb-8">
+                     <div class="inline-block p-4 bg-gray-200/50 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10l2 2h8a1 1 0 001-1zM3 11h10M16 7l4 4m0 0l-4 4m4-4H9" /></svg>
+                    </div>
+                    <h2 class="text-4xl font-bold mt-4">The Transportation Revolution</h2>
+                    <p class="text-gray-600 mt-2">Connecting a vast nation for commerce and settlement was as crucial as making the goods themselves.</p>
+                </div>
+                <div class="glass-panel p-6 md:p-8 rounded-2xl space-y-6">
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">Canals: "Clinton's Big Ditch"</h3>
+                        <p>The most ambitious transportation project of the era was the <strong class="font-semibold">Erie Canal</strong>. Championed by New York Governor DeWitt Clinton, it was a 363-mile man-made waterway connecting the Hudson River to Lake Erie. When proposed, many, including Thomas Jefferson, called it "madness." Completed in 1825 after eight years of grueling labor by thousands of workers, many of whom were poor Irish immigrants, it was a marvel of engineering. The canal used a series of 83 locks to overcome a 675-foot change in elevation. Its impact was immediate and profound. The cost of transporting goods from the Great Lakes to New York City dropped to a fraction of its former price, making it profitable for western farmers to sell their crops in the East. Cities like Buffalo and Rochester boomed along its route, and it sparked a "canal-making frenzy" across the country.<a href="#" class="citation" title="U.S. History, Chapter 11, pp. 274-275">5</a><button class="fun-fact-btn" data-title="Water Wedding" data-text="To celebrate the opening of the Erie Canal, Governor Clinton traveled its length from Buffalo to New York City. At the end of his journey, in a ceremony called the 'Wedding of the Waters,' he poured a keg of water from Lake Erie into the Atlantic Ocean, symbolizing the union of the Great Lakes with the sea."><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg></button></p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-xl mb-2">Steamboats and Railroads</h3>
+                        <p>In 1807, <strong class="font-semibold">Robert Fulton's</strong> steamboat, the *Clermont*, chugged up the Hudson River, defying wind and current. This invention revolutionized river travel. Before the steamboat, trade on the Mississippi River flowed only downstream. Afterward, trade moved in both directions, "colonizing the West" with unprecedented speed. Soon after, railroads began to compete with canals and rivers. Though the first American locomotive, the "Tom Thumb," famously lost a race to a horse in 1830, the future was clear. By the end of the 1830s, over 3,000 miles of track had been laid. Railroads offered year-round transport and further fueled the economy by creating demand for coal, iron, and steel.<a href="#" class="citation" title="U.S. History, Chapter 11, pp. 273, 276">6</a></p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Timeline Sorter Section -->
+            <section class="infographic-section">
+                <div class="text-center mb-8">
+                     <div class="inline-block p-4 bg-purple-200/50 rounded-full">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-purple-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    </div>
+                    <h2 class="text-4xl font-bold mt-4">Interactive: Timeline Challenge</h2>
+                    <p class="text-gray-600 mt-2">Drag each event to its correct place on the timeline.</p>
+                </div>
+                <div class="glass-panel p-6 md:p-8 rounded-2xl">
+                    <div id="sortable-items" class="mb-8 flex flex-wrap justify-center gap-3">
+                        <div class="draggable glass-panel p-3 rounded-lg text-sm" draggable="true" data-date="1793">Eli Whitney invents the Cotton Gin</div>
+                        <div class="draggable glass-panel p-3 rounded-lg text-sm" draggable="true" data-date="1807">Robert Fulton's *Clermont* sails the Hudson</div>
+                        <div class="draggable glass-panel p-3 rounded-lg text-sm" draggable="true" data-date="1813">Francis Lowell opens his first integrated mill</div>
+                        <div class="draggable glass-panel p-3 rounded-lg text-sm" draggable="true" data-date="1825">The Erie Canal is completed</div>
+                        <div class="draggable glass-panel p-3 rounded-lg text-sm" draggable="true" data-date="1830">First U.S. commercial railroad begins operation</div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="timeline-container"><div class="timeline-year">1790s</div><div class="timeline-line"></div></div>
+                        <div class="timeline-drop-zone p-4 rounded-lg" data-date="1793"></div>
+                        <div class="timeline-container"><div class="timeline-year">1800s</div><div class="timeline-line"></div></div>
+                        <div class="timeline-drop-zone p-4 rounded-lg" data-date="1807"></div>
+                        <div class="timeline-container"><div class="timeline-year">1810s</div><div class="timeline-line"></div></div>
+                        <div class="timeline-drop-zone p-4 rounded-lg" data-date="1813"></div>
+                        <div class="timeline-container"><div class="timeline-year">1820s</div><div class="timeline-line"></div></div>
+                        <div class="timeline-drop-zone p-4 rounded-lg" data-date="1825"></div>
+                        <div class="timeline-container"><div class="timeline-year">1830s</div><div class="timeline-line"></div></div>
+                        <div class="timeline-drop-zone p-4 rounded-lg" data-date="1830"></div>
+                    </div>
+                    <div class="text-center mt-6">
+                        <button id="reset-sorter-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg transition-colors">Reset</button>
+                    </div>
+                </div>
+            </section>
+
+             <!-- Conclusion Section -->
+            <section class="infographic-section">
+                <div class="glass-panel p-6 md:p-8 rounded-2xl">
+                    <h2 class="text-3xl font-bold text-center mb-4 text-gray-800">Conclusion: The Foundation of Modern America</h2>
+                    <p class="text-lg text-gray-700 leading-relaxed">The Market Revolution was not a single event, but a cascade of interconnected changes that fundamentally remade the United States. The invention of the cotton gin created an immense supply of raw material that fed the new textile mills of the North. These factories, using principles of mass production and a growing industrial workforce, churned out affordable goods for a national market. None of this would have been possible without the Transportation Revolution. Canals, steamboats, and railroads were the arteries of this new economy, carrying raw materials to factories and finished goods to consumers across the vast continent. Together, these forces dismantled the old, local subsistence world and laid the essential groundwork for the rise of the United States as a global industrial power.</p>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="text-center mt-16 text-gray-500">
+            <p>An interactive learning module.</p>
+        </footer>
+    </div>
+    
+    <!-- Fun Fact Modal -->
+    <div id="fun-fact-modal" class="modal-overlay">
+        <div class="modal-content glass-panel rounded-2xl max-w-lg w-full p-6 m-4" role="dialog" aria-modal="true">
+            <h3 id="modal-title" class="text-2xl font-bold text-gray-900 mb-4"></h3>
+            <p id="modal-text" class="text-gray-700 leading-relaxed"></p>
+            <div class="text-right mt-6">
+                <button id="modal-close-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg transition-colors">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.15 });
+            document.querySelectorAll('.infographic-section').forEach(section => observer.observe(section));
+
+            function initializeTimelineSorter() {
+                const originalSorterContainer = document.getElementById('sortable-items');
+                if (!originalSorterContainer) return;
+                
+                const resetSorterBtn = document.getElementById('reset-sorter-btn');
+                const originalItems = Array.from(originalSorterContainer.children).map(item => item.cloneNode(true));
+                let draggedItem = null;
+
+                function addDragEvents() {
+                    document.querySelectorAll('.draggable').forEach(item => {
+                        item.addEventListener('dragstart', () => {
+                            draggedItem = item;
+                            setTimeout(() => item.classList.add('dragging'), 0);
+                        });
+                        item.addEventListener('dragend', () => draggedItem.classList.remove('dragging'));
+                    });
+                }
+                addDragEvents();
+                
+                document.querySelectorAll('.timeline-drop-zone').forEach(zone => {
+                    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+                    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+                    zone.addEventListener('drop', e => {
+                        e.preventDefault();
+                        if (draggedItem && zone.children.length === 0) {
+                            if (zone.dataset.date === draggedItem.dataset.date) {
+                                zone.appendChild(draggedItem);
+                                zone.classList.add('correct');
+                            } else {
+                                draggedItem.classList.add('bg-red-100', 'border-red-400');
+                                setTimeout(() => draggedItem.classList.remove('bg-red-100', 'border-red-400'), 1000);
+                            }
+                        }
+                        zone.classList.remove('drag-over');
+                    });
+                });
+
+                resetSorterBtn.addEventListener('click', () => {
+                    originalSorterContainer.innerHTML = '';
+                    originalItems.forEach(item => {
+                        originalSorterContainer.appendChild(item.cloneNode(true));
+                    });
+                     document.querySelectorAll('.timeline-drop-zone').forEach(zone => {
+                        zone.innerHTML = '';
+                        zone.classList.remove('correct');
+                     });
+                    addDragEvents();
+                });
+            }
+            initializeTimelineSorter();
+            
+            document.querySelectorAll('.citation').forEach(citation => {
+                citation.addEventListener('click', e => e.preventDefault());
+            });
+
+            const modal = document.getElementById('fun-fact-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalText = document.getElementById('modal-text');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+
+            document.querySelectorAll('.fun-fact-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    modalTitle.textContent = button.dataset.title;
+                    modalText.textContent = button.dataset.text;
+                    modal.classList.add('active');
+                });
+            });
+
+            const closeModal = () => modal.classList.remove('active');
+            modalCloseBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if(e.target === modal) closeModal();
+            });
+        });
+    </script>
+</body>
+</html>
