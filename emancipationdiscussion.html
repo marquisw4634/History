@@ -10,22 +10,29 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6;
-            /* Prevents text selection on most browsers */
-            user-select: none;
-            -webkit-user-select: none; /* Safari */
-            -moz-user-select: none; /* Firefox */
-            -ms-user-select: none; /* Internet Explorer/Edge */
+            /* Disable text selection for most browsers */
+            -webkit-user-select: none;  /* Safari */
+            -moz-user-select: none;     /* Firefox */
+            -ms-user-select: none;      /* IE10+ */
+            user-select: none;          /* Standard */
         }
-        /* Lock down specific interactive elements if needed, but for a discussion board, we'll keep it simple */
-        .container, .instructions, .source-text {
-            user-select: none;
+        .container {
+            /* Prevent selecting text inside this container */
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
+            user-select: none;
+        }
+        /* Allow selection for form elements (e.g., if there were input fields) */
+        input, textarea {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
         }
     </style>
 </head>
-<body class="p-4 sm:p-8" oncontextmenu="return false;" oncopy="return false;" oncut="return false;">
+<body class="p-4 sm:p-8">
 
     <div class="container mx-auto max-w-4xl bg-white p-6 md:p-10 rounded-xl shadow-lg">
 
@@ -34,8 +41,8 @@
         <div class="bg-indigo-50 border-l-4 border-indigo-500 text-indigo-700 p-4 rounded-lg mb-6 shadow-md">
             <h2 class="text-xl font-semibold mb-2">Instructions</h2>
             <ul class="list-disc list-inside space-y-1">
-                <li>Read the following text and answer one of the questions below in a paragraph. <span class="font-semibold">(12 points)</span></li>
-                <li>After you submit your post, respond to two classmates. Each response should be at least two well-developed sentences. <span class="font-semibold">(8 points)</span></li>
+                <li>Read the following text looking at different opinions on Lincoln's actions with the Emancipation Proclamation. Answer one of the following questions in paragraph form. <span class="font-semibold">(12 points)</span></li>
+                <li>After you submit a post, respond to two classmates. Each response should be at least two well-developed sentences. <span class="font-semibold">(8 points)</span></li>
             </ul>
         </div>
         
@@ -71,4 +78,34 @@
                 <h3 class="text-xl font-semibold text-gray-700">WHO FREED THE ENSLAVED PEOPLE? - Virginiahistory.org</h3>
                 <p>Two years of fighting changed what the war was about. Beginning in 1863, the North no longer fought only to save the United States but also to end slavery. Ending slavery was the only way to win the war and not have to fight again.</p>
                 <p>Generations of Americans hailed Abraham Lincoln as "The Great Emancipator." In recent decades some historians have minimized Lincoln's role and argued that the enslaved freed themselves. Enslaved people did take the initiative to escape, but reaching Washington, D.C., or the Ohio River was as impractical as ever. It was the presence of United States soldiers in Virginia—of Lincoln's armies—that made successful escape more probable. After January 1, 1863, Lincoln's Emancipation Proclamation inspired a dramatic increase in the number of escape attempts.</p>
-                <p>The Emancipation Proclamation Lack of military successes, growing pressure from radical elements of his party, and fears that France or Great Britain might recognize the Confederacy plagued Abraham Lincoln during the summer of 1862. On September 22, he issued the preliminary Emancipation Proclamation declaring all slaves in areas not returned to U.S. control by January 1, 1863, "then, thenceforward, and forever free." The proclamation exempted the loyal slave states, areas then occupied by United States forc
+                <p>The Emancipation Proclamation Lack of military successes, growing pressure from radical elements of his party, and fears that France or Great Britain might recognize the Confederacy plagued Abraham Lincoln during the summer of 1862. On September 22, he issued the preliminary Emancipation Proclamation declaring all slaves in areas not returned to U.S. control by January 1, 1863, "then, thenceforward, and forever free." The proclamation exempted the loyal slave states, areas then occupied by United States forces, and the forty-eight counties of Virginia in the process of forming West Virginia. The transformation of war aims to include ending slavery elicited contempt among Confederates as well as some resistance within the U.S. Army. The proclamation turned foreign opinion against the Confederacy and encouraged more slaves to escape to United States lines and enlist in the U.S. Army.</p>
+            </div>
+            
+            <div class="space-y-4 mt-6">
+                <h3 class="text-xl font-semibold text-gray-700">ABRAHAM LINCOLN SAVED THE UNION, BUT DID HE REALLY FREE THE SLAVES? - Ashbrook.org</h3>
+                <p>Many of Lincoln's critics, especially African-Americans, go so far as to claim that he was no friend of blacks and did not want to risk the political fallout that would surely result from emancipation, but was eventually forced by circumstances to do so. In the words of Julius Lester, "Blacks have no reason to feel grateful to Abraham Lincoln. How come it took him two whole years to free the slaves? His pen was sitting on his desk the entire time."</p>
+                <p>Many also have questioned the real significance of the Emancipation Proclamation, arguing that it was merely a piece of propaganda and that it actually freed no slaves. As Richard Hofstadter wrote, "had the political strategy of the moment called for a momentous human document of the stature of the Declaration of Independence, Lincoln could have risen to the occasion." Instead, he produced a document with "all the moral grandeur of a bill of lading." In addition, the document he issued only freed slaves where the federal government had no power. It did not apply to slaves in the loyal slave states or in those parts of the Confederacy under Union control. Indeed, Lincoln did not free the slaves; they freed themselves.</p>
+            </div>
+            
+        </div>
+    </div>
+    
+    <script>
+        // Disable right-click context menu and prevent copy/cut events
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('copy', event => event.preventDefault());
+        document.addEventListener('cut', event => event.preventDefault());
+
+        // Disable Ctrl+C, Ctrl+U, Cmd+C, Cmd+U
+        document.addEventListener('keydown', event => {
+            if (event.ctrlKey && event.key === 'c' || event.metaKey && event.key === 'c') {
+                event.preventDefault();
+            }
+            if (event.ctrlKey && event.key === 'u' || event.metaKey && event.key === 'u') {
+                event.preventDefault();
+            }
+        });
+    </script>
+
+</body>
+</html>
