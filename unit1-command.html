@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History Missile Command</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #000000;
+            color: #FFFFFF;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10+ */
+            user-select: none; /* Standard syntax */
+        }
+        canvas {
+            background-color: #0a001a;
+            display: block;
+            cursor: crosshair;
+            border-bottom: 4px solid #00ff00;
+        }
+        .game-container {
+            border: 4px solid #4a4a4a;
+            box-shadow: 0 0 20px #00ff00, 0 0 30px #00ff00 inset;
+            padding: 1rem;
+            background: #1a1a1a;
+            border-radius: 12px;
+        }
+        #ui-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0.5rem;
+            background: #000;
+            color: #00ff00;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+        #pauseButton {
+            background-color: #4a4a4a;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+        }
+        #pauseButton:hover {
+            background-color: #00ff00;
+            color: #000;
+        }
+        #forceEndButton {
+            background-color: #4a4a4a;
+            border: 2px solid #ffff00;
+            color: #ffff00;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+        #forceEndButton:hover {
+            background-color: #ffff00;
+            color: #000;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #1a1a1a;
+            margin: auto;
+            padding: 2rem;
+            border: 4px solid #00ff00;
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            border-radius: 12px;
+            box-shadow: 0 0 25px #00ff00;
+        }
+        .modal-content h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+            color: #ffff00;
+        }
+        .option-btn, .choice-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            font-family: 'Press Start 2P', cursive;
+            background: #333;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.8rem;
+            border-radius: 8px;
+        }
+        .option-btn:hover, .choice-btn:hover {
+            background: #00ff00;
+            color: #000;
+        }
+        #startScreen, #gameOverScreen {
+            flex-direction: column;
+        }
+        #startScreen h1, #gameOverScreen h1 {
+            font-size: 2.5rem;
+            color: #ffff00;
+            text-shadow: 3px 3px 0 #ff0000;
+            margin-bottom: 1rem;
+        }
+        #startScreen p, #gameOverScreen p {
+            font-size: 1rem;
+            line-height: 1.6;
+            max-width: 600px;
+            margin-bottom: 1rem;
+        }
+        .start-btn {
+           display: inline-block;
+            padding: 1rem 1.5rem;
+            font-family: 'Press Start 2P', cursive;
+            background: #ff0000;
+            border: 2px solid #ffff00;
+            color: #ffff00;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+            border-radius: 8px;
+            text-transform: uppercase;
+            margin: 0.5rem;
+        }
+         .start-btn:hover {
+            background: #ffff00;
+            color: #ff0000;
+        }
+        #restartOptionsContainer {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="ui-panel">
+        <div>Score: <span id="score">0</span></div>
+        <div>Level: <span id="level">1</span></div>
+        <div>Lives: <span id="lives">3</span></div>
+        <button id="pauseButton">Pause</button>
+        <button id="forceEndButton" style="display: none;">FORCE END</button>
+    </div>
+</div>
+
+<!-- Question Modal -->
+<div id="questionModal" class="modal">
+    <div class="modal-content">
+        <h2 id="questionText">Question placeholder?</h2>
+        <div id="optionsContainer"></div>
+    </div>
+</div>
+
+<!-- Double or Nothing Modal -->
+<div id="doubleOrNothingModal" class="modal">
+    <div class="modal-content">
+        <h2 id="doubleOrNothingText">Level X Complete! Double your bonus points?</h2>
+        <div id="doubleOrNothingOptionsContainer">
+            <button id="doubleButton" class="choice-btn">Double Bonus!</button>
+            <button id="continueButton" class="choice-btn">No Thanks</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- Start Screen Modal -->
+<div id="startScreen" class="modal" style="display: flex;">
+    <div class="modal-content">
+        <h1>History Missile Command</h1>
+        <p>Defend your cities from incoming missiles. Click to launch a counter-missile. If a city is hit, you must answer a history question. Answer 3 questions wrong, and it's GAME OVER. Good luck, Commander!</p>
+        <button id="startButton" class="start-btn">Start Game</button>
+    </div>
+</div>
+
+<!-- Game Over Modal -->
+<div id="gameOverScreen" class="modal">
+    <div class="modal-content">
+        <h1>Game Over</h1>
+        <p>Your final score is <span id="finalScore">0</span>.</p>
+        <p>Restart from:</p>
+        <div id="restartOptionsContainer"></div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // UI Elements
+    const scoreEl = document.getElementById('score');
+    const levelEl = document.getElementById('level');
+    const livesEl = document.getElementById('lives');
+    const pauseButton = document.getElementById('pauseButton');
+    const forceEndButton = document.getElementById('forceEndButton');
+    
+    const questionModal = document.getElementById('questionModal');
+    const questionTextEl = document.getElementById('questionText');
+    const optionsContainerEl = document.getElementById('optionsContainer');
+    
+    const doubleOrNothingModal = document.getElementById('doubleOrNothingModal');
+    const doubleOrNothingTextEl = document.getElementById('doubleOrNothingText');
+    const doubleButton = document.getElementById('doubleButton');
+    const continueButton = document.getElementById('continueButton');
+    
+    const startScreen = document.getElementById('startScreen');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const startButton = document.getElementById('startButton');
+    const finalScoreEl = document.getElementById('finalScore');
+    
+    // Game State
+    let score = 0;
+    let lives = 3;
+    let level = 1;
+    let gameState = 'start'; // 'start', 'playing', 'paused', 'question', 'level_transition', 'double_or_nothing', 'game_over'
+    
+    // Game Objects
+    let cities = [];
+    let batteries = [];
+    let enemyMissiles = [];
+    let playerMissiles = [];
+    let explosions = [];
+
+    // Wave Tracking
+    let totalMissilesForWave = 0;
+    let launchedMissilesThisWave = 0;
+    let levelCompleteBonus = 0;
+    
+    // **FIX**: Timeout manager to prevent state corruption on restart
+    let activeTimeouts = [];
+
+    function clearAllGameTimeouts() {
+        activeTimeouts.forEach(id => clearTimeout(id));
+        activeTimeouts = [];
+    }
+    
+    function gameSetTimeout(callback, delay) {
+        const id = setTimeout(callback, delay);
+        activeTimeouts.push(id);
+        return id;
+    }
+
+    // History Questions Data
+    const questions = [
+        { question: "What was the primary motivation for the Virginia Company to establish the Jamestown colony?", options: ["To create a haven for religious freedom", "To discover a new route to Asia", "To make a profit for its investors"], answer: "To make a profit for its investors" },
+        { question: "The movement of goods, people, and diseases between the Old World and the New World is known as the:", options: ["Triangle Trade", "Columbian Exchange", "Middle Passage"], answer: "Columbian Exchange" },
+        { question: "Which of the following is the BEST definition of colonization?", options: ["When people visit a new country for a short time", "When a country establishes control over a new land and settles it", "When two countries agree to trade with each other"], answer: "When a country establishes control over a new land and settles it" },
+        { question: "The term 'New World' was used by Europeans to refer to:", options: ["Africa and Asia", "North and South America", "Australia and New Zealand"], answer: "North and South America" },
+        { question: "Mercantilism was an economic theory that encouraged nations to:", options: ["Import more goods than they export", "Establish colonies to gain resources and wealth", "Promote free trade between all countries"], answer: "Establish colonies to gain resources and wealth" },
+        { question: "The Massachusetts Bay Colony was founded primarily by which group?", options: ["Quakers seeking peace", "Puritans seeking religious freedom", "Catholics escaping persecution in England"], answer: "Puritans seeking religious freedom" },
+        { question: "In the Triangle Trade system, what was transported from Africa to the Americas?", options: ["Manufactured goods like rum and guns", "Enslaved people", "Raw materials like sugar and tobacco"], answer: "Enslaved people" },
+        { question: "Under mercantilism, what was the main purpose of a colony?", options: ["To serve as a military base", "To provide the mother country with raw materials and markets", "To create a democratic society"], answer: "To provide the mother country with raw materials and markets" },
+        { question: "A crop grown primarily to be sold for money is called a:", options: ["Subsistence crop", "Staple crop", "Cash crop"], answer: "Cash crop" },
+        { question: "What does it mean to 'export' a good?", options: ["To bring a good into a country from another country", "To sell and send a good to another country", "To produce a good for use within your own country"], answer: "To sell and send a good to another country" },
+        { question: "What was an indentured servant?", options: ["A person who was owned as property for their entire life", "A person who worked for a set period to pay for their passage to America", "A skilled artisan who owned their own business in the colonies"], answer: "A person who worked for a set period to pay for their passage to America" },
+        { question: "Which statement BEST describes the condition of a slave in the colonies?", options: ["They could earn their freedom after seven years of work", "They were considered legal property with no rights", "They were paid low wages for their labor"], answer: "They were considered legal property with no rights" },
+        { question: "The brutal, forced journey of enslaved Africans to the Americas was called the:", options: ["Columbian Exchange", "Middle Passage", "Atlantic Crossing"], answer: "Middle Passage" },
+        { question: "What is religious toleration?", options: ["Requiring everyone to practice the same religion", "Allowing people to practice their own different religions", "The belief that one religion is superior to all others"], answer: "Allowing people to practice their own different religions" },
+        { question: "Being treated unfairly because of your beliefs is known as:", options: ["Persecution", "Toleration", "Immigration"], answer: "Persecution" },
+        { question: "An immigrant is a person who:", options: ["Travels to another country for a vacation", "Is born in a country", "Moves to a new country to live permanently"], answer: "Moves to a new country to live permanently" },
+        { question: "The French and Indian War was fought between:", options: ["France and the Native Americans", "The colonists and the British", "Great Britain and France, with their respective Native American allies"], answer: "Great Britain and France, with their respective Native American allies" },
+        { question: "What was the purpose of the Proclamation Line of 1763?", options: ["To encourage colonists to settle west of the Appalachians", "To prevent colonists from settling west of the Appalachians", "To establish a formal peace treaty with all Native American tribes"], answer: "To prevent colonists from settling west of the Appalachians" },
+        { question: "The Enlightenment was a period that emphasized:", options: ["Religious faith and tradition", "Reason, science, and individual rights", "Military strength and conquest"], answer: "Reason, science, and individual rights" },
+        { question: "John Locke's idea of 'natural rights' included:", options: ["Wealth, power, and land", "Life, liberty, and property", "Faith, family, and fortune"], answer: "Life, liberty, and property" },
+        { question: "The Declaration of Independence primarily argued that:", options: ["The colonies should have representation in Parliament", "The king was a fair and just ruler", "The colonies had the right to separate from Britain and form their own government"], answer: "The colonies had the right to separate from Britain and form their own government" },
+        { question: "Who led the Continental Army during the American Revolution?", options: ["Thomas Jefferson", "John Adams", "George Washington"], answer: "George Washington" },
+        { question: "The Battle of Trenton was a significant victory for the Continental Army because:", options: ["It was the final battle of the war", "It was a surprise attack that boosted American morale", "It convinced the French to join the war"], answer: "It was a surprise attack that boosted American morale" },
+        { question: "The Battle of Princeton was another important victory that:", options: ["Occurred immediately after the victory at Trenton", "Resulted in the capture of the British general", "Led to the British abandoning the southern colonies"], answer: "Occurred immediately after the victory at Trenton" },
+        { question: "The Plantation Act of 1740 was designed to:", options: ["Increase the number of slaves on plantations", "Make it easier for certain immigrants to become citizens", "Limit the types of crops that could be grown in the colonies"], answer: "Make it easier for certain immigrants to become citizens" },
+        { question: "Which of the following was a major cash crop in the southern colonies?", options: ["Wheat", "Tobacco", "Corn"], answer: "Tobacco" },
+        { question: "An indentured servant's term of service was typically:", options: ["For life", "1-2 years", "4-7 years"], answer: "4-7 years" },
+        { question: "What was a major impact of the Columbian Exchange on the New World?", options: ["The introduction of new diseases that devastated native populations", "The arrival of new crops like corn and potatoes from Europe", "A decrease in trade between Europe and the Americas"], answer: "The introduction of new diseases that devastated native populations" },
+        { question: "Why did European nations practice mercantilism?", options: ["To promote economic equality among nations", "To increase their national wealth and power", "To encourage their colonies to become self-sufficient"], answer: "To increase their national wealth and power" },
+        { question: "The journey to North America was risky for groups like the Puritans, but they came anyway primarily to:", options: ["Escape religious persecution", "Find gold and other riches", "Fight in the French and Indian War"], answer: "Escape religious persecution" },
+        { question: "How did the diverse geography of the colonies affect their economies?", options: ["It led to all colonies having the same type of economy", "It had very little impact on their economic development", "It encouraged different types of agriculture and industries in different regions"], answer: "It encouraged different types of agriculture and industries in different regions" },
+        { question: "What was a major outcome of the French and Indian War for Great Britain?", options: ["They lost most of their land in North America", "They gained land but also had a large war debt", "They formed a permanent, peaceful alliance with all Native American tribes"], answer: "They gained land but also had a large war debt" },
+        { question: "According to John Locke and the Declaration of Independence, where does a government get its power?", options: ["From the king", "From the military", "From the consent of the people it governs"], answer: "From the consent of the people it governs" },
+        { question: "A significant challenge for the Continental Army was:", options: ["A lack of motivated soldiers", "Difficulty in raising money for supplies", "Having to fight far from their home country"], answer: "Difficulty in raising money for supplies" },
+        { question: "What was a key factor that helped the colonists win the Revolutionary War?", options: ["A larger and better-trained army than the British", "Assistance from foreign countries like France", "The support of hired Hessian soldiers"], answer: "Assistance from foreign countries like France" },
+        { question: "The exchange of horses from the Old World to the New World is an example of the:", options: ["Middle Passage", "Columbian Exchange", "Triangle Trade"], answer: "Columbian Exchange" },
+        { question: "A primary goal of the Triangle Trade for European merchants was to:", options: ["Exchange European goods for enslaved Africans to be sold in the Americas", "Establish religious missions in Africa", "Create a direct trade route between the colonies and Asia"], answer: "Exchange European goods for enslaved Africans to be sold in the Americas" },
+        { question: "The idea that a government can be overthrown if it does not protect the rights of the people comes from:", options: ["The theory of Mercantilism", "The Proclamation Line of 1763", "The Enlightenment and thinkers like John Locke"], answer: "The Enlightenment and thinkers like John Locke" },
+        { question: "Which company was responsible for the founding of Jamestown?", options: ["The Massachusetts Bay Company", "The Virginia Company", "The East India Company"], answer: "The Virginia Company" },
+        { question: "A person who is forced to work for another person for their entire life without freedom is a:", options: ["Slave", "Indentured Servant", "Immigrant"], answer: "Slave" },
+        { question: "The Proclamation Line of 1763 ran along which geographical feature?", options: ["The Mississippi River", "The Rocky Mountains", "The Appalachian Mountains"], answer: "The Appalachian Mountains" },
+        { question: "Which document formally stated the colonies' decision to become an independent nation?", options: ["The Constitution", "The Proclamation of 1763", "The Declaration of Independence"], answer: "The Declaration of Independence" },
+        { question: "The 'Continentals' referred to:", options: ["The British soldiers", "The American soldiers", "The French soldiers"], answer: "The American soldiers" },
+        { question: "What was the relationship between a cash crop and the economy?", options: ["They were grown to feed the farmer's family, not for the economy", "They were the main source of profit for many colonies", "They were only traded with Native Americans"], answer: "They were the main source of profit for many colonies" },
+        { question: "Which of the following is NOT an example of something moved during the Columbian Exchange?", options: ["Diseases", "Animals", "Factory-made machines"], answer: "Factory-made machines" },
+        { question: "The main reason the Massachusetts Bay Colony was more successful than Jamestown in its early years was:", options: ["Its settlers were better prepared and came as families for religious reasons", "It had a warmer climate suitable for farming cash crops", "It received more financial support from the King of England"], answer: "Its settlers were better prepared and came as families for religious reasons" },
+        { question: "The Middle Passage was one leg of the:", options: ["Silk Road", "Columbian Exchange", "Triangle Trade"], answer: "Triangle Trade" },
+        { question: "An Enlightenment thinker would most likely believe that:", options: ["Problems could be solved using human reason", "Kings have a divine right to rule", "Government should have absolute power"], answer: "Problems could be solved using human reason" },
+        { question: "George Washington's surprise attack at the Battle of Trenton was against:", options: ["French soldiers", "British soldiers", "Hessian soldiers"], answer: "Hessian soldiers" },
+        { question: "An indentured servant differed from a slave in that the indentured servant:", options: ["Was paid a high wage for their work", "Would be free after a set number of years", "Could vote in colonial elections"], answer: "Would be free after a set number of years" },
+        { question: "Which statement best reflects the idea of 'religious toleration'?", options: ["'Everyone in our colony must attend the official church.'", "'While we may not agree with your beliefs, you are welcome to worship freely here.'", "'People with different religious beliefs are a threat to our society.'"], answer: "'While we may not agree with your beliefs, you are welcome to worship freely here.'" },
+        { question: "The British government began taxing the colonies more heavily after the French and Indian War to:", options: ["Punish the colonists for losing the war", "Pay off the large debt from the war", "Encourage the colonists to produce their own goods"], answer: "Pay off the large debt from the war" },
+        { question: "The phrase 'life, liberty, and the pursuit of happiness' in the Declaration of Independence was inspired by:", options: ["The economic theory of mercantilism", "John Locke's idea of natural rights", "The orders of King George III"], answer: "John Locke's idea of natural rights" },
+        { question: "The American army during the Revolution was called the:", options: ["Royal Army", "Redcoat Army", "Continental Army"], answer: "Continental Army" },
+        { question: "A key weakness of the Continental Army was its lack of:", options: ["A strong reason to fight", "Consistent funding and supplies", "Knowledge of the local terrain"], answer: "Consistent funding and supplies" },
+        { question: "A European country wanting to maximize its exports and minimize its imports would be practicing:", options: ["Colonization", "Mercantilism", "Religious Toleration"], answer: "Mercantilism" },
+        { question: "The transfer of potatoes and corn from the New World to the Old World had what effect?", options: ["It caused widespread famine in Europe", "It improved the diet and increased the population of Europe", "It led to Europeans abandoning their own crops"], answer: "It improved the diet and increased the population of Europe" },
+        { question: "What was a primary reason for the colonization of North America by various European groups?", options: ["A desire to learn from Native American cultures", "A combination of economic opportunity and the desire for religious freedom", "The order of the Pope to convert the world to Catholicism"], answer: "A combination of economic opportunity and the desire for religious freedom" },
+        { question: "The battles of Trenton and Princeton were important because they:", options: ["Convinced the British to surrender immediately", "Raised the spirits of the American soldiers and encouraged re-enlistment", "Were the first battles fought by the Continental Army"], answer: "Raised the spirits of the American soldiers and encouraged re-enlistment" },
+        { question: "The Plantation Act of 1740 shows that:", options: ["Britain wanted to restrict who could become a citizen in the colonies", "Britain was encouraging immigration of certain groups to strengthen the colonies", "Only people born in England could be citizens"], answer: "Britain was encouraging immigration of certain groups to strengthen the colonies" }
+    ];
+    let availableQuestions = [...questions];
+
+
+    // --- Game Object Classes (with Graphics Upgrade) ---
+    class City {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.width = 70;
+            this.height = 40;
+            this.isAlive = true;
+            this.buildings = [
+                { x: 0, y: 20, w: 15, h: 20, color: '#4a6b82' },
+                { x: 18, y: 10, w: 20, h: 30, color: '#607d8b' },
+                { x: 42, y: 25, w: 18, h: 15, color: '#546e7a' },
+                { x: 62, y: 15, w: 8, h: 25, color: '#37474f' },
+            ];
+        }
+        draw() {
+            if (this.isAlive) {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                this.buildings.forEach(b => {
+                    ctx.fillStyle = b.color;
+                    ctx.fillRect(b.x, b.y, b.w, b.h);
+                });
+                ctx.restore();
+            } else {
+                ctx.fillStyle = '#555';
+                ctx.fillRect(this.x, this.y + this.height - 10, this.width, 10);
+                ctx.fillStyle = '#333';
+                ctx.fillRect(this.x + 10, this.y + this.height - 15, this.width - 20, 5);
+            }
+        }
+    }
+
+    class Battery {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.missiles = 10;
+        }
+        draw() {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.fillStyle = '#3d3d3d';
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-30, 0);
+            ctx.lineTo(-20, -15);
+            ctx.lineTo(20, -15);
+            ctx.lineTo(30, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#555555';
+            ctx.fillRect(-10, -35, 20, 20);
+            ctx.fillStyle = '#00ff00';
+            ctx.fillRect(-4, -40, 8, 5);
+            ctx.fillStyle = '#FFF';
+            ctx.font = "12px 'Press Start 2P'";
+            ctx.textAlign = 'center';
+            ctx.fillText(this.missiles, 0, 15);
+            ctx.restore();
+        }
+    }
+
+    class Missile {
+        constructor(startX, startY, targetX, targetY, speed, color, isEnemy = false) {
+            this.startX = startX;
+            this.startY = startY;
+            this.x = startX;
+            this.y = startY;
+            this.targetX = targetX;
+            this.targetY = targetY;
+            this.speed = speed;
+            this.color = color;
+            this.isEnemy = isEnemy;
+            this.isAlive = true;
+            const angle = Math.atan2(targetY - startY, targetX - startX);
+            this.dx = Math.cos(angle) * speed;
+            this.dy = Math.sin(angle) * speed;
+        }
+
+        update() {
+            this.x += this.dx;
+            this.y += this.dy;
+
+            const dist = Math.hypot(this.x - this.targetX, this.y - this.targetY);
+            if (!this.isEnemy && dist < this.speed) {
+                this.isAlive = false;
+                explosions.push(new Explosion(this.targetX, this.targetY));
+            }
+        }
+
+        draw() {
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(this.startX, this.startY);
+            ctx.lineTo(this.x, this.y);
+            ctx.stroke();
+
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            const angle = Math.atan2(this.dy, this.dx);
+            ctx.rotate(angle);
+            ctx.fillStyle = this.isEnemy ? '#FF5555' : '#55FFFF';
+            ctx.beginPath();
+            ctx.moveTo(0, 0);    
+            ctx.lineTo(-10, -5);   
+            ctx.lineTo(-10, 5);    
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+    }
+
+    class Explosion {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.radius = 5;
+            this.maxRadius = 40;
+            this.isGrowing = true;
+            this.isAlive = true;
+            this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        }
+        update() {
+            if (this.isGrowing) {
+                this.radius += 1;
+                if (this.radius >= this.maxRadius) this.isGrowing = false;
+            } else {
+                this.radius -= 0.5;
+                if (this.radius <= 0) this.isAlive = false;
+            }
+        }
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.globalAlpha = this.radius / this.maxRadius;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1.0;
+        }
+    }
+
+    // --- Game Initialization ---
+    function initGame(startLevel = 1) {
+        // **FIX**: Clear all pending timeouts from previous game instances.
+        clearAllGameTimeouts();
+
+        score = 0;
+        lives = 3;
+        level = startLevel;
+        availableQuestions = [...questions];
+        pauseButton.textContent = 'Pause';
+        updateUI();
+        initLevel();
+        if(gameLoopId) cancelAnimationFrame(gameLoopId);
+        gameLoop();
+    }
+    
+    function initLevel() {
+        cities = [];
+        const cityY = canvas.height - 40;
+        const citySpacing = (canvas.width - 6 * 70) / 7;
+        for (let i = 0; i < 6; i++) {
+            cities.push(new City(citySpacing * (i + 1) + 70 * i, cityY));
+        }
+
+        batteries.forEach(b => b.missiles = 10);
+        if (batteries.length === 0) {
+            batteries.push(new Battery(canvas.width * 0.15, canvas.height));
+            batteries.push(new Battery(canvas.width * 0.5, canvas.height));
+            batteries.push(new Battery(canvas.width * 0.85, canvas.height));
+        }
+        
+        playerMissiles = [];
+        explosions = [];
+        gameState = 'playing';
+        forceEndButton.style.display = 'inline-block';
+        startWave();
+    }
+    
+    function startWave() {
+        const missileCount = 4 + level * 2;
+        const missileSpeed = 0.6 + level * 0.15;
+        const waveDuration = Math.max(12000, 40000 - (level * 2000));
+        const averageInterval = waveDuration / missileCount;
+        
+        totalMissilesForWave = missileCount;
+        launchedMissilesThisWave = 0;
+
+        for (let i = 0; i < missileCount; i++) {
+            const spawnDelay = (i * averageInterval) + (Math.random() * averageInterval / 2);
+
+            gameSetTimeout(() => {
+                if (gameState !== 'playing' && gameState !== 'level_transition') return;
+                const startX = Math.random() * canvas.width;
+                const liveCities = cities.filter(c => c.isAlive);
+                const targetCity = liveCities.length > 0 ? 
+                    liveCities[Math.floor(Math.random() * liveCities.length)] :
+                    {x: Math.random() * canvas.width, y: canvas.height, width: 0};
+                
+                const targetX = targetCity.x + targetCity.width / 2;
+                const targetY = targetCity.y;
+            
+                enemyMissiles.push(new Missile(startX, 0, targetX, targetY, missileSpeed, '#ff0000', true));
+                launchedMissilesThisWave++;
+                
+            }, spawnDelay);
+        }
+
+        // STALEMATE FIX: 10 seconds after the last missile should have launched,
+        // force the level to end if it's still stuck.
+        const lastMissileTime = (missileCount - 1) * averageInterval + (averageInterval / 2);
+        const stalemateDelay = lastMissileTime + 10000; 
+
+        gameSetTimeout(() => {
+            if (gameState === 'playing' && launchedMissilesThisWave >= totalMissilesForWave) {
+                 console.warn("Stalemate detected. Forcing level end.");
+                 enemyMissiles = []; // Clean up any strays
+                 explosions = [];
+                 endLevel();
+            }
+        }, stalemateDelay);
+    }
+
+    // --- Game Loop & Drawing ---
+    let gameLoopId;
+    function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if (gameState === 'playing') {
+            update();
+        }
+        
+        draw(); 
+
+        if (gameState === 'level_transition') {
+            drawLevelTransition(); 
+        } else if (gameState === 'paused') {
+            drawPaused();
+        }
+
+        gameLoopId = requestAnimationFrame(gameLoop);
+    }
+    
+    function update() {
+        if (gameState === 'playing' && launchedMissilesThisWave >= totalMissilesForWave && enemyMissiles.length === 0 && explosions.length === 0) {
+            endLevel();
+            return; 
+        }
+
+        [...playerMissiles, ...enemyMissiles].forEach(m => m.update());
+        explosions.forEach(e => e.update());
+        checkCollisions();
+        playerMissiles = playerMissiles.filter(m => m.isAlive);
+        enemyMissiles = enemyMissiles.filter(m => m.isAlive);
+        explosions = explosions.filter(e => e.isAlive);
+    }
+
+    function draw() {
+        ctx.fillStyle = '#006400';
+        ctx.fillRect(0, canvas.height - 4, canvas.width, 4);
+        cities.forEach(c => c.draw());
+        batteries.forEach(b => b.draw());
+        [...playerMissiles, ...enemyMissiles].forEach(m => m.draw());
+        explosions.forEach(e => e.draw());
+    }
+    
+    function drawLevelTransition() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#ffff00";
+        ctx.font = "30px 'Press Start 2P'";
+        ctx.textAlign = "center";
+        ctx.fillText(`Level ${level} Complete`, canvas.width / 2, canvas.height / 2 - 40);
+        ctx.font = "20px 'Press Start 2P'";
+        ctx.fillText(`Bonus: ${levelCompleteBonus}`, canvas.width / 2, canvas.height / 2 + 10);
+        updateUI();
+    }
+
+    function drawPaused() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#ffff00";
+        ctx.font = "40px 'Press Start 2P'";
+        ctx.textAlign = "center";
+        ctx.fillText(`PAUSED`, canvas.width / 2, canvas.height / 2);
+    }
+    
+    function updateUI() {
+        scoreEl.textContent = score;
+        levelEl.textContent = level;
+        livesEl.textContent = lives;
+    }
+
+    // --- Collision & Game Logic ---
+    function checkCollisions() {
+        enemyMissiles.forEach(missile => {
+            if (!missile.isAlive) return;
+            explosions.forEach(explosion => {
+                const dist = Math.hypot(missile.x - explosion.x, missile.y - explosion.y);
+                if (dist < explosion.radius) {
+                    missile.isAlive = false;
+                    score += 100;
+                    updateUI();
+                }
+            });
+        });
+
+        enemyMissiles.forEach(missile => {
+            if (!missile.isAlive) return;
+            if (missile.y >= missile.targetY) {
+                missile.isAlive = false;
+                explosions.push(new Explosion(missile.x, missile.y)); 
+                let cityWasHit = false;
+                cities.forEach(city => {
+                    if (city.isAlive && missile.x >= city.x && missile.x <= city.x + city.width) {
+                        city.isAlive = false;
+                        cityWasHit = true;
+                    }
+                });
+                if (cityWasHit) {
+                    triggerQuestion("standard");
+                }
+            }
+        });
+    }
+
+    function endLevel() {
+        if (gameState !== 'playing') return;
+        gameState = 'double_or_nothing';
+        forceEndButton.style.display = 'none';
+        
+        levelCompleteBonus = cities.filter(c => c.isAlive).length * 100 * level;
+        score += levelCompleteBonus;
+        batteries.forEach(b => score += b.missiles * 5 * level);
+        
+        doubleOrNothingTextEl.innerHTML = `Level ${level} Complete!<br>Bonus: ${levelCompleteBonus}<br><br>Double it?`;
+        doubleOrNothingModal.style.display = 'flex';
+    }
+
+    function startNextLevelTransition() {
+        gameState = 'level_transition';
+        gameSetTimeout(() => {
+            level++;
+            initLevel();
+        }, 3000); 
+    }
+
+    function gameOver() {
+        gameState = 'game_over';
+        forceEndButton.style.display = 'none';
+        finalScoreEl.textContent = score;
+        const finalLevel = level;
+        const restartOptionsContainer = document.getElementById('restartOptionsContainer');
+        restartOptionsContainer.innerHTML = ''; 
+
+        function createRestartButton(text, startLvl) {
+            const button = document.createElement('button');
+            button.textContent = text;
+            button.classList.add('start-btn');
+            button.onclick = () => {
+                gameOverScreen.style.display = 'none';
+                initGame(startLvl);
+            };
+            restartOptionsContainer.appendChild(button);
+        }
+
+        createRestartButton('Level 1', 1);
+        const twoLevelsBack = Math.max(1, finalLevel - 2);
+        if (twoLevelsBack > 1 && twoLevelsBack < finalLevel) {
+            createRestartButton(`Level ${twoLevelsBack}`, twoLevelsBack);
+        }
+        if (finalLevel >= 5) {
+             createRestartButton('Level 5', 5);
+        }
+        gameOverScreen.style.display = 'flex';
+    }
+
+    // --- Question Handling ---
+    function triggerQuestion(type) {
+        gameState = 'question';
+        forceEndButton.style.display = 'none';
+        if (availableQuestions.length === 0) availableQuestions = [...questions];
+        const qIndex = Math.floor(Math.random() * availableQuestions.length);
+        const currentQuestion = availableQuestions.splice(qIndex, 1)[0];
+        
+        questionTextEl.textContent = currentQuestion.question;
+        optionsContainerEl.innerHTML = '';
+
+        currentQuestion.options.forEach(option => {
+            const button = document.createElement('button');
+            button.textContent = option;
+            button.classList.add('option-btn');
+            button.onclick = () => handleAnswer(option, currentQuestion.answer, type);
+            optionsContainerEl.appendChild(button);
+        });
+
+        questionModal.style.display = 'flex';
+    }
+
+    function handleAnswer(selectedOption, correctAnswer, type) {
+        questionModal.style.display = 'none';
+        if (type === 'standard') {
+            if (selectedOption !== correctAnswer) {
+                lives--;
+                if(lives <= 0) {
+                    lives = 0;
+                    updateUI();
+                    gameOver();
+                    return;
+                }
+            } else {
+                 score += 500;
+            }
+        } else if (type === 'double') {
+            if(selectedOption === correctAnswer) {
+                score += levelCompleteBonus; 
+                levelCompleteBonus *= 2; 
+            }
+            startNextLevelTransition();
+        }
+
+        updateUI();
+        if (cities.every(c => !c.isAlive)) {
+            gameOver();
+        } else {
+             if (type === 'standard') {
+                gameState = 'playing';
+                forceEndButton.style.display = 'inline-block';
+             }
+        }
+    }
+
+    // --- Event Listeners ---
+    pauseButton.addEventListener('click', () => {
+        if (gameState === 'playing') {
+            gameState = 'paused';
+            pauseButton.textContent = 'Resume';
+            forceEndButton.style.display = 'none';
+        } else if (gameState === 'paused') {
+            gameState = 'playing';
+            pauseButton.textContent = 'Pause';
+            forceEndButton.style.display = 'inline-block';
+        }
+    });
+    
+    doubleButton.addEventListener('click', () => {
+        doubleOrNothingModal.style.display = 'none';
+        triggerQuestion('double');
+    });
+
+    continueButton.addEventListener('click', () => {
+        doubleOrNothingModal.style.display = 'none';
+        startNextLevelTransition();
+    });
+
+    // **FIX**: Unified handler for both mouse and touch input
+    function handleCanvasInteraction(e) {
+        if (gameState !== 'playing') return;
+        e.preventDefault(); // Prevents unwanted scrolling on touch devices
+
+        const rect = canvas.getBoundingClientRect();
+        let clientX, clientY;
+
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+
+        let bestBattery = null;
+        let minDist = Infinity;
+        batteries.forEach(b => {
+            if (b.missiles > 0) {
+                const dist = Math.hypot(x - b.x, y - (b.y - 25));
+                if (dist < minDist) {
+                    minDist = dist;
+                    bestBattery = b;
+                }
+            }
+        });
+
+        if (bestBattery) {
+            bestBattery.missiles--;
+            playerMissiles.push(new Missile(bestBattery.x, bestBattery.y - 40, x, y, 6, '#00ff00'));
+            updateUI();
+        }
+    }
+
+    canvas.addEventListener('click', handleCanvasInteraction);
+    canvas.addEventListener('touchstart', handleCanvasInteraction);
+
+    startButton.addEventListener('click', () => {
+        startScreen.style.display = 'none';
+        initGame(1);
+    });
+
+    forceEndButton.addEventListener('click', () => {
+        if (gameState === 'playing') {
+            console.log("User forced end of level.");
+            // Clean up to ensure a smooth transition
+            enemyMissiles = [];
+            explosions = [];
+            endLevel();
+        }
+    });
+
+</script>
+
+</body>
+</html>
+
