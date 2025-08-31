@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Pac-Man History Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #000;
+            color: #fff;
+            overflow: hidden;
+            /* Prevent scrolling and pull-to-refresh on mobile */
+            overscroll-behavior-y: contain;
+        }
+        canvas {
+            background-color: #000;
+            display: block;
+            margin: 0 auto;
+            border: 5px solid #0000FF; /* Blue border like original arcade */
+        }
+        #game-wrapper {
+            position: relative;
+            width: fit-content;
+            margin: 0 auto;
+        }
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .modal {
+            background-color: rgba(0, 0, 0, 0.9);
+            border: 5px solid #FFFF00; /* Yellow border */
+        }
+        .modal-button {
+            transition: all 0.2s ease;
+        }
+        .modal-button:hover, .modal-button.selected {
+            background-color: #FFFF00;
+            color: #000;
+            transform: scale(1.05);
+        }
+        #message-text {
+            white-space: pre-wrap;
+        }
+        /* [NEW] Joystick Styles */
+        #joystick-container {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 120px;
+            height: 120px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #joystick-knob {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            position: absolute;
+        }
+    </style>
+</head>
+<body class="bg-black text-white flex items-center justify-center min-h-screen">
+
+    <!-- Start Modal -->
+    <div id="start-modal" class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center p-4 z-50">
+        <div class="modal w-full max-w-xl p-8 rounded-lg text-center">
+            <h1 class="text-3xl md:text-4xl text-yellow-400 mb-8 tracking-wider">Pac-Man History Challenge</h1>
+            <h2 class="text-2xl mb-4 text-white">Select Mode:</h2>
+            <div class="flex justify-center gap-4 mb-8">
+                <button id="normal-mode-btn" class="modal-button selected bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-xl">Normal</button>
+                <button id="advanced-mode-btn" class="modal-button bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-xl">Advanced</button>
+            </div>
+            <p class="mb-2 text-sm text-gray-300">Normal: Unlimited time for questions.</p>
+            <p class="mb-8 text-sm text-gray-300">Advanced: 15 seconds to answer!</p>
+            <button id="start-game-btn" class="modal-button bg-green-600 hover:bg-green-500 text-white font-bold py-4 px-8 rounded-lg text-2xl animate-pulse">Start Game</button>
+        </div>
+    </div>
+
+
+    <div id="game-container" class="hidden w-full max-w-4xl mx-auto p-4">
+        <h1 class="text-3xl md:text-4xl text-yellow-400 mb-4 tracking-wider">Pac-Man History Challenge</h1>
+        <div class="flex justify-between w-full max-w-lg text-lg mb-4">
+            <p>Score: <span id="score">0</span></p>
+            <p>Level: <span id="level">1</span></p>
+        </div>
+        <!-- [MODIFIED] Wrapper for canvas and joystick -->
+        <div id="game-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <!-- [NEW] Joystick appears here -->
+            <div id="joystick-container" class="hidden md:hidden">
+                <div id="joystick-knob"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Modal -->
+    <div id="question-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50">
+        <div class="modal w-full max-w-2xl p-8 rounded-lg text-center">
+            <h2 class="text-2xl mb-2 text-yellow-400">A GHOST CAUGHT YOU!</h2>
+            <p class="mb-4 text-lg">Answer correctly to survive...</p>
+            <p id="question-text" class="text-xl mb-6"></p>
+            <div id="options-container" class="grid grid-cols-1 gap-4">
+                <!-- Options will be injected here by JS -->
+            </div>
+            <div id="timer-container" class="hidden mt-6">
+                <p class="text-2xl text-red-500">Time Left: <span id="timer-countdown">15</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Modal (Level Clear, Game Over, Win) -->
+    <div id="message-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50">
+        <div class="modal w-full max-w-md p-8 rounded-lg text-center">
+            <h2 id="message-title" class="text-3xl mb-6 text-yellow-400"></h2>
+            <p id="message-text" class="text-xl mb-8"></p>
+            <button id="message-button" class="modal-button bg-blue-600 text-white font-bold py-3 px-6 rounded-lg text-xl">Continue</button>
+        </div>
+    </div>
+
+
+    <script>
+        // DOM Elements
+        const startModal = document.getElementById('start-modal');
+        const normalModeBtn = document.getElementById('normal-mode-btn');
+        const advancedModeBtn = document.getElementById('advanced-mode-btn');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const gameContainer = document.getElementById('game-container');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        const questionModal = document.getElementById('question-modal');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const timerContainer = document.getElementById('timer-container');
+        const timerCountdownEl = document.getElementById('timer-countdown');
+        const messageModal = document.getElementById('message-modal');
+        const messageTitleEl = document.getElementById('message-title');
+        const messageTextEl = document.getElementById('message-text');
+        const messageButton = document.getElementById('message-button');
+        const joystickContainer = document.getElementById('joystick-container');
+        const joystickKnob = document.getElementById('joystick-knob');
+
+        // Game constants
+        const TILE_SIZE = 20;
+        let mapWidth, mapHeight;
+
+        // Game state
+        let pacman;
+        let ghosts = [];
+        let score = 0;
+        let level = 1;
+        let pellets = [];
+        let powerPellets = [];
+        let gameActive = true;
+        let caughtGhost = null;
+        let animationFrameId;
+        let isInitializing = false; 
+        let gameMode = 'normal';
+        let questionTimer = null;
+        let countdownInterval = null;
+        let availableQuestions = [];
+        let askedQuestions = [];
+        let currentQuestion = null;
+        let correctAnswersCount = 0;
+
+        // Level-based settings
+        const levelSettings = {
+            1: { ghostSpeed: 1.5, powerPelletDuration: 6000 },
+            2: { ghostSpeed: 1.7, powerPelletDuration: 5000 },
+            3: { ghostSpeed: 1.9, powerPelletDuration: 4000 },
+            4: { ghostSpeed: 2.1, powerPelletDuration: 3000 },
+            5: { ghostSpeed: 2.3, powerPelletDuration: 2000 },
+        };
+        
+        const questions = [
+            { q: "What was the primary motivation for the Virginia Company to establish the Jamestown colony?", o: ["To create a haven for religious freedom", "To discover a new route to Asia", "To make a profit for its investors"], a: 2 },
+            { q: "The movement of goods, people, and diseases between the Old World and the New World is known as the:", o: ["Triangle Trade", "Columbian Exchange", "Middle Passage"], a: 1 },
+            { q: "Which of the following is the BEST definition of colonization?", o: ["When people visit a new country for a short time", "When a country establishes control over a new land and settles it", "When two countries agree to trade with each other"], a: 1 },
+            { q: "The term 'New World' was used by Europeans to refer to:", o: ["Africa and Asia", "North and South America", "Australia and New Zealand"], a: 1 },
+            { q: "Mercantilism was an economic theory that encouraged nations to:", o: ["Import more goods than they export", "Establish colonies to gain resources and wealth", "Promote free trade between all countries"], a: 1 },
+            { q: "The Massachusetts Bay Colony was founded primarily by which group?", o: ["Quakers seeking peace", "Puritans seeking religious freedom", "Catholics escaping persecution in England"], a: 1 },
+            { q: "In the Triangle Trade system, what was transported from Africa to the Americas?", o: ["Manufactured goods like rum and guns", "Enslaved people", "Raw materials like sugar and tobacco"], a: 1 },
+            { q: "Under mercantilism, what was the main purpose of a colony?", o: ["To serve as a military base", "To provide the mother country with raw materials and markets", "To create a democratic society"], a: 1 },
+            { q: "A crop grown primarily to be sold for money is called a:", o: ["Subsistence crop", "Staple crop", "Cash crop"], a: 2 },
+            { q: "What does it mean to 'export' a good?", o: ["To bring a good into a country from another country", "To sell and send a good to another country", "To produce a good for use within your own country"], a: 1 },
+            { q: "What was an indentured servant?", o: ["A person who was owned as property for their entire life", "A person who worked for a set period to pay for their passage to America", "A skilled artisan who owned their own business in the colonies"], a: 1 },
+            { q: "Which statement BEST describes the condition of a slave in the colonies?", o: ["They could earn their freedom after seven years of work", "They were considered legal property with no rights", "They were paid low wages for their labor"], a: 1 },
+            { q: "The brutal, forced journey of enslaved Africans to the Americas was called the:", o: ["Columbian Exchange", "Middle Passage", "Atlantic Crossing"], a: 1 },
+            { q: "What is religious toleration?", o: ["Requiring everyone to practice the same religion", "Allowing people to practice their own different religions", "The belief that one religion is superior to all others"], a: 1 },
+            { q: "Being treated unfairly because of your beliefs is known as:", o: ["Persecution", "Toleration", "Immigration"], a: 0 },
+            { q: "An immigrant is a person who:", o: ["Travels to another country for a vacation", "Is born in a country", "Moves to a new country to live permanently"], a: 2 },
+            { q: "The French and Indian War was fought between:", o: ["France and the Native Americans", "The colonists and the British", "Great Britain and France, with their respective Native American allies"], a: 2 },
+            { q: "What was the purpose of the Proclamation Line of 1763?", o: ["To encourage colonists to settle west of the Appalachians", "To prevent colonists from settling west of the Appalachians", "To establish a formal peace treaty with all Native American tribes"], a: 1 },
+            { q: "The Enlightenment was a period that emphasized:", o: ["Religious faith and tradition", "Reason, science, and individual rights", "Military strength and conquest"], a: 1 },
+            { q: "John Locke's idea of 'natural rights' included:", o: ["Wealth, power, and land", "Life, liberty, and property", "Faith, family, and fortune"], a: 1 },
+            { q: "The Declaration of Independence primarily argued that:", o: ["The colonies should have representation in Parliament", "The king was a fair and just ruler", "The colonies had the right to separate from Britain and form their own government"], a: 2 },
+            { q: "Who led the Continental Army during the American Revolution?", o: ["Thomas Jefferson", "John Adams", "George Washington"], a: 2 },
+            { q: "The Battle of Trenton was a significant victory for the Continental Army because:", o: ["It was the final battle of the war", "It was a surprise attack that boosted American morale", "It convinced the French to join the war"], a: 1 },
+            { q: "The Battle of Princeton was another important victory that:", o: ["Occurred immediately after the victory at Trenton", "Resulted in the capture of the British general", "Led to the British abandoning the southern colonies"], a: 0 },
+            { q: "The Plantation Act of 1740 was designed to:", o: ["Increase the number of slaves on plantations", "Make it easier for certain immigrants to become citizens", "Limit the types of crops that could be grown in the colonies"], a: 1 },
+            { q: "Which of the following was a major cash crop in the southern colonies?", o: ["Wheat", "Tobacco", "Corn"], a: 1 },
+            { q: "An indentured servant's term of service was typically:", o: ["For life", "1-2 years", "4-7 years"], a: 2 },
+            { q: "What was a major impact of the Columbian Exchange on the New World?", o: ["The introduction of new diseases that devastated native populations", "The arrival of new crops like corn and potatoes from Europe", "A decrease in trade between Europe and the Americas"], a: 0 },
+            { q: "Why did European nations practice mercantilism?", o: ["To promote economic equality among nations", "To increase their national wealth and power", "To encourage their colonies to become self-sufficient"], a: 1 },
+            { q: "The journey to North America was risky for groups like the Puritans, but they came anyway primarily to:", o: ["Escape religious persecution", "Find gold and other riches", "Fight in the French and Indian War"], a: 0 },
+            { q: "How did the diverse geography of the colonies affect their economies?", o: ["It led to all colonies having the same type of economy", "It had very little impact on their economic development", "It encouraged different types of agriculture and industries in different regions"], a: 2 },
+            { q: "What was a major outcome of the French and Indian War for Great Britain?", o: ["They lost most of their land in North America", "They gained land but also had a large war debt", "They formed a permanent, peaceful alliance with all Native American tribes"], a: 1 },
+            { q: "According to John Locke and the Declaration of Independence, where does a government get its power?", o: ["From the king", "From the military", "From the consent of the people it governs"], a: 2 },
+            { q: "A significant challenge for the Continental Army was:", o: ["A lack of motivated soldiers", "Difficulty in raising money for supplies", "Having to fight far from their home country"], a: 1 },
+            { q: "What was a key factor that helped the colonists win the Revolutionary War?", o: ["A larger and better-trained army than the British", "Assistance from foreign countries like France", "The support of hired Hessian soldiers"], a: 1 },
+            { q: "The exchange of horses from the Old World to the New World is an example of the:", o: ["Middle Passage", "Columbian Exchange", "Triangle Trade"], a: 1 },
+            { q: "A primary goal of the Triangle Trade for European merchants was to:", o: ["Exchange European goods for enslaved Africans to be sold in the Americas", "Establish religious missions in Africa", "Create a direct trade route between the colonies and Asia"], a: 0 },
+            { q: "The idea that a government can be overthrown if it does not protect the rights of the people comes from:", o: ["The theory of Mercantilism", "The Proclamation Line of 1763", "The Enlightenment and thinkers like John Locke"], a: 2 },
+            { q: "Which company was responsible for the founding of Jamestown?", o: ["The Massachusetts Bay Company", "The Virginia Company", "The East India Company"], a: 1 },
+            { q: "A person who is forced to work for another person for their entire life without freedom is a:", o: ["Slave", "Indentured Servant", "Immigrant"], a: 0 },
+            { q: "The Proclamation Line of 1763 ran along which geographical feature?", o: ["The Mississippi River", "The Rocky Mountains", "The Appalachian Mountains"], a: 2 },
+            { q: "Which document formally stated the colonies' decision to become an independent nation?", o: ["The Constitution", "The Proclamation of 1763", "The Declaration of Independence"], a: 2 },
+            { q: "The 'Continentals' referred to:", o: ["The British soldiers", "The American soldiers", "The French soldiers"], a: 1 },
+            { q: "What was the relationship between a cash crop and the economy?", o: ["They were grown to feed the farmer's family, not for the economy", "They were the main source of profit for many colonies", "They were only traded with Native Americans"], a: 1 },
+            { q: "Which of the following is NOT an example of something moved during the Columbian Exchange?", o: ["Diseases", "Animals", "Factory-made machines"], a: 2 },
+            { q: "The main reason the Massachusetts Bay Colony was more successful than Jamestown in its early years was:", o: ["Its settlers were better prepared and came as families for religious reasons", "It had a warmer climate suitable for farming cash crops", "It received more financial support from the King of England"], a: 0 },
+            { q: "The Middle Passage was one leg of the:", o: ["Silk Road", "Columbian Exchange", "Triangle Trade"], a: 2 },
+            { q: "An Enlightenment thinker would most likely believe that:", o: ["Problems could be solved using human reason", "Kings have a divine right to rule", "Government should have absolute power"], a: 0 },
+            { q: "George Washington's surprise attack at the Battle of Trenton was against:", o: ["French soldiers", "British soldiers", "Hessian soldiers"], a: 2 },
+            { q: "An indentured servant differed from a slave in that the indentured servant:", o: ["Was paid a high wage for their work", "Would be free after a set number of years", "Could vote in colonial elections"], a: 1 },
+            { q: "Which statement best reflects the idea of 'religious toleration'?", o: ["'Everyone in our colony must attend the official church.'", "'While we may not agree with your beliefs, you are welcome to worship freely here.'", "'People with different religious beliefs are a threat to our society.'"], a: 1 },
+            { q: "The British government began taxing the colonies more heavily after the French and Indian War to:", o: ["Punish the colonists for losing the war", "Pay off the large debt from the war", "Encourage the colonists to produce their own goods"], a: 1 },
+            { q: "The phrase 'life, liberty, and the pursuit of happiness' in the Declaration of Independence was inspired by:", o: ["The economic theory of mercantilism", "John Locke's idea of natural rights", "The orders of King George III"], a: 1 },
+            { q: "The American army during the Revolution was called the:", o: ["Royal Army", "Redcoat Army", "Continental Army"], a: 2 },
+            { q: "A key weakness of the Continental Army was its lack of:", o: ["A strong reason to fight", "Consistent funding and supplies", "Knowledge of the local terrain"], a: 1 },
+            { q: "A European country wanting to maximize its exports and minimize its imports would be practicing:", o: ["Colonization", "Mercantilism", "Religious Toleration"], a: 1 },
+            { q: "The transfer of potatoes and corn from the New World to the Old World had what effect?", o: ["It caused widespread famine in Europe", "It improved the diet and increased the population of Europe", "It led to Europeans abandoning their own crops"], a: 1 },
+            { q: "What was a primary reason for the colonization of North America by various European groups?", o: ["A desire to learn from Native American cultures", "A combination of economic opportunity and the desire for religious freedom", "The order of the Pope to convert the world to Catholicism"], a: 1 },
+            { q: "The battles of Trenton and Princeton were important because they:", o: ["Convinced the British to surrender immediately", "Raised the spirits of the American soldiers and encouraged re-enlistment", "Were the first battles fought by the Continental Army"], a: 1 },
+            { q: "The Plantation Act of 1740 shows that:", o: ["Britain wanted to restrict who could become a citizen in the colonies", "Britain was encouraging immigration of certain groups to strengthen the colonies", "Only people born in England could be citizens"], a: 1 }
+        ];
+
+        
+        const map = [
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,3,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,3,0],
+            [0,1,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,1,0],
+            [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,1,0,0,1,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,1,0,1,0,0,1,0],
+            [0,1,1,1,1,0,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,0,1,1,1,1,0],
+            [0,0,0,0,1,0,0,0,0,1,0,0,2,2,2,2,0,0,1,0,0,0,0,1,0,0,0,0],
+            [2,2,2,0,1,0,2,2,2,1,2,2,2,4,4,2,2,2,1,2,2,2,0,1,0,2,2,2],
+            [0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0],
+            [0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,3,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,0,3,0],
+            [0,1,1,1,0,0,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,0,0,1,1,1,0],
+            [0,1,0,1,1,1,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,1,1,1,0,1,0],
+            [0,1,0,0,0,0,1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,0,0,1,0],
+            [0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        ];
+
+        class Character {
+            constructor(x, y, speed, radius) {
+                this.x = x;
+                this.y = y;
+                this.speed = speed;
+                this.radius = radius;
+                this.velX = 0;
+                this.velY = 0;
+                this.nextVelX = 0;
+                this.nextVelY = 0;
+            }
+
+            getGridPos() { return { col: Math.floor(this.x / TILE_SIZE), row: Math.floor(this.y / TILE_SIZE) }; }
+            isAtCenterOfTile() { const xCenter = (this.getGridPos().col * TILE_SIZE) + TILE_SIZE / 2; const yCenter = (this.getGridPos().row * TILE_SIZE) + TILE_SIZE / 2; return Math.abs(this.x - xCenter) < this.speed / 2 && Math.abs(this.y - yCenter) < this.speed / 2; }
+
+            update() {
+                if (this.isAtCenterOfTile()) {
+                    const { col, row } = this.getGridPos();
+                    if (this.nextVelX !== 0 || this.nextVelY !== 0) {
+                        const nextCol = col + this.nextVelX;
+                        const nextRow = row + this.nextVelY;
+                        if (nextRow >= 0 && nextRow < mapHeight && map[nextRow] && map[nextRow][nextCol] !== 0) { this.velX = this.nextVelX; this.velY = this.nextVelY; }
+                    }
+                    const currentCol = col + this.velX; const currentRow = row + this.velY;
+                    if (currentRow < 0 || currentRow >= mapHeight || map[currentRow][currentCol] === 0) { this.x = col * TILE_SIZE + TILE_SIZE / 2; this.y = row * TILE_SIZE + TILE_SIZE / 2; this.velX = 0; this.velY = 0; }
+                }
+                this.x += this.velX * this.speed; this.y += this.velY * this.speed;
+                if (this.x < 0) this.x = mapWidth * TILE_SIZE - TILE_SIZE / 2;
+                if (this.x > mapWidth * TILE_SIZE) this.x = TILE_SIZE / 2;
+            }
+        }
+        
+        class Pacman extends Character {
+            constructor(x, y, speed) { super(x, y, speed, TILE_SIZE / 2 - 2); this.angle = 0.2; this.mouthOpen = true; }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                let rotation = 0;
+                if (this.velX === 1) rotation = 0; else if (this.velX === -1) rotation = Math.PI; else if (this.velY === 1) rotation = Math.PI / 2; else if (this.velY === -1) rotation = -Math.PI / 2;
+                ctx.rotate(rotation);
+                if (this.velX !== 0 || this.velY !== 0) { this.angle += (this.mouthOpen ? -1 : 1) * 0.05; if (this.angle < 0 || this.angle > 0.2) { this.mouthOpen = !this.mouthOpen; } }
+                ctx.fillStyle = 'yellow'; ctx.beginPath(); ctx.arc(0, 0, this.radius, this.angle, Math.PI * 2 - this.angle); ctx.lineTo(0, 0); ctx.fill(); ctx.restore();
+            }
+        }
+
+        class Ghost extends Character {
+            constructor(x, y, speed, color, spawnX, spawnY) { super(x, y, speed, TILE_SIZE / 2 - 2); this.color = color; this.spawnX = spawnX; this.spawnY = spawnY; this.state = 'chasing'; this.frightenTimer = 0; this.respawnTimer = 0; }
+            draw() {
+                ctx.globalAlpha = (this.state === 'eaten' || this.state === 'respawning') ? 0.5 : 1.0; ctx.fillStyle = this.state === 'frightened' ? '#0000FF' : this.color;
+                if (this.state === 'eaten' || this.state === 'respawning') { ctx.fillStyle = '#888'; } else { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, Math.PI, 0); ctx.lineTo(this.x + this.radius, this.y + this.radius); ctx.lineTo(this.x + this.radius - this.radius/3, this.y + this.radius*0.8); ctx.lineTo(this.x + this.radius - (this.radius/3)*2, this.y + this.radius); ctx.lineTo(this.x, this.y + this.radius*0.8); ctx.lineTo(this.x - this.radius + (this.radius/3)*2, this.y + this.radius); ctx.lineTo(this.x - this.radius + this.radius/3, this.y + this.radius*0.8); ctx.lineTo(this.x - this.radius, this.y + this.radius); ctx.closePath(); ctx.fill(); }
+                const eyeOffsetX = this.radius * 0.3; const eyeOffsetY = -this.radius * 0.2;
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(this.x - eyeOffsetX, this.y + eyeOffsetY, this.radius * 0.25, 0, Math.PI * 2); ctx.arc(this.x + eyeOffsetX, this.y + eyeOffsetY, this.radius * 0.25, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'black'; let pupilOffsetX = 0, pupilOffsetY = 0;
+                if (this.velX === 1) pupilOffsetX = 1; if (this.velX === -1) pupilOffsetX = -1; if (this.velY === 1) pupilOffsetY = 1; if (this.velY === -1) pupilOffsetY = -1;
+                ctx.beginPath(); ctx.arc(this.x - eyeOffsetX + pupilOffsetX, this.y + eyeOffsetY + pupilOffsetY, this.radius * 0.1, 0, Math.PI * 2); ctx.arc(this.x + eyeOffsetX + pupilOffsetX, this.y + eyeOffsetY + pupilOffsetY, this.radius * 0.1, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1.0;
+            }
+            update() {
+                if (this.state === 'respawning') { this.respawnTimer -= 1000 / 60; if (this.respawnTimer <= 0) { this.state = 'chasing'; } return; }
+                if (this.state === 'eaten') { if (Math.abs(this.x - this.spawnX) < this.speed && Math.abs(this.y - this.spawnY) < this.speed) { this.state = 'respawning'; this.respawnTimer = 1000; } else { this.aiMove(this.spawnX, this.spawnY); } }
+                else { if (this.state === 'frightened') { this.frightenTimer -= 1000 / 60; if (this.frightenTimer <= 0) { this.state = 'chasing'; } } this.aiMove(pacman.x, pacman.y, this.state === 'frightened'); }
+                super.update();
+            }
+            aiMove(targetX, targetY, isFrightened = false) {
+                 if (this.isAtCenterOfTile()) {
+                     const { col, row } = this.getGridPos(); const possibleMoves = [];
+                     if (map[row - 1]?.[col] !== 0) possibleMoves.push({ x: 0, y: -1 }); if (map[row + 1]?.[col] !== 0) possibleMoves.push({ x: 0, y: 1 }); if (map[row]?.[col - 1] !== 0) possibleMoves.push({ x: -1, y: 0 }); if (map[row]?.[col + 1] !== 0) possibleMoves.push({ x: 1, y: 0 });
+                     const filteredMoves = possibleMoves.filter(move => move.x !== -this.velX || move.y !== -this.velY); let bestMove; const movesToConsider = filteredMoves.length > 0 ? filteredMoves : possibleMoves;
+                     if (movesToConsider.length > 0) {
+                         let bestDistance = isFrightened ? -Infinity : Infinity;
+                         movesToConsider.forEach(move => { const newX = this.x + move.x * TILE_SIZE; const newY = this.y + move.y * TILE_SIZE; const distance = Math.hypot(newX - targetX, newY - targetY); if (isFrightened) { if(distance > bestDistance) { bestDistance = distance; bestMove = move; } } else { if (distance < bestDistance) { bestDistance = distance; bestMove = move; } } });
+                          if(Math.random() > 0.8 && movesToConsider.length > 1) { bestMove = movesToConsider[Math.floor(Math.random() * movesToConsider.length)]; }
+                     }
+                     if(bestMove) { this.nextVelX = bestMove.x; this.nextVelY = bestMove.y; }
+                 }
+            }
+            frighten() { if(this.state !== 'eaten' && this.state !== 'respawning') { this.state = 'frightened'; this.frightenTimer = levelSettings[level].powerPelletDuration; } }
+        }
+
+        function initializeQuestions() { availableQuestions = [...questions]; askedQuestions = []; }
+        function init() {
+            if (isInitializing) return; isInitializing = true; if(animationFrameId) cancelAnimationFrame(animationFrameId);
+            mapWidth = map[0].length; mapHeight = map.length; canvas.width = mapWidth * TILE_SIZE; canvas.height = mapHeight * TILE_SIZE;
+            levelEl.textContent = level; scoreEl.textContent = score;
+            pellets = []; powerPellets = []; ghosts = [];
+            let ghostSpawns = [];
+            for (let row = 0; row < mapHeight; row++) {
+                for (let col = 0; col < mapWidth; col++) {
+                    const x = col * TILE_SIZE + TILE_SIZE / 2; const y = row * TILE_SIZE + TILE_SIZE / 2;
+                    if (map[row][col] === 1) pellets.push({ x, y }); else if (map[row][col] === 3) powerPellets.push({ x, y, active: true }); else if (map[row][col] === 4) ghostSpawns.push({x, y});
+                }
+            }
+            const pacmanX = 13 * TILE_SIZE + TILE_SIZE / 2; const pacmanY = 12 * TILE_SIZE + TILE_SIZE / 2; pacman = new Pacman(pacmanX, pacmanY, 2);
+            const ghostColors = ['#FF0000', '#FFB8FF', '#00FFFF', '#FFB852'];
+            if (ghostSpawns.length > 0) { for (let i = 0; i < 4; i++) { const spawn = ghostSpawns[i % ghostSpawns.length]; const { ghostSpeed } = levelSettings[level]; ghosts.push(new Ghost(spawn.x, spawn.y, ghostSpeed, ghostColors[i], spawn.x, spawn.y)); } }
+            gameActive = true; isInitializing = false; gameLoop();
+        }
+        function restartGame() { gameContainer.classList.add('hidden'); startModal.classList.remove('hidden'); level = 1; score = 0; correctAnswersCount = 0; }
+        function gameLoop() { if (!gameActive) return; update(); draw(); animationFrameId = requestAnimationFrame(gameLoop); }
+        function update() { pacman.update(); ghosts.forEach(ghost => ghost.update()); checkCollisions(); }
+        function draw() { ctx.clearRect(0, 0, canvas.width, canvas.height); drawMap(); drawPellets(); ghosts.forEach(ghost => ghost.draw()); pacman.draw(); }
+        function drawMap() { ctx.fillStyle = '#0000FF'; for (let row = 0; row < mapHeight; row++) { for (let col = 0; col < mapWidth; col++) { if (map[row][col] === 0) { ctx.fillRect(col * TILE_SIZE, row * TILE_SIZE, TILE_SIZE, TILE_SIZE); } } } }
+        function drawPellets() {
+            ctx.fillStyle = '#FFFFFF'; pellets.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI * 2); ctx.fill(); });
+            ctx.fillStyle = '#FFFF00'; powerPellets.forEach(pp => { if (pp.active) { ctx.beginPath(); if(Math.floor(Date.now() / 200) % 2 === 0) { ctx.arc(pp.x, pp.y, 6, 0, Math.PI * 2); ctx.fill(); } } });
+        }
+        function checkCollisions() {
+            for (let i = pellets.length - 1; i >= 0; i--) { const p = pellets[i]; if (Math.hypot(pacman.x - p.x, pacman.y - p.y) < pacman.radius) { pellets.splice(i, 1); score += 10; scoreEl.textContent = score; } }
+            for (let i = powerPellets.length - 1; i >= 0; i--) { const pp = powerPellets[i]; if (pp.active && Math.hypot(pacman.x - pp.x, pacman.y - pp.y) < pacman.radius + 4) { pp.active = false; score += 50; scoreEl.textContent = score; ghosts.forEach(ghost => ghost.frighten()); } }
+            ghosts.forEach(ghost => { if (Math.hypot(pacman.x - ghost.x, pacman.y - ghost.y) < pacman.radius + ghost.radius) { if (ghost.state === 'frightened') { ghost.state = 'eaten'; score += 200; scoreEl.textContent = score; } else if (ghost.state === 'chasing') { gameActive = false; caughtGhost = ghost; showQuestion(); } } });
+            if (pellets.length === 0) { gameActive = false; if(level < 5) showLevelClear(); else showWinScreen(); }
+        }
+        function showQuestion() {
+            if (availableQuestions.length === 0) { availableQuestions = [...askedQuestions]; askedQuestions = []; }
+            const questionIndex = Math.floor(Math.random() * availableQuestions.length); currentQuestion = availableQuestions[questionIndex];
+            questionTextEl.textContent = currentQuestion.q; optionsContainer.innerHTML = '';
+            currentQuestion.o.forEach((option, index) => { const button = document.createElement('button'); button.textContent = `${String.fromCharCode(65 + index)}. ${option}`; button.classList.add('modal-button', 'w-full', 'p-4', 'border-2', 'border-blue-500', 'rounded-lg', 'text-left', 'text-lg'); button.onclick = () => handleAnswer(index, questionIndex); optionsContainer.appendChild(button); });
+            if (gameMode === 'advanced') { timerContainer.classList.remove('hidden'); let timeLeft = 15; timerCountdownEl.textContent = timeLeft; countdownInterval = setInterval(() => { timeLeft--; timerCountdownEl.textContent = timeLeft; }, 1000); questionTimer = setTimeout(() => { handleAnswer(-1, questionIndex); }, 15000); } else { timerContainer.classList.add('hidden'); }
+            questionModal.classList.remove('hidden');
+        }
+        function handleAnswer(selectedIndex, questionIndex) {
+            clearTimeout(questionTimer); clearInterval(countdownInterval); questionModal.classList.add('hidden');
+            const isCorrect = selectedIndex === currentQuestion.a;
+            if (isCorrect) { correctAnswersCount++; askedQuestions.push(availableQuestions.splice(questionIndex, 1)[0]); showMessage("CORRECT!", "The ghost is returning to its base.", () => { if(caughtGhost) caughtGhost.state = 'eaten'; gameActive = true; gameLoop(); }); } else { const reason = selectedIndex === -1 ? "You ran out of time!" : "Wrong answer!"; showMessage("GAME OVER", `Final Score: ${score}\nQuestions Correct: ${correctAnswersCount}\n\n${reason}`, () => { restartGame(); }); }
+        }
+        function showMessage(title, text, buttonAction) { messageTitleEl.textContent = title; messageTextEl.textContent = text; messageButton.onclick = () => { messageModal.classList.add('hidden'); buttonAction(); }; messageModal.classList.remove('hidden'); }
+        function showLevelClear() { showMessage(`LEVEL ${level} CLEARED!`, `Your score: ${score}`, () => { level++; init(); }); }
+        function showWinScreen() { showMessage("YOU WIN!", `Congratulations!\n\nFinal Score: ${score}\nQuestions Correct: ${correctAnswersCount}`, () => { restartGame(); }); }
+        
+        // --- [NEW] Joystick Logic ---
+        function setupJoystick() {
+            const joystickRect = joystickContainer.getBoundingClientRect();
+            const knobRect = joystickKnob.getBoundingClientRect();
+            const joystickCenterX = joystickRect.left + joystickRect.width / 2;
+            const joystickCenterY = joystickRect.top + joystickRect.height / 2;
+            const maxKnobDisplacement = joystickRect.width / 2 - knobRect.width / 2;
+
+            let isDragging = false;
+
+            function handleTouchStart(e) {
+                e.preventDefault();
+                if (e.target === joystickContainer || e.target === joystickKnob) {
+                    isDragging = true;
+                }
+            }
+
+            function handleTouchMove(e) {
+                e.preventDefault();
+                if (!isDragging) return;
+
+                const touch = e.changedTouches[0];
+                const deltaX = touch.clientX - joystickCenterX;
+                const deltaY = touch.clientY - joystickCenterY;
+                const angle = Math.atan2(deltaY, deltaX);
+                const distance = Math.min(Math.hypot(deltaX, deltaY), maxKnobDisplacement);
+                
+                // Update knob position
+                const knobX = Math.cos(angle) * distance;
+                const knobY = Math.sin(angle) * distance;
+                joystickKnob.style.transform = `translate(${knobX}px, ${knobY}px)`;
+
+                // Determine Pac-Man direction based on angle
+                const angleDeg = angle * 180 / Math.PI;
+                if (angleDeg > -45 && angleDeg <= 45) { // Right
+                    pacman.nextVelX = 1; pacman.nextVelY = 0;
+                } else if (angleDeg > 45 && angleDeg <= 135) { // Down
+                    pacman.nextVelX = 0; pacman.nextVelY = 1;
+                } else if (angleDeg > 135 || angleDeg <= -135) { // Left
+                    pacman.nextVelX = -1; pacman.nextVelY = 0;
+                } else { // Up
+                    pacman.nextVelX = 0; pacman.nextVelY = -1;
+                }
+            }
+
+            function handleTouchEnd(e) {
+                e.preventDefault();
+                isDragging = false;
+                joystickKnob.style.transform = `translate(0px, 0px)`; // Reset knob position
+            }
+
+            joystickContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
+            window.addEventListener('touchmove', handleTouchMove, { passive: false });
+            window.addEventListener('touchend', handleTouchEnd, { passive: false });
+        }
+
+
+        // Event Listeners
+        window.addEventListener('keydown', (e) => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) { e.preventDefault(); }
+            if(!pacman) return;
+            switch (e.key) {
+                case 'ArrowUp': pacman.nextVelX = 0; pacman.nextVelY = -1; break;
+                case 'ArrowDown': pacman.nextVelX = 0; pacman.nextVelY = 1; break;
+                case 'ArrowLeft': pacman.nextVelX = -1; pacman.nextVelY = 0; break;
+                case 'ArrowRight': pacman.nextVelX = 1; pacman.nextVelY = 0; break;
+            }
+        });
+
+        normalModeBtn.addEventListener('click', () => { gameMode = 'normal'; normalModeBtn.classList.add('selected'); advancedModeBtn.classList.remove('selected'); });
+        advancedModeBtn.addEventListener('click', () => { gameMode = 'advanced'; advancedModeBtn.classList.add('selected'); normalModeBtn.classList.remove('selected'); });
+
+        startGameBtn.addEventListener('click', () => {
+            startModal.classList.add('hidden');
+            gameContainer.classList.remove('hidden');
+            // Show joystick only on touch devices (approximated by screen width)
+            if (window.innerWidth < 768) {
+                joystickContainer.classList.remove('hidden');
+            }
+            initializeQuestions();
+            init();
+            setupJoystick();
+        });
+
+    </script>
+</body>
+</html>
