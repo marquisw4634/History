@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Futuristic Breakout</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #0d0221;
+            font-family: 'Orbitron', sans-serif;
+            color: #f0f0f0;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        #game-container {
+            border: 4px solid #00aaff;
+            border-radius: 10px;
+            box-shadow: 0 0 25px rgba(0, 170, 255, 0.7), 0 0 10px rgba(255, 0, 255, 0.5) inset;
+            background-color: #1d1135;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #game-header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            color: #ff00ff;
+            text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff;
+        }
+        
+        #score-container, #lives-container, #level-container {
+            background-color: rgba(13, 2, 33, 0.5);
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: 2px solid #ff00ff;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5) inset;
+        }
+
+        canvas {
+            background: #000;
+            display: block;
+            border-radius: 8px;
+            box-shadow: inset 0 0 10px #000;
+            cursor: pointer;
+        }
+
+        #message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            background: rgba(13, 2, 33, 0.85);
+            border: 2px solid #00aaff;
+            box-shadow: 0 0 20px #00aaff;
+            display: none; /* Initially hidden */
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            z-index: 10;
+        }
+
+        #message-box h1 {
+            margin: 0;
+            font-size: 2.5em;
+            color: #00aaff;
+            text-shadow: 0 0 8px #00aaff;
+        }
+        
+        #message-text {
+            margin: 0;
+            font-size: 0.9em;
+            max-width: 500px;
+            line-height: 1.6;
+            text-align: left;
+        }
+
+        #message-text strong {
+            color: #00aaff;
+            display: block;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        #trivia-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        #trivia-options button {
+            width: 100%;
+            font-size: 0.8rem;
+            padding: 10px;
+        }
+
+        #trivia-options button.correct {
+            background-color: #4caf50;
+            border-color: #4caf50;
+            color: #0d0221;
+        }
+
+        #trivia-options button.incorrect {
+            background-color: #e53935;
+            border-color: #e53935;
+            color: #0d0221;
+        }
+
+        button {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            padding: 12px 24px;
+            border: 2px solid #00aaff;
+            background: transparent;
+            color: #00aaff;
+            border-radius: 5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px #00aaff;
+            transition: all 0.2s ease-in-out;
+        }
+
+        button:hover {
+            background-color: #00aaff;
+            color: #0d0221;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="game-header">
+            <div id="score-container">SCORE: <span id="score">0</span></div>
+            <div id="level-container">LEVEL: <span id="level">1</span></div>
+            <div id="lives-container">LIVES: <span id="lives">3</span></div>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+    </div>
+
+    <div id="message-box">
+        <h1 id="message-title">BREAKOUT</h1>
+        <div id="message-text">Move the paddle to break all the bricks!</div>
+        <div id="trivia-options"></div>
+        <button id="actionButton">Start Game</button>
+    </div>
+
+    <script>
+        // --- Game Setup ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const livesEl = document.getElementById('lives');
+        const levelEl = document.getElementById('level');
+        const messageBox = document.getElementById('message-box');
+        const messageTitle = document.getElementById('message-title');
+        const messageText = document.getElementById('message-text');
+        const actionButton = document.getElementById('actionButton');
+        const triviaOptionsEl = document.getElementById('trivia-options');
+
+        let score = 0;
+        let lives = 3;
+        let gamePaused = true;
+        let rightPressed = false;
+        let leftPressed = false;
+        let currentLevel = 1;
+        let comboCounter = 0;
+        let screenShake = 0;
+
+        // --- Trivia State ---
+        let inTriviaMode = false;
+        let currentTriviaQuestions = [];
+        let currentQuestionIndex = 0;
+
+        // --- Game Objects ---
+        let balls = [];
+        let bricks = [];
+        let powerUps = [];
+        let particles = [];
+        let lasers = [];
+        let stars = [];
+        let floatingTexts = [];
+
+        let ballIsStuck = true;
+
+        const originalPaddleWidth = 120;
+        const paddle = {
+            height: 15,
+            width: originalPaddleWidth,
+            x: (canvas.width - originalPaddleWidth) / 2,
+            speed: 10,
+            isSticky: false,
+            hasLasers: false,
+            draw: function() {
+                // Create a gradient for the paddle for a more metallic/futuristic look
+                const gradient = ctx.createLinearGradient(this.x, 0, this.x + this.width, 0);
+                gradient.addColorStop(0, '#c0c0c0'); // Silver
+                gradient.addColorStop(0.5, '#ffffff'); // White highlight
+                gradient.addColorStop(1, '#c0c0c0'); // Silver
+
+                ctx.shadowColor = '#ffffff'; // White glow to make it pop
+                ctx.shadowBlur = 15;
+                // Use the gradient for the normal state, but keep the yellow for sticky state
+                ctx.fillStyle = this.isSticky ? '#ffc107' : gradient;
+                ctx.fillRect(this.x, canvas.height - this.height, this.width, this.height);
+                ctx.shadowBlur = 0;
+
+                // Add a thin border for better definition
+                ctx.strokeStyle = '#f0f0f0';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(this.x, canvas.height - this.height, this.width, this.height);
+                
+                if (this.hasLasers) {
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.fillRect(this.x + 10, canvas.height - this.height - 5, 10, 5);
+                    ctx.fillRect(this.x + this.width - 20, canvas.height - this.height - 5, 10, 5);
+                }
+            }
+        };
+
+        const brickInfo = {
+            width: 80,
+            height: 25,
+            padding: 12,
+            offsetTop: 40,
+            offsetLeft: 40,
+            colors: ['#2196f3', '#4caf50', '#ffc107', '#e53935'] // Health based colors
+        };
+        
+        const triviaData = [
+            { q: "What is the capital of France?", a: ["Paris", "London", "Berlin", "Rome"], correct: 0 },
+            { q: "Which planet is known as the Red Planet?", a: ["Mars", "Venus", "Jupiter", "Saturn"], correct: 0 },
+            { q: "What is the largest mammal in the world?", a: ["Elephant", "Blue Whale", "Giraffe", "Great White Shark"], correct: 1 },
+            { q: "Who wrote 'Romeo and Juliet'?", a: ["Charles Dickens", "Jane Austen", "William Shakespeare", "Mark Twain"], correct: 2 },
+            { q: "What is the chemical symbol for water?", a: ["O2", "CO2", "H2O", "NaCl"], correct: 2 },
+            { q: "How many continents are there?", a: ["5", "6", "7", "8"], correct: 2 },
+            { q: "What is the hardest natural substance on Earth?", a: ["Gold", "Iron", "Diamond", "Quartz"], correct: 2 },
+            { q: "Which is the smallest prime number?", a: ["0", "1", "2", "3"], correct: 2 },
+            { q: "In which country would you find the Pyramids of Giza?", a: ["Greece", "Mexico", "Egypt", "Peru"], correct: 2 },
+            { q: "What does 'CPU' stand for?", a: ["Central Processing Unit", "Computer Personal Unit", "Central Power Unit", "Core Processing Unit"], correct: 0 }
+        ];
+
+        // --- Effects & Graphics ---
+        function createStars() {
+            for(let i = 0; i < 100; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 1.5,
+                    alpha: Math.random()
+                });
+            }
+        }
+        
+        function drawStars() {
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+                ctx.fill();
+                star.y += 0.1;
+                if(star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+            });
+        }
+        
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 25; i++) {
+                particles.push({
+                    x, y,
+                    dx: (Math.random() - 0.5) * 6,
+                    dy: (Math.random() - 0.5) * 6,
+                    radius: Math.random() * 3.5,
+                    color,
+                    life: 40
+                });
+            }
+        }
+
+        function drawAndManageParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.dx;
+                p.y += p.dy;
+                p.life--;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life / 30;
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawAndManageFloatingTexts() {
+            for (let i = floatingTexts.length - 1; i >= 0; i--) {
+                const ft = floatingTexts[i];
+                ft.y -= 0.5; // Float upwards
+                ft.life--;
+
+                ctx.font = "bold 20px 'Orbitron'";
+                ctx.textAlign = 'center';
+                ctx.globalAlpha = ft.life / 60; // Fade out
+                ctx.fillStyle = ft.color;
+                ctx.shadowColor = ft.color;
+                ctx.shadowBlur = 10;
+                ctx.fillText(ft.text, ft.x, ft.y);
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = 1.0;
+
+                if (ft.life <= 0) {
+                    floatingTexts.splice(i, 1);
+                }
+            }
+        }
+
+        // --- Ball ---
+        function createBall(x, y, dx, dy, speed) {
+            return {
+                x, y, dx, dy, speed,
+                radius: 10,
+                draw: function() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.shadowColor = '#ff00ff';
+                    ctx.shadowBlur = 20;
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            };
+        }
+        
+        // --- Endless Levels ---
+        function generateLevel(level) {
+            bricks = [];
+            const rows = 5 + Math.floor(level / 3);
+            const cols = 8;
+            for (let r = 0; r < rows; r++) {
+                if (r >= 10) continue; // Max rows
+                bricks[r] = [];
+                for (let c = 0; c < cols; c++) {
+                    const pattern = Math.random();
+                    let health = 0;
+                    if (pattern < 0.7 + level * 0.02) { // Increase brick density
+                        health = 1 + Math.floor(Math.random() * (level / 2));
+                        health = Math.min(health, brickInfo.colors.length); // Cap health
+                    }
+                    bricks[r][c] = { health };
+                }
+            }
+            resetBallAndPaddle();
+        }
+
+        // --- Power-ups & Power-downs ---
+        const powerUpTypes = [
+            { type: 'widePaddle', color: '#00aaff', symbol: 'W' },
+            { type: 'stickyPaddle', color: '#4caf50', symbol: 'S' },
+            { type: 'multiBall', color: '#ffc107', symbol: 'M' },
+            { type: 'laserPaddle', color: '#e53935', symbol: 'L' },
+            { type: 'extraLife', color: '#ffffff', symbol: '+1' },
+            { type: 'fastBall', color: '#ff00ff', symbol: 'F', isNegative: true },
+            { type: 'shrinkPaddle', color: '#9e9e9e', symbol: '-', isNegative: true }
+        ];
+
+        function spawnPowerUp(x, y) {
+            if (Math.random() < 0.15) { // 15% chance (was 30%)
+                const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
+                powerUps.push({
+                    x, y, width: 25, height: 12, dy: 2, ...type
+                });
+            }
+        }
+        
+        function activatePowerUp(type) {
+            switch(type) {
+                case 'widePaddle':
+                    paddle.width = originalPaddleWidth * 1.5;
+                    setTimeout(() => { paddle.width = originalPaddleWidth; }, 10000);
+                    break;
+                case 'stickyPaddle':
+                    paddle.isSticky = true;
+                    setTimeout(() => { paddle.isSticky = false; }, 15000);
+                    break;
+                case 'multiBall':
+                    if (balls.length > 0) {
+                        const firstBall = balls[0];
+                        balls.push(createBall(firstBall.x, firstBall.y, -firstBall.dx, firstBall.dy, firstBall.speed));
+                        balls.push(createBall(firstBall.x, firstBall.y, firstBall.dx, -firstBall.dy, firstBall.speed));
+                    }
+                    break;
+                case 'laserPaddle':
+                    paddle.hasLasers = true;
+                    setTimeout(() => { paddle.hasLasers = false; }, 10000);
+                    break;
+                case 'extraLife':
+                    lives++;
+                    livesEl.textContent = lives;
+                    break;
+                case 'fastBall':
+                    balls.forEach(b => b.speed *= 1.5);
+                    setTimeout(() => { balls.forEach(b => b.speed /= 1.5) }, 8000);
+                    break;
+                case 'shrinkPaddle':
+                    paddle.width = originalPaddleWidth * 0.6;
+                    setTimeout(() => { paddle.width = originalPaddleWidth; }, 10000);
+                    break;
+            }
+        }
+        
+        function drawAndManagePowerUps() {
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                const p = powerUps[i];
+                p.y += p.dy;
+                ctx.shadowColor = p.color;
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.width, p.height);
+                ctx.shadowBlur = 0;
+                ctx.font = "bold 14px 'Orbitron'";
+                ctx.fillStyle = '#000';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(p.symbol, p.x + p.width / 2, p.y + p.height / 2 + 1);
+
+                if (p.x < paddle.x + paddle.width && p.x + p.width > paddle.x && p.y + p.height > canvas.height - paddle.height) {
+                    activatePowerUp(p.type);
+                    powerUps.splice(i, 1);
+                } else if (p.y > canvas.height) {
+                    powerUps.splice(i, 1);
+                }
+            }
+        }
+        
+        // --- Lasers ---
+        function fireLaser() {
+            if (paddle.hasLasers) {
+                lasers.push({ x: paddle.x + 15, y: canvas.height - paddle.height - 10, width: 5, height: 10, dy: -8 });
+                lasers.push({ x: paddle.x + paddle.width - 15, y: canvas.height - paddle.height - 10, width: 5, height: 10, dy: -8 });
+            }
+        }
+        
+        function drawAndManageLasers() {
+            for(let i = lasers.length - 1; i >= 0; i--) {
+                const l = lasers[i];
+                l.y += l.dy;
+                ctx.fillStyle = '#ff00ff';
+                ctx.shadowColor = '#ff00ff';
+                ctx.shadowBlur = 10;
+                ctx.fillRect(l.x, l.y, l.width, l.height);
+                ctx.shadowBlur = 0;
+                
+                // Collision with bricks
+                 for (let r = 0; r < bricks.length; r++) {
+                    for (let c = 0; c < bricks[r].length; c++) {
+                        const b = bricks[r][c];
+                        if (b.health > 0) {
+                            const brickX = c * (brickInfo.width + brickInfo.padding) + brickInfo.offsetLeft;
+                            const brickY = r * (brickInfo.height + brickInfo.padding) + brickInfo.offsetTop;
+                            if (l.x > brickX && l.x < brickX + brickInfo.width && l.y > brickY && l.y < brickY + brickInfo.height) {
+                                handleBrickHit(b, brickX, brickY);
+                                lasers.splice(i, 1);
+                                return; // Stop checking after one hit
+                            }
+                        }
+                    }
+                }
+
+                if (l.y < 0) lasers.splice(i, 1);
+            }
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Right' || e.key === 'ArrowRight') rightPressed = true;
+            else if (e.key === 'Left' || e.key === 'ArrowLeft') leftPressed = true;
+            else if (e.code === 'Space') {
+                if (ballIsStuck) launchBall();
+                else fireLaser();
+            }
+        });
+        document.addEventListener('keyup', e => {
+            if (e.key === 'Right' || e.key === 'ArrowRight') rightPressed = false;
+            else if (e.key === 'Left' || e.key === 'ArrowLeft') leftPressed = false;
+        });
+        document.addEventListener('mousemove', e => {
+            const relativeX = e.clientX - canvas.getBoundingClientRect().left;
+            if(relativeX > paddle.width / 2 && relativeX < canvas.width - paddle.width / 2) {
+                paddle.x = relativeX - paddle.width / 2;
+            }
+        });
+        canvas.addEventListener('click', () => {
+             if (ballIsStuck) launchBall();
+             else fireLaser();
+        });
+        actionButton.addEventListener('click', startGame);
+
+        // --- Game Logic ---
+        function launchBall() {
+            if (ballIsStuck) {
+                ballIsStuck = false;
+                // This logic correctly sets the ball's direction ONCE at launch.
+                if (balls.length > 0) {
+                    const ball = balls[0];
+                    const speed = ball.speed;
+                    // Launch at a random upward angle (between 45 and 135 degrees)
+                    const launchAngle = (Math.random() * Math.PI / 2) + Math.PI / 4; 
+                    ball.dx = speed * Math.cos(launchAngle) * (Math.random() > 0.5 ? 1 : -1);
+                    ball.dy = -speed * Math.sin(launchAngle);
+                }
+            }
+        }
+
+        function handleBrickHit(brick, x, y, hitRow, hitCol) {
+            brick.health--;
+            score++;
+            comboCounter++;
+            if (comboCounter >= 5) {
+                const bonus = comboCounter;
+                score += bonus;
+                 floatingTexts.push({
+                    x: x + brickInfo.width / 2,
+                    y: y + brickInfo.height / 2 - 20,
+                    text: `+${bonus}`,
+                    life: 40, 
+                    color: '#ffffff'
+                });
+            }
+            screenShake = 8; // Add a small shake
+            scoreEl.textContent = score;
+            const color = brickInfo.colors[brick.health] || brickInfo.colors[0];
+            createParticles(x + brickInfo.width/2, y + brickInfo.height/2, color);
+
+            // Combo text logic
+            if (comboCounter >= 5) {
+                let text = `${comboCounter}x COMBO!`;
+                let color = '#00aaff';
+                if (comboCounter >= 10) {
+                    text = `EXPLOSION!`;
+                    color = '#ffc107'; // A different color for explosions
+                }
+                floatingTexts.push({
+                    x: x + brickInfo.width / 2,
+                    y: y + brickInfo.height / 2,
+                    text: text,
+                    life: 60, // 60 frames = 1 second
+                    color: color
+                });
+            }
+
+            // Combo explosion logic
+            if (comboCounter >= 10) {
+                screenShake = 20; // Bigger shake for explosion
+                for (let r = hitRow - 1; r <= hitRow + 1; r++) {
+                    for (let c = hitCol - 1; c <= hitCol + 1; c++) {
+                        // Check bounds and if it's not the central brick itself
+                        if (r >= 0 && r < bricks.length && c >= 0 && c < bricks[r].length && (r !== hitRow || c !== hitCol)) {
+                            const surroundingBrick = bricks[r][c];
+                            if (surroundingBrick && surroundingBrick.health > 0) {
+                                score += surroundingBrick.health; // Add score for destroyed bricks
+                                surroundingBrick.health = 0;
+                                const brickX = c * (brickInfo.width + brickInfo.padding) + brickInfo.offsetLeft;
+                                const brickY = r * (brickInfo.height + brickInfo.padding) + brickInfo.offsetTop;
+                                createParticles(brickX + brickInfo.width/2, brickY + brickInfo.height/2, brickInfo.colors[0]);
+                            }
+                        }
+                    }
+                }
+                comboCounter = 0; // Reset combo after explosion
+            }
+
+            if (brick.health <= 0) {
+                spawnPowerUp(x + brickInfo.width / 2, y + brickInfo.height / 2);
+            }
+        }
+
+        function collisionDetection() {
+             // Ball-Brick Collision
+            for(const ball of balls) {
+                for (let r = 0; r < bricks.length; r++) {
+                    for (let c = 0; c < bricks[r].length; c++) {
+                        const b = bricks[r][c];
+                        if (b.health > 0) {
+                            const brickX = c * (brickInfo.width + brickInfo.padding) + brickInfo.offsetLeft;
+                            const brickY = r * (brickInfo.height + brickInfo.padding) + brickInfo.offsetTop;
+                            if (ball.x > brickX && ball.x < brickX + brickInfo.width && ball.y > brickY && ball.y < brickY + brickInfo.height) {
+                                ball.dy = -ball.dy;
+                                handleBrickHit(b, brickX, brickY, r, c);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function drawBricks() {
+            let visibleBricks = 0;
+            for (let r = 0; r < bricks.length; r++) {
+                for (let c = 0; c < bricks[r].length; c++) {
+                    if (bricks[r][c].health > 0) {
+                        const brickX = c * (brickInfo.width + brickInfo.padding) + brickInfo.offsetLeft;
+                        const brickY = r * (brickInfo.height + brickInfo.padding) + brickInfo.offsetTop;
+                        const color = brickInfo.colors[bricks[r][c].health -1];
+                        ctx.shadowColor = color;
+                        ctx.shadowBlur = 10;
+                        ctx.fillStyle = color;
+                        ctx.fillRect(brickX, brickY, brickInfo.width, brickInfo.height);
+                        ctx.shadowBlur = 0;
+                        visibleBricks++;
+                    }
+                }
+            }
+             if (visibleBricks === 0 && !gamePaused && !inTriviaMode) {
+                startTrivia();
+            }
+        }
+        
+        function resetBallAndPaddle() {
+            ballIsStuck = true;
+            paddle.x = (canvas.width - paddle.width) / 2;
+            const speed = 7 + currentLevel * 0.3;
+            const newBall = createBall(paddle.x + paddle.width / 2, canvas.height - paddle.height - 10, 0, 0, speed);
+            balls = [newBall];
+        }
+        
+        function resetGame() {
+            score = 0;
+            lives = 3;
+            currentLevel = 1;
+            scoreEl.textContent = score;
+            livesEl.textContent = lives;
+            levelEl.textContent = currentLevel;
+            powerUps = [];
+            comboCounter = 0;
+            floatingTexts = [];
+            paddle.width = originalPaddleWidth;
+            paddle.isSticky = false;
+            paddle.hasLasers = false;
+            generateLevel(currentLevel);
+        }
+        
+        function showMessage(title, text, buttonText) {
+             messageTitle.textContent = title;
+             messageText.innerHTML = text; // Use innerHTML to render styled instructions
+             actionButton.textContent = buttonText;
+             actionButton.style.display = 'block';
+             triviaOptionsEl.style.display = 'none';
+             messageBox.style.display = 'flex';
+        }
+
+        // --- Trivia Logic ---
+        function startTrivia() {
+            gamePaused = true;
+            inTriviaMode = true;
+            
+            // Shuffle and pick 3 questions
+            const shuffled = [...triviaData].sort(() => 0.5 - Math.random());
+            currentTriviaQuestions = shuffled.slice(0, 3);
+            currentQuestionIndex = 0;
+            
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            if (currentQuestionIndex >= currentTriviaQuestions.length) {
+                endTrivia();
+                return;
+            }
+
+            const qData = currentTriviaQuestions[currentQuestionIndex];
+            messageTitle.textContent = `Question ${currentQuestionIndex + 1} of 3`;
+            messageText.textContent = qData.q;
+            
+            triviaOptionsEl.innerHTML = '';
+            qData.a.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.textContent = answer;
+                button.onclick = () => checkAnswer(index, qData.correct);
+                triviaOptionsEl.appendChild(button);
+            });
+            
+            actionButton.style.display = 'none';
+            triviaOptionsEl.style.display = 'flex';
+            messageBox.style.display = 'flex';
+        }
+
+        function checkAnswer(selectedIndex, correctIndex) {
+            const buttons = triviaOptionsEl.querySelectorAll('button');
+            buttons.forEach(button => button.disabled = true); // Disable all buttons
+
+            if (selectedIndex === correctIndex) {
+                score += 50;
+                scoreEl.textContent = score;
+                buttons[selectedIndex].classList.add('correct');
+                 floatingTexts.push({
+                    x: canvas.width / 2, y: canvas.height / 2, text: "+50 POINTS!", life: 90, color: '#4caf50'
+                });
+            } else {
+                buttons[selectedIndex].classList.add('incorrect');
+                buttons[correctIndex].classList.add('correct');
+            }
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                displayQuestion();
+            }, 1500); // Wait 1.5 seconds before next question
+        }
+
+        function endTrivia() {
+            inTriviaMode = false;
+            currentLevel++;
+            levelEl.textContent = currentLevel;
+            generateLevel(currentLevel);
+            showMessage(`LEVEL ${currentLevel}`, 'Get Ready!', 'Continue');
+        }
+
+        function startGame() {
+            if (gamePaused) {
+                if (messageTitle.textContent.includes('WIN') || messageTitle.textContent.includes('OVER')) {
+                    resetGame();
+                }
+                gamePaused = false;
+                messageBox.style.display = 'none';
+                if(ballIsStuck) launchBall();
+                gameLoop();
+            }
+        }
+
+        function gameLoop() {
+            if (gamePaused) return;
+
+            ctx.save();
+            if (screenShake > 0) {
+                const shakeX = (Math.random() - 0.5) * Math.min(screenShake, 10);
+                const shakeY = (Math.random() - 0.5) * Math.min(screenShake, 10);
+                ctx.translate(shakeX, shakeY);
+                screenShake--;
+            }
+
+            // Motion blur effect
+            ctx.fillStyle = 'rgba(13, 2, 33, 0.25)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            drawStars();
+            drawBricks();
+            paddle.draw();
+            drawAndManagePowerUps();
+            drawAndManageParticles();
+            drawAndManageFloatingTexts();
+            drawAndManageLasers();
+            collisionDetection();
+
+            // Ball movement and collisions
+            for(let i = balls.length - 1; i >= 0; i--) {
+                const ball = balls[i];
+                ball.draw();
+
+                if (ballIsStuck) {
+                    ball.x = paddle.x + paddle.width / 2;
+                } else {
+                    ball.x += ball.dx;
+                    ball.y += ball.dy;
+                }
+                
+                if (ball.x + ball.dx > canvas.width - ball.radius || ball.x < ball.radius) {
+                    ball.dx = -ball.dx;
+                }
+                if (ball.y + ball.dy < ball.radius) {
+                    ball.dy = -ball.dy;
+                } else if (ball.y > canvas.height - ball.radius - paddle.height) {
+                    if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
+                        if (paddle.isSticky) {
+                            ballIsStuck = true;
+                            paddle.isSticky = false;
+                        } else {
+                            let collidePoint = ball.x - (paddle.x + paddle.width/2);
+                            collidePoint = collidePoint / (paddle.width/2);
+                            let angle = collidePoint * (Math.PI / 3);
+                            ball.dx = ball.speed * Math.sin(angle);
+                            ball.dy = -ball.speed * Math.cos(angle);
+                        }
+                        comboCounter = 0; // Reset combo on paddle hit
+                    } else if (ball.y > canvas.height) {
+                         balls.splice(i, 1);
+                    }
+                }
+            }
+            
+            if (balls.length === 0 && !ballIsStuck) {
+                lives--;
+                livesEl.textContent = lives;
+                if (!lives) {
+                    showMessage('GAME OVER', `You reached level ${currentLevel} with a score of ${score}`, 'Restart');
+                    gamePaused = true;
+                } else {
+                    comboCounter = 0; // Reset combo on life loss
+                    resetBallAndPaddle();
+                }
+            }
+
+
+            // Paddle movement
+            const paddleMoveSpeed = ballIsStuck ? paddle.speed * 0.7 : paddle.speed;
+            if (rightPressed && paddle.x < canvas.width - paddle.width) {
+                paddle.x += paddleMoveSpeed;
+            } else if (leftPressed && paddle.x > 0) {
+                paddle.x -= paddleMoveSpeed;
+            }
+            
+            // This buggy code was removed from here. It was incorrectly resetting the ball's direction every frame.
+            
+            ctx.restore();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.onload = () => {
+             const instructions = `
+                <strong>CONTROLS:</strong>
+                - Move Paddle: Use your Mouse<br>
+                - Launch Ball / Fire Lasers: Click or Spacebar<br>
+                <strong>SCORING:</strong>
+                - Brick Hit: +1 Point<br>
+                - 5x+ Combo: Bonus points equal to combo count<br>
+                - 10x+ Combo: Triggers an explosion!<br>
+                - Correct Trivia Answer: +50 Points<br>
+                <strong>POWER-UPS & DOWNS:</strong>
+                <span style="color:#00aaff;">W</span>: Wide Paddle | <span style="color:#4caf50;">S</span>: Sticky Paddle | <span style="color:#ffc107;">M</span>: Multi-Ball<br>
+                <span style="color:#e53935;">L</span>: Lasers | <span style="color:#ffffff;">+1</span>: Extra Life | <span style="color:#ff00ff;">F</span>: Fast Ball | <span style="color:#9e9e9e;">-</span>: Shrink Paddle
+             `;
+             showMessage('FUTURISTIC BREAKOUT', instructions, 'Start Game');
+             createStars();
+             generateLevel(1);
+             ctx.fillStyle = '#0d0221';
+             ctx.fillRect(0, 0, canvas.width, canvas.height);
+             drawStars();
+             drawBricks();
+             paddle.draw();
+             balls[0].draw();
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
