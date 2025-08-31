@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird Trivia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden; /* Hide scrollbars */
+        }
+        canvas {
+            background-color: #70c5ce; /* A fallback sky blue color */
+            display: block;
+        }
+        .game-container {
+            /* This helps center the canvas and UI elements */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1a202c;
+        }
+        .game-wrapper {
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2), 0 6px 6px rgba(0,0,0,0.25);
+            border-radius: 1rem;
+            overflow: hidden;
+            border: 4px solid #4a5568;
+        }
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none; /* Allows clicks to go through to the canvas */
+        }
+        .ui-panel {
+            background-color: rgba(0, 0, 0, 0.75);
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+            pointer-events: all; /* Re-enable pointer events for buttons inside */
+            width: 90%;
+            max-width: 600px;
+        }
+        .score-display, .countdown-display {
+            font-size: 2.5rem;
+            color: white;
+            text-shadow: 3px 3px 0 #000;
+        }
+        .feedback-message {
+            font-size: 2rem;
+            text-shadow: 3px 3px 0 #000;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <div class="game-container">
+        <div class="game-wrapper">
+            <canvas id="gameCanvas"></canvas>
+            <div id="ui" class="ui-overlay">
+                <!-- Score Display -->
+                <div id="scoreContainer" class="absolute top-5 score-display hidden">0</div>
+
+                <!-- Start Screen -->
+                <div id="startScreen" class="ui-panel">
+                    <h1 class="text-4xl mb-4 text-yellow-400">Trivia Flight</h1>
+                    <div class="text-left text-base mb-6 space-y-3 px-4">
+                        <p><strong class="text-green-400">Objective:</strong> Fly through the pipes and collect coins to score points!</p>
+                        <p><strong class="text-blue-400">Controls:</strong> Click the screen or press the SPACE bar to flap your wings.</p>
+                        <p><strong class="text-purple-400">Trivia Tokens:</strong> Collect purple tokens to answer a question for 100 bonus points!</p>
+                    </div>
+                    <button id="startButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+                        Start Game
+                    </button>
+                </div>
+
+                <!-- Game Over Screen -->
+                <div id="gameOverScreen" class="ui-panel hidden">
+                    <h2 class="text-4xl mb-2 text-red-500">Game Over</h2>
+                    <p class="text-xl mb-2">Score: <span id="finalScore">0</span></p>
+                    <p class="text-xl mb-6">High Score: <span id="highScore">0</span></p>
+                    <button id="restartButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+                        Restart
+                    </button>
+                </div>
+
+                <!-- Trivia Modal -->
+                <div id="triviaModal" class="ui-panel hidden">
+                    <h2 id="triviaQuestion" class="text-2xl mb-6">What is the capital of France?</h2>
+                    <div id="triviaOptions" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Options will be dynamically inserted here -->
+                    </div>
+                </div>
+
+                <!-- Feedback Message -->
+                <div id="feedbackMessage" class="feedback-message hidden"></div>
+
+                <!-- Countdown Display -->
+                <div id="countdownDisplay" class="countdown-display hidden">3</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI Elements
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const startButton = document.getElementById('startButton');
+        const restartButton = document.getElementById('restartButton');
+        const scoreContainer = document.getElementById('scoreContainer');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const highScoreDisplay = document.getElementById('highScore');
+        const triviaModal = document.getElementById('triviaModal');
+        const triviaQuestion = document.getElementById('triviaQuestion');
+        const triviaOptions = document.getElementById('triviaOptions');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        const countdownDisplay = document.getElementById('countdownDisplay');
+        
+        // Trivia Questions Bank
+        const triviaQuestions = [
+            { question: "What is the capital of Japan?", options: ["Beijing", "Seoul", "Tokyo", "Bangkok"], correctAnswer: 2 },
+            { question: "Which planet is known as the Red Planet?", options: ["Earth", "Mars", "Jupiter", "Venus"], correctAnswer: 1 },
+            { question: "What is the largest mammal in the world?", options: ["Elephant", "Blue Whale", "Giraffe", "Great White Shark"], correctAnswer: 1 },
+            { question: "Who wrote 'Romeo and Juliet'?", options: ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"], correctAnswer: 1 },
+            { question: "What is 7 * 8?", options: ["54", "56", "63", "64"], correctAnswer: 1 },
+            { question: "Which is the largest ocean on Earth?", options: ["Atlantic", "Indian", "Arctic", "Pacific"], correctAnswer: 3 },
+            { question: "What element does 'O' represent on the periodic table?", options: ["Gold", "Oxygen", "Osmium", "Oganesson"], correctAnswer: 1 }
+        ];
+        let currentQuestion = null;
+        let usedQuestionIndices = [];
+
+
+        // Game state
+        let gameState = 'start'; // 'start', 'playing', 'over', 'trivia'
+        let score = 0;
+        let highScore = localStorage.getItem('flappyBirdHighScore') || 0;
+        let frame = 0;
+        let animationFrameId;
+
+        // Difficulty Settings
+        const difficulty = {
+            speed: 3,
+            pipeGap: 200,
+            pipeFrequency: 100
+        };
+
+        // Game settings
+        const bird = {
+            x: 50,
+            y: 150,
+            width: 45,
+            height: 35,
+            gravity: 0.5,
+            lift: -8,
+            velocity: 0,
+            wingState: 'down', // 'down', 'up'
+            wingAnimationTimer: 0,
+            isInvincible: false,
+            invincibilityTimer: 0,
+            draw() {
+                ctx.save();
+                // If invincible, flash the bird by changing opacity
+                if (this.isInvincible && frame % 10 < 5) {
+                    ctx.globalAlpha = 0.5;
+                }
+
+                // Body
+                ctx.fillStyle = '#FFD700'; // Gold
+                ctx.beginPath();
+                ctx.ellipse(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, this.height / 2, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Beak
+                ctx.fillStyle = '#FFA500'; // Orange
+                ctx.beginPath();
+                ctx.moveTo(this.x + this.width -5, this.y + this.height / 2);
+                ctx.lineTo(this.x + this.width + 10, this.y + this.height / 2 - 5);
+                ctx.lineTo(this.x + this.width + 10, this.y + this.height / 2 + 5);
+                ctx.closePath();
+                ctx.fill();
+
+                // Wing
+                ctx.fillStyle = '#FFC700'; // Lighter Gold
+                ctx.beginPath();
+                const wingY = this.wingState === 'up' ? this.y + 5 : this.y + 15;
+                ctx.ellipse(this.x + this.width / 2 - 5, wingY, 15, 8, Math.PI / 4, 0, Math.PI * 2);
+                ctx.fill();
+
+
+                // Eye
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(this.x + this.width -15, this.y + 12, 6, 0, Math.PI * 2); 
+                ctx.fill();
+                ctx.fillStyle = 'black';
+                ctx.beginPath();
+                ctx.arc(this.x + this.width -13, this.y + 12, 3, 0, Math.PI * 2); 
+                ctx.fill();
+
+                ctx.restore(); // Restore context to not affect other drawings
+            },
+            update() {
+                this.velocity += this.gravity;
+                this.y += this.velocity;
+
+                if (this.wingAnimationTimer > 0) {
+                    this.wingAnimationTimer--;
+                    if (this.wingAnimationTimer === 0) {
+                        this.wingState = 'down';
+                    }
+                }
+
+                if (this.isInvincible) {
+                    this.invincibilityTimer--;
+                    if (this.invincibilityTimer <= 0) {
+                        this.isInvincible = false;
+                    }
+                }
+
+                if (this.y + this.height > canvas.height || this.y < 0) {
+                    endGame();
+                }
+            },
+            flap() {
+                this.velocity = this.lift;
+                this.wingState = 'up';
+                this.wingAnimationTimer = 10; // Flap animation duration in frames
+            }
+        };
+
+        const pipes = {
+            list: [],
+            width: 80, // Made pipes wider
+            draw() {
+                this.list.forEach(pipe => {
+                    ctx.fillStyle = '#228B22'; // Forest Green base
+
+                    // Top pipe body
+                    const topPipeGradient = ctx.createLinearGradient(pipe.x, 0, pipe.x + this.width, 0);
+                    topPipeGradient.addColorStop(0, '#2E8B57'); // SeaGreen
+                    topPipeGradient.addColorStop(0.5, '#3CB371'); // MediumSeaGreen
+                    topPipeGradient.addColorStop(1, '#2E8B57');
+                    ctx.fillStyle = topPipeGradient;
+                    ctx.fillRect(pipe.x, 0, this.width, pipe.y);
+                    
+                    // Top pipe cap
+                    ctx.fillStyle = '#228B22';
+                    ctx.fillRect(pipe.x - 5, pipe.y - 30, this.width + 10, 30);
+
+                    // Bottom pipe body
+                    const bottomPipeGradient = ctx.createLinearGradient(pipe.x, 0, pipe.x + this.width, 0);
+                    bottomPipeGradient.addColorStop(0, '#2E8B57');
+                    bottomPipeGradient.addColorStop(0.5, '#3CB371');
+                    bottomPipeGradient.addColorStop(1, '#2E8B57');
+                    ctx.fillStyle = bottomPipeGradient;
+                    ctx.fillRect(pipe.x, pipe.y + difficulty.pipeGap, this.width, canvas.height - pipe.y - difficulty.pipeGap);
+
+                    // Bottom pipe cap
+                    ctx.fillStyle = '#228B22';
+                    ctx.fillRect(pipe.x - 5, pipe.y + difficulty.pipeGap, this.width + 10, 30);
+                });
+            },
+            update() {
+                if (frame % Math.round(difficulty.pipeFrequency) === 0) {
+                    const topPipeHeight = Math.random() * (canvas.height - difficulty.pipeGap - 150) + 75; // Adjusted padding
+                    this.list.push({
+                        x: canvas.width,
+                        y: topPipeHeight,
+                    });
+
+                    // Spawn a collectible in the pipe gap
+                    const spawnChance = Math.random();
+                    const collectible = {
+                        x: canvas.width + (this.width / 2), // Center of the pipe opening
+                        y: topPipeHeight + (difficulty.pipeGap / 2), // Vertical center of the gap
+                        collided: false,
+                    };
+                    
+                    if (spawnChance < 0.2) { // 20% chance for a special token
+                       collectible.type = 'token';
+                       collectible.radius = 15;
+                       collectible.value = 25;
+                    } else { // 80% chance for a regular coin
+                       collectible.type = 'coin';
+                       collectible.radius = 10;
+                       collectible.value = 5;
+                    }
+                    collectibles.list.push(collectible);
+                }
+
+                this.list.forEach(pipe => {
+                    pipe.x -= difficulty.speed;
+
+                    // Collision with bird - skip if invincible
+                    if (!bird.isInvincible && bird.x < pipe.x + this.width &&
+                        bird.x + bird.width > pipe.x &&
+                        (bird.y < pipe.y || bird.y + bird.height > pipe.y + difficulty.pipeGap)) {
+                        endGame();
+                    }
+                });
+
+                // Remove off-screen pipes
+                this.list = this.list.filter(pipe => pipe.x + this.width > 0);
+            }
+        };
+
+        const collectibles = {
+            list: [],
+            draw() {
+                this.list.forEach(item => {
+                    if(item.collided) return;
+
+                    const gradient = ctx.createRadialGradient(item.x, item.y, item.radius * 0.1, item.x, item.y, item.radius);
+                    if (item.type === 'token') {
+                        gradient.addColorStop(0, '#DDA0DD'); // Plum
+                        gradient.addColorStop(1, '#8A2BE2'); // BlueViolet
+                    } else {
+                        gradient.addColorStop(0, '#FFFACD'); // LemonChiffon
+                        gradient.addColorStop(1, '#FFC700'); // Gold
+                    }
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(item.x, item.y, item.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            },
+            update() {
+                this.list.forEach(item => {
+                    item.x -= difficulty.speed;
+
+                    // Collision with bird
+                    const dx = bird.x + bird.width / 2 - item.x;
+                    const dy = bird.y + bird.height / 2 - item.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < bird.width / 2 + item.radius && !item.collided) {
+                        item.collided = true;
+                        score += item.value;
+                        scoreContainer.textContent = score;
+
+                        if (item.type === 'token') {
+                            triggerTrivia();
+                        }
+                    }
+                });
+
+                // Remove collected or off-screen items
+                this.list = this.list.filter(item => item.x + item.radius > 0 && !item.collided);
+            }
+        };
+        
+        function setupCanvas() {
+            const aspectRatio = 4 / 3;
+            const screenHeight = window.innerHeight * 0.9;
+            const screenWidth = window.innerWidth * 0.9;
+
+            if (screenWidth / screenHeight > aspectRatio) {
+                canvas.height = screenHeight;
+                canvas.width = screenHeight * aspectRatio;
+            } else {
+                canvas.width = screenWidth;
+                canvas.height = screenWidth / aspectRatio;
+            }
+            // When canvas is resized, redraw the background
+            draw();
+        }
+        
+        function resetGame() {
+            bird.y = 150;
+            bird.velocity = 0;
+            pipes.list = [];
+            collectibles.list = [];
+            score = 0;
+            frame = 0;
+            scoreContainer.textContent = score;
+            difficulty.speed = 3;
+            difficulty.pipeGap = 200;
+            difficulty.pipeFrequency = 100;
+            usedQuestionIndices = [];
+        }
+
+        function startGame() {
+            resetGame();
+            gameState = 'playing';
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            scoreContainer.classList.remove('hidden');
+            loop();
+        }
+
+        function endGame() {
+            gameState = 'over';
+            cancelAnimationFrame(animationFrameId);
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('flappyBirdHighScore', highScore);
+            }
+            finalScoreDisplay.textContent = score;
+            highScoreDisplay.textContent = highScore;
+            gameOverScreen.classList.remove('hidden');
+            scoreContainer.classList.add('hidden');
+        }
+
+        function triggerTrivia() {
+            gameState = 'trivia';
+            cancelAnimationFrame(animationFrameId);
+
+            if (usedQuestionIndices.length === triviaQuestions.length) {
+                usedQuestionIndices = []; // Reset if all questions have been used
+            }
+
+            let questionIndex;
+            do {
+                questionIndex = Math.floor(Math.random() * triviaQuestions.length);
+            } while (usedQuestionIndices.includes(questionIndex));
+            
+            usedQuestionIndices.push(questionIndex);
+            currentQuestion = triviaQuestions[questionIndex];
+
+            triviaQuestion.textContent = currentQuestion.question;
+            triviaOptions.innerHTML = '';
+            currentQuestion.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = 'bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition-transform transform hover:scale-105';
+                button.onclick = () => handleAnswer(index);
+                triviaOptions.appendChild(button);
+            });
+
+            triviaModal.classList.remove('hidden');
+        }
+
+        function handleAnswer(selectedIndex) {
+            triviaModal.classList.add('hidden');
+            const correct = selectedIndex === currentQuestion.correctAnswer;
+            
+            if (correct) {
+                score += 100;
+                scoreContainer.textContent = score;
+                feedbackMessage.textContent = "Correct! +100 Points";
+                feedbackMessage.className = 'feedback-message text-green-400';
+            } else {
+                feedbackMessage.textContent = "Incorrect!";
+                feedbackMessage.className = 'feedback-message text-red-400';
+            }
+            feedbackMessage.classList.remove('hidden');
+            
+            setTimeout(startCountdown, 2000); // Show feedback for 2 seconds
+        }
+
+        function startCountdown() {
+            feedbackMessage.classList.add('hidden');
+            countdownDisplay.classList.remove('hidden');
+            let count = 3;
+            countdownDisplay.textContent = count;
+
+            const countdownInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownDisplay.textContent = count;
+                } else {
+                    clearInterval(countdownInterval);
+                    resumeGame();
+                }
+            }, 1000);
+        }
+
+        function resumeGame() {
+            countdownDisplay.classList.add('hidden');
+            gameState = 'playing';
+            bird.isInvincible = true;
+            bird.invincibilityTimer = 180; // 3 seconds at 60fps
+            loop();
+        }
+        
+        function draw() {
+            // Clear the canvas with a blue sky color
+            ctx.fillStyle = '#70c5ce';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw game elements only if the game is playing
+            if(gameState === 'playing' || gameState === 'trivia') { // Also draw when paused for trivia
+                bird.draw();
+                pipes.draw();
+                collectibles.draw();
+            }
+        }
+
+        function loop() {
+            if (gameState !== 'playing') return;
+            
+            frame++;
+            
+            // Update game logic
+            updateDifficulty();
+            bird.update();
+            pipes.update();
+            collectibles.update();
+            
+            // Draw everything
+            draw();
+            
+            animationFrameId = requestAnimationFrame(loop);
+        }
+
+        function handleInput() {
+            if (gameState === 'playing') {
+                bird.flap();
+            }
+        }
+
+        function updateDifficulty() {
+            // Increase speed based on score
+            difficulty.speed = 3 + Math.floor(score / 100);
+            // Decrease pipe gap based on score, with a minimum
+            difficulty.pipeGap = Math.max(140, 200 - Math.floor(score / 50) * 4);
+             // Increase pipe frequency based on score, with a minimum
+            difficulty.pipeFrequency = Math.max(70, 100 - Math.floor(score / 75) * 5);
+        }
+
+        // Event Listeners
+        startButton.addEventListener('click', startGame);
+        restartButton.addEventListener('click', startGame);
+        
+        // Handle both click and spacebar for flapping
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault(); // Prevent spacebar from scrolling page
+                handleInput();
+            }
+        });
+        canvas.addEventListener('mousedown', handleInput);
+
+
+        // Initial Setup
+        window.addEventListener('resize', setupCanvas);
+        setupCanvas();
+        highScoreDisplay.textContent = highScore;
+        draw(); // Draw initial static frame
+
+    </script>
+</body>
+</html>
+
+
+
