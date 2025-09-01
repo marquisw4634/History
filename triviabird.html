@@ -478,6 +478,8 @@
                 bird.y = canvas.height / 2 - bird.height / 2; bird.velocity = 0;
                 pipes.list = []; collectibles.list = []; score = 0; frame = 0;
                 triviaTokensCollected = 0; bonusScore = 0;
+                bird.gravity = 0.5; // Reset gravity to its base value
+                bird.lift = -8; // Reset lift to its base value
                 scoreContainer.textContent = score; tokenCountDisplay.textContent = triviaTokensCollected;
                 difficulty.speed = 3; difficulty.pipeGap = Math.min(250, canvas.height * 0.35); difficulty.pipeFrequency = 100;
                 usedQuestionIndices = []; sound.stopAll();
@@ -613,6 +615,12 @@
                 
                 // Pipes appear more frequently, with a lower minimum frequency of 60 frames.
                 difficulty.pipeFrequency = Math.max(60, 100 - Math.floor(combinedDifficultyScore / 120) * 5); 
+            
+                // As difficulty increases, gravity gets stronger, making the bird fall faster.
+                bird.gravity = Math.min(0.75, 0.5 + Math.floor(combinedDifficultyScore / 200) * 0.01);
+
+                // As difficulty increases, the flap becomes slightly less powerful.
+                bird.lift = Math.max(-7.0, -8 + Math.floor(combinedDifficultyScore / 200) * 0.05);
             }
 
             startButton.addEventListener('click', startGame); restartButton.addEventListener('click', startGame);
@@ -627,5 +635,6 @@
     </script>
 </body>
 </html>
+
 
 
