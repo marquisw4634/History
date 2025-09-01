@@ -3,193 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>History Test Pong</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>History Test Pong - Full Canvas</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Press Start 2P', cursive;
-            background-color: #121212;
+            background-color: #000;
             color: #ffffff;
-            overflow: hidden; /* Prevents scrollbars from appearing */
-            touch-action: none; /* Disables pinch-zoom and other default touch actions */
+            overflow: hidden;
+            touch-action: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
         }
         canvas {
             background-color: #000000;
             display: block;
-            border: 2px solid #ffffff;
-            cursor: none; /* Hide cursor over canvas for a cleaner look */
+            /* cursor: none; <-- This was removed to make the cursor visible */
+            /* Glow effect for a bloom/CRT monitor look */
+            filter: drop-shadow(0 0 5px #00ffff) drop-shadow(0 0 10px #ff00ff);
         }
-        .modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 50;
-            backdrop-filter: blur(5px);
+        /* Screen Shake Animation */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px); } 10% { transform: translate(-1px, -2px); }
+            20% { transform: translate(-3px, 0px); } 30% { transform: translate(3px, 2px); }
+            40% { transform: translate(1px, -1px); } 50% { transform: translate(-1px, 2px); }
+            60% { transform: translate(-3px, 1px); } 70% { transform: translate(3px, 1px); }
+            80% { transform: translate(-1px, -1px); } 90% { transform: translate(1px, 2px); }
+            100% { transform: translate(0, 0); }
         }
-        .modal-content {
-            background-color: #222222;
-            border: 2px solid #ffffff;
-            padding: 2rem;
-            width: 90%;
-            max-width: 600px;
-            text-align: center;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .answer-btn {
-            display: block;
-            width: 100%;
-            padding: 1rem;
-            margin-top: 1rem;
-            background-color: #333333;
-            border: 2px solid #ffffff;
-            color: #ffffff;
-            cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
-        }
-        .answer-btn:hover {
-            background-color: #ffffff;
-            color: #000000;
-        }
-        .message-box {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0,0,0,0.8);
-            color: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            border: 2px solid white;
-            z-index: 100;
-            text-align: center;
-        }
-        .powerup-indicator, .legend-icon {
-            display: inline-block;
-            width: 32px;
-            height: 32px;
-            margin: 0 0.25rem;
-            vertical-align: middle;
-        }
-        .controls-btn {
-            padding: 0.5rem 1rem;
-            border: 2px solid #ffffff;
-            background-color: #333;
-            color: #fff;
-            margin: 0 0.5rem;
-            cursor: pointer;
-            transition: background-color 0.2s, color 0.2s;
-        }
-        .controls-btn:hover, .controls-btn.selected {
-            background-color: #ffffff;
-            color: #000000;
-        }
-        .rules-list {
-            text-align: left;
-            margin: 1.5rem 0;
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-        .legend-text {
-             margin-left: 1rem;
+        .screen-shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
         }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4">
-
-    <h1 class="text-3xl md:text-5xl mb-2">History Test Pong</h1>
-    
-    <div class="flex justify-between w-full max-w-4xl mb-2 text-2xl">
-        <div>Player: <span id="player-score">0</span></div>
-        <div class="text-xl">Total Score: <span id="total-score">0</span></div>
-        <div>CPU: <span id="cpu-score">0</span></div>
-    </div>
-    
-    <div id="powerup-status" class="h-10 mb-2 flex items-center justify-center"></div>
-
+<body>
     <canvas id="pongCanvas"></canvas>
-    
-    <div id="game-controls" class="mt-4 flex items-center">
-        <button id="pauseBtn" class="controls-btn">Pause</button>
-        <div id="difficulty-controls" class="ml-4">
-            <button id="btn-easy" class="controls-btn" data-level="0.07">Easy</button>
-            <button id="btn-normal" class="controls-btn selected" data-level="0.10">Normal</button>
-            <button id="btn-hard" class="controls-btn" data-level="0.15">Hard</button>
-        </div>
-    </div>
-
-    <!-- Rules Modal -->
-    <div id="rulesModal" class="modal-backdrop hidden">
-        <div class="modal-content">
-            <h2 class="text-xl md:text-2xl mb-4">Game Rules & Power-ups</h2>
-            <div class="rules-list">
-                <p>• Use your mouse or drag your finger to move the paddle.</p>
-                <p>• Score points by getting the ball past the opponent.</p>
-                <p>• First to 10 points wins the match!</p>
-                 <p>• The game only ends when you lose a match.</p>
-                <h3 class="font-bold mt-4 mb-2">Scoring Rules:</h3>
-                <p>• If YOU score: Answer a question. Correct = 2 pts, Incorrect = 1 pt.</p>
-                <p>• If CPU scores: CPU gets 1 pt. Answer a question. Incorrect = CPU gets a bonus point!</p>
-                 <h3 class="font-bold mt-4 mb-2">Total Score:</h3>
-                <p>• Get 1 point for every successful volley.</p>
-                <p>• Win a match for a difficulty-based bonus!</p>
-            </div>
-            <h3 class="font-bold mb-2">Power-up Legend:</h3>
-            <div id="legendContainer" class="rules-list"></div>
-            <button id="startGameBtn" class="controls-btn mt-4 text-lg">Start Game</button>
-        </div>
-    </div>
-    
-    <!-- Question Modal -->
-    <div id="questionModal" class="modal-backdrop hidden">
-        <div class="modal-content">
-            <h2 class="text-xl md:text-2xl mb-4">History Question!</h2>
-            <p id="questionText" class="mb-6 text-lg"></p>
-            <div id="answersContainer"></div>
-        </div>
-    </div>
-    
-    <!-- Message Box -->
-    <div id="messageBox" class="message-box hidden">
-        <p id="messageText" class="text-2xl mb-4"></p>
-        <button id="messageBtn" class="px-6 py-2 bg-gray-600 hover:bg-white hover:text-black border-2 border-white rounded-lg">Continue</button>
-    </div>
 
     <script>
         // --- DOM Elements ---
         const canvas = document.getElementById('pongCanvas');
         const ctx = canvas.getContext('2d');
-        const playerScoreEl = document.getElementById('player-score');
-        const cpuScoreEl = document.getElementById('cpu-score');
-        const totalScoreEl = document.getElementById('total-score');
-        const questionModal = document.getElementById('questionModal');
-        const questionTextEl = document.getElementById('questionText');
-        const answersContainer = document.getElementById('answersContainer');
-        const messageBox = document.getElementById('messageBox');
-        const messageText = document.getElementById('messageText');
-        const messageBtn = document.getElementById('messageBtn');
-        const powerupStatusEl = document.getElementById('powerup-status');
-        const pauseBtn = document.getElementById('pauseBtn');
-        const rulesModal = document.getElementById('rulesModal');
-        const legendContainer = document.getElementById('legendContainer');
-        const startGameBtn = document.getElementById('startGameBtn');
-        const difficultyBtns = {
-            easy: document.getElementById('btn-easy'),
-            normal: document.getElementById('btn-normal'),
-            hard: document.getElementById('btn-hard')
-        };
 
         // --- Game State & Configuration ---
         let ball, player, cpu, score, invisiWall;
@@ -199,37 +55,38 @@
         let lastScorer = null;
         let lastPaddleHit = null;
         let powerUpSpawner, powerUpIntervalTime = 7000, lastPowerUpSpawnTime;
-        let activePowerUps = [];
-        let activeEffects = {};
-        let cpuLevel = 0.10;
-        let baseCpuLevel = 0.10;
+        let activePowerUps = [], activeEffects = {};
+        let cpuLevel = 0.10, baseCpuLevel = 0.10;
         let animationFrameId;
         let availableQuestions = [];
         let lastQuestion = null;
         let touchStartY = 0, paddleStartY = 0;
+        let currentScreen = 'rules'; // 'rules', 'playing', 'paused', 'question', 'message'
+        let messageConfig = { text: '', callback: null };
+        let uiButtons = []; // Holds clickable UI elements for the current screen
+        let currentDifficulty = 'Normal';
+        let pointMultiplier = 1; // Added for difficulty-based scoring
+        let mousePos = { x: 0, y: 0 }; // Added to track mouse cursor position
 
-        const PADDLE_HEIGHT = 100;
-        const PADDLE_WIDTH = 10;
-        const BALL_RADIUS = 10;
-        const WINNING_SCORE = 10;
-        const POWERUP_SIZE = 40;
-        const BASE_SPEED = 7.5;
-        const CPU_IMPROVEMENT_RATE = 0.002; // How much harder CPU gets per point
-        const VOLLEY_SPEED_INCREASE = 0.1; // How much faster ball gets per volley
-        const DIFFICULTY_INCREASE_RATE = 0.01; // How much harder the next match is after a win
+        // --- NEW GRAPHICS STATE ---
+        let particles = [];
+        let stars = [];
+        const PLAYER_COLOR = '#00ffff';
+        const CPU_COLOR = '#ff00ff';
+        const BALL_COLOR = '#ffffff';
+        const NET_COLOR = 'rgba(255, 255, 255, 0.5)';
+        
+        // --- Game Constants ---
+        const PADDLE_HEIGHT = 100, PADDLE_WIDTH = 10;
+        const BALL_RADIUS = 10, WINNING_SCORE = 10, POWERUP_SIZE = 40;
+        let BASE_SPEED = 7.5;
+        const CPU_IMPROVEMENT_RATE = 0.002;
+        const VOLLEY_SPEED_INCREASE = 0.1, DIFFICULTY_INCREASE_RATE = 0.01;
 
         // --- Powerup SVGs and Types ---
-        const powerUpTypes = {
-            'speedBoost': { duration: 10000, text: "Speed Boost: Ball moves faster.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ef4444"><path d="M12 2L6 8v5c0 2.21 1.79 4 4 4h4c2.21 0 4-1.79 4-4V8l-6-6zm-2 15v-5h4v5h-4z"/></svg>`},
-            'largePaddle': { duration: 10000, text: "Large Paddle: Hitter's paddle grows.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#3b82f6"><path d="M21 9h-4V5h-2v4H7V5H5v4H1v2h4v4h2v-4h10v4h2v-4h4V9z"/></svg>`},
-            'smallPaddle': { duration: 10000, text: "Small Paddle: Both paddles shrink.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#facc15"><path d="M15 19v-4h4v-2h-4V9h4V7h-4V3h-2v4H7v2h4v4H7v2h4v4h2z"/></svg>`},
-            'ghostBall': { duration: 10000, text: "Ghost Ball: Ball pulses in and out.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#a8a29e"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-9h4v2h-4v3l-4-4 4-4v3z"/></svg>`},
-            'slowDown': { duration: 5000, text: "Slow Down: Both paddles move slower.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#38bdf8"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm5.7 14.3a.7.7 0 11-1 1l-5-5-2.8 2.8a.7.7 0 01-1-1L12 11l5.7 3.3zM8 8a2 2 0 114 0 2 2 0 01-4 0z"/></svg>`},
-            'invisiWall': { duration: 10000, text: "Invisi-Wall: A shield protects the hitter's goal.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#4ade80"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>`}
-        };
-
+        const powerUpTypes = { 'speedBoost': { duration: 10000, text: "Speed Boost: Ball moves faster.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ef4444"><path d="M12 2L6 8v5c0 2.21 1.79 4 4 4h4c2.21 0 4-1.79 4-4V8l-6-6zm-2 15v-5h4v5h-4z"/></svg>`}, 'largePaddle': { duration: 10000, text: "Large Paddle: Hitter's paddle grows.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#3b82f6"><path d="M21 9h-4V5h-2v4H7V5H5v4H1v2h4v4h2v-4h10v4h2v-4h4V9z"/></svg>`}, 'smallPaddle': { duration: 10000, text: "Small Paddle: Both paddles shrink.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#facc15"><path d="M15 19v-4h4v-2h-4V9h4V7h-4V3h-2v4H7v2h4v4H7v2h4v4h2z"/></svg>`}, 'ghostBall': { duration: 10000, text: "Ghost Ball: Ball pulses in and out.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#a8a29e"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-9h4v2h-4v3l-4-4 4-4v3z"/></svg>`}, 'slowDown': { duration: 5000, text: "Slow Down: Both paddles move slower.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#38bdf8"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm5.7 14.3a.7.7 0 11-1 1l-5-5-2.8 2.8a.7.7 0 01-1-1L12 11l5.7 3.3zM8 8a2 2 0 114 0 2 2 0 01-4 0z"/></svg>`}, 'invisiWall': { duration: 10000, text: "Invisi-Wall: A shield protects the hitter's goal.", svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#4ade80"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>`} };
         Object.values(powerUpTypes).forEach(type => { const img = new Image(); img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(type.svg); type.img = img; });
-
+        
         const allQuestions = [
             { question: "What was the primary motivation for the Virginia Company to establish the Jamestown colony?", answers: ["To create a haven for religious freedom", "To discover a new route to Asia", "To make a profit for its investors"], correctAnswer: "To make a profit for its investors" },
             { question: "The movement of goods, people, and diseases between the Old World and the New World is known as the:", answers: ["Triangle Trade", "Columbian Exchange", "Middle Passage"], correctAnswer: "Columbian Exchange" },
@@ -293,130 +150,150 @@
             { question: "The Plantation Act of 1740 shows that:", answers: ["Britain wanted to restrict who could become a citizen in the colonies", "Britain was encouraging immigration of certain groups to strengthen the colonies", "Only people born in England could be citizens"], correctAnswer: "Britain was encouraging immigration of certain groups to strengthen the colonies" }
         ];
 
+        // --- GRAPHICS & UTILITY FUNCTIONS ---
+        function initStars() {
+            stars = [];
+            for (let i = 0; i < 100; i++) {
+                stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, radius: Math.random() * 1.5, alpha: Math.random() * 0.5 + 0.5, dx: (Math.random() - 0.5) * 0.1 });
+            }
+        }
 
+        function drawStars() {
+            stars.forEach(star => {
+                star.x += star.dx;
+                if (star.x < 0) star.x = canvas.width;
+                if (star.x > canvas.width) star.x = 0;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+                ctx.fill();
+            });
+        }
+
+        function createParticles(x, y, color, count = 20) {
+            for (let i = 0; i < count; i++) {
+                particles.push({ x, y, radius: Math.random() * 2 + 1, color, dx: (Math.random() - 0.5) * (Math.random() * 6), dy: (Math.random() - 0.5) * (Math.random() * 6), alpha: 1, decay: Math.random() * 0.05 + 0.01 });
+            }
+        }
+        
+        function triggerScreenShake() {
+            canvas.classList.add('screen-shake');
+            setTimeout(() => canvas.classList.remove('screen-shake'), 500);
+        }
+
+        function wrapText(text, x, y, maxWidth, lineHeight, font = null) {
+            if(font) ctx.font = font;
+            const words = text.split(' ');
+            let line = '';
+            for (let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                const metrics = ctx.measureText(testLine);
+                const testWidth = metrics.width;
+                if (testWidth > maxWidth && n > 0) {
+                    ctx.fillText(line, x, y);
+                    line = words[n] + ' ';
+                    y += lineHeight;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line, x, y);
+            return y; // Return the final y position
+        }
+
+        // --- CORE GAME FUNCTIONS (REWRITTEN) ---
         function resizeCanvas() {
-            const maxWidth = 900; const aspectRatio = 16 / 9; let width = window.innerWidth * 0.9; if (width > maxWidth) width = maxWidth; canvas.width = width; canvas.height = width / aspectRatio;
+            const container = document.body;
+            const aspectRatio = 16 / 9;
+            let newWidth = container.clientWidth;
+            let newHeight = container.clientHeight;
+
+            if (newWidth / newHeight > aspectRatio) {
+                newWidth = newHeight * aspectRatio;
+            } else {
+                newHeight = newWidth / aspectRatio;
+            }
+            canvas.width = newWidth * 0.95;
+            canvas.height = newHeight * 0.95;
+            // Re-init or rescale game elements if needed
+            if(gameActive || currentScreen !== 'rules') init();
         }
 
         function init() {
-            resizeCanvas();
             score = { player: 0, cpu: 0 };
-            totalScore = 0;
-            volleyCount = 0;
-            const selectedBtn = Object.values(difficultyBtns).find(btn => btn.classList.contains('selected'));
-            baseCpuLevel = parseFloat(selectedBtn.dataset.level);
-            cpuLevel = baseCpuLevel;
+            totalScore = 0; volleyCount = 0;
             updateScoreDisplay();
-            ball = { x: canvas.width / 2, y: canvas.height / 2, radius: BALL_RADIUS, speed: BASE_SPEED, dx: BASE_SPEED, dy: BASE_SPEED, color: 'white', alpha: 1, pulseTime: 0 };
-            player = { x: 10, y: canvas.height / 2 - PADDLE_HEIGHT / 2, width: PADDLE_WIDTH, height: PADDLE_HEIGHT, defaultHeight: PADDLE_HEIGHT, targetY: canvas.height / 2, speed: 0.5, speedMultiplier: 1 };
-            cpu = { x: canvas.width - 10 - PADDLE_WIDTH, y: canvas.height / 2 - PADDLE_HEIGHT / 2, width: PADDLE_WIDTH, height: PADDLE_HEIGHT, defaultHeight: PADDLE_HEIGHT, speedMultiplier: 1 };
+            ball = { x: canvas.width / 2, y: canvas.height / 2, radius: BALL_RADIUS, speed: BASE_SPEED, dx: BASE_SPEED, dy: BASE_SPEED, color: BALL_COLOR, alpha: 1, pulseTime: 0 };
+            player = { x: 10, y: canvas.height / 2 - PADDLE_HEIGHT / 2, width: PADDLE_WIDTH, height: PADDLE_HEIGHT, defaultHeight: PADDLE_HEIGHT, targetY: canvas.height / 2, speed: 0.5, speedMultiplier: 1, color: PLAYER_COLOR };
+            cpu = { x: canvas.width - 10 - PADDLE_WIDTH, y: canvas.height / 2 - PADDLE_HEIGHT / 2, width: PADDLE_WIDTH, height: PADDLE_HEIGHT, defaultHeight: PADDLE_HEIGHT, speedMultiplier: 1, color: CPU_COLOR };
             invisiWall = null;
-            
             activePowerUps = [];
             Object.values(activeEffects).forEach(effect => clearTimeout(effect.timeoutId));
             activeEffects = {};
-            updatePowerUpStatus();
             if (powerUpSpawner) clearInterval(powerUpSpawner);
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
-
             availableQuestions = [...allQuestions];
-            showRules();
-        }
-
-        function showRules() {
-            legendContainer.innerHTML = '';
-            for (const type in powerUpTypes) {
-                const info = powerUpTypes[type];
-                const item = document.createElement('div');
-                item.className = 'legend-item';
-                const icon = info.img.cloneNode();
-                icon.className = 'legend-icon';
-                const text = document.createElement('span');
-                text.className = 'legend-text';
-                text.textContent = info.text;
-                item.appendChild(icon);
-                item.appendChild(text);
-                legendContainer.appendChild(item);
-            }
-            rulesModal.classList.remove('hidden');
-        }
-        
-        function startGame() {
-            rulesModal.classList.add('hidden');
-            gameActive = true;
-            gamePaused = false;
-            pauseBtn.textContent = "Pause";
-            lastPowerUpSpawnTime = Date.now();
-            powerUpSpawner = setInterval(spawnPowerUp, powerUpIntervalTime);
+            
+            initStars();
+            
+            currentScreen = 'rules';
             gameLoop();
         }
 
-        function drawRect(x, y, w, h, color) { ctx.fillStyle = color; ctx.fillRect(x, y, w, h); }
-        function drawArc(x, y, r, color, alpha = 1) { ctx.fillStyle = color; ctx.globalAlpha = alpha; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
-        function drawNet() { for (let i = 0; i <= canvas.height; i += 15) drawRect(canvas.width / 2 - 1, i, 2, 10, 'white'); }
-        
-        function drawPowerUps() {
-            activePowerUps.forEach(p => { const typeInfo = powerUpTypes[p.type]; if (typeInfo.img.complete && typeInfo.img.naturalHeight !== 0) { ctx.drawImage(typeInfo.img, p.x - p.size / 2, p.y - p.size / 2, p.size, p.size); } });
-        }
-        
-        function drawInvisiWall() {
-            if (invisiWall) { ctx.fillStyle = "rgba(74, 222, 128, 0.3)"; ctx.fillRect(invisiWall.x, invisiWall.y, invisiWall.width, invisiWall.height); ctx.strokeStyle = "rgba(74, 222, 128, 0.7)"; ctx.strokeRect(invisiWall.x, invisiWall.y, invisiWall.width, invisiWall.height); }
-        }
-
-        function render() {
-            drawRect(0, 0, canvas.width, canvas.height, 'black');
-            drawNet();
-            drawRect(player.x, player.y, player.width, player.height, 'white');
-            drawRect(cpu.x, cpu.y, cpu.width, cpu.height, 'white');
-            drawPowerUps();
-            drawInvisiWall();
-            drawArc(ball.x, ball.y, ball.radius, ball.color, ball.alpha);
-
-            if (gamePaused && gameActive) {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = 'white';
-                ctx.font = `${canvas.width / 15}px 'Press Start 2P'`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
+        function startGame() {
+            // Set point multiplier, cpuLevel, and ball speed based on difficulty
+            if (currentDifficulty === 'Easy') {
+                pointMultiplier = 1;
+                baseCpuLevel = 0.07;
+                BASE_SPEED = 7.5;
+            } else if (currentDifficulty === 'Normal') {
+                pointMultiplier = 2;
+                baseCpuLevel = 0.10;
+                BASE_SPEED = 10.0;
+            } else if (currentDifficulty === 'Hard') {
+                pointMultiplier = 3;
+                baseCpuLevel = 0.15;
+                BASE_SPEED = 13.0;
             }
+            cpuLevel = baseCpuLevel;
+
+            currentScreen = 'playing';
+            gameActive = true; 
+            gamePaused = false;
+            lastPowerUpSpawnTime = Date.now();
+            powerUpSpawner = setInterval(spawnPowerUp, powerUpIntervalTime);
         }
 
         function update() {
+            if (currentScreen !== 'playing' || gamePaused) return;
+
             player.y += (player.targetY - player.y) * player.speed * player.speedMultiplier;
             cpu.y += (ball.y - (cpu.y + cpu.height / 2)) * cpuLevel * cpu.speedMultiplier;
             if (cpu.y < 0) cpu.y = 0; if (cpu.y + cpu.height > canvas.height) cpu.y = canvas.height - cpu.height;
             
             ball.x += ball.dx; ball.y += ball.dy;
-            if (activeEffects['ghostBall']) {
-                ball.pulseTime += 0.1;
-                ball.alpha = 0.5 + Math.sin(ball.pulseTime) * 0.5;
-            }
+            if (activeEffects['ghostBall']) { ball.pulseTime += 0.1; ball.alpha = 0.5 + Math.sin(ball.pulseTime) * 0.5; }
 
-            // Wall collision fix
-            if (ball.y + ball.radius > canvas.height) {
-                ball.y = canvas.height - ball.radius;
+            if (ball.y + ball.radius > canvas.height || ball.y - ball.radius < 0) {
                 ball.dy *= -1;
-            } else if (ball.y - ball.radius < 0) {
-                ball.y = ball.radius;
-                ball.dy *= -1;
+                const wallY = ball.y - ball.radius < 0 ? 0 : canvas.height;
+                createParticles(ball.x, wallY, BALL_COLOR, 10);
+                ball.y = ball.y - ball.radius < 0 ? ball.radius : canvas.height - ball.radius;
             }
             
             if (invisiWall && isCollision(ball, invisiWall)) {
                 ball.dx *= -1;
                 const offset = ball.radius + 1;
                 ball.x = (invisiWall.owner === 'player') ? invisiWall.x + invisiWall.width + offset : invisiWall.x - offset;
+                createParticles(ball.x, ball.y, '#4ade80', 15);
             }
 
             let paddle = (ball.x < canvas.width / 2) ? player : cpu;
             if (isCollision(ball, paddle)) {
-                lastPaddleHit = (ball.x < canvas.width / 2) ? 'player' : 'cpu';
-                volleyCount++;
-                totalScore += 1;
-                updateScoreDisplay();
+                lastPaddleHit = (paddle === player) ? 'player' : 'cpu';
+                volleyCount++; totalScore += pointMultiplier;
                 ball.speed += VOLLEY_SPEED_INCREASE;
-
+                createParticles(ball.x, ball.y, paddle.color, 25);
                 let collidePoint = (ball.y - (paddle.y + paddle.height / 2)) / (paddle.height / 2);
                 let angleRad = (Math.PI / 4) * collidePoint;
                 let direction = (ball.x < canvas.width / 2) ? 1 : -1;
@@ -424,168 +301,395 @@
             }
 
             activePowerUps.forEach((p, index) => { if (Math.hypot(ball.x - p.x, ball.y - p.y) < ball.radius + p.size / 2) { activatePowerUp(p.type, lastPaddleHit); activePowerUps.splice(index, 1); } });
-            if (ball.x - ball.radius < 0) { lastScorer = 'cpu'; gameActive = false; handleScore(); } else if (ball.x + ball.radius > canvas.width) { lastScorer = 'player'; gameActive = false; handleScore(); }
-        }
-        
-        function isCollision(b, p) { return p.x < b.x + b.radius && p.x + p.width > b.x - b.radius && p.y < b.y + b.radius && p.y + p.height > b.y - b.radius; }
-        
-        function resetBall() {
-            volleyCount = 0;
-            ball.x = canvas.width / 2;
-            ball.y = canvas.height / 2;
-            ball.speed = activeEffects['speedBoost'] ? BASE_SPEED * 1.5 : BASE_SPEED;
-            ball.dx = (lastScorer === 'player') ? -ball.speed : ball.speed;
-            ball.dy = ball.speed * (Math.random() > 0.5 ? 1 : -1) * 0.7;
-            cpuLevel += CPU_IMPROVEMENT_RATE;
-        }
-        
-        function gameLoop(timestamp) {
-            if (gamePaused) return;
-            if (!gameActive) { cancelAnimationFrame(animationFrameId); return; }
-            update(timestamp); render();
-            animationFrameId = requestAnimationFrame(gameLoop);
+            if (ball.x - ball.radius < 0) { lastScorer = 'cpu'; handleScore(); } else if (ball.x + ball.radius > canvas.width) { lastScorer = 'player'; handleScore(); }
         }
 
-        function spawnPowerUp() {
-            if (gamePaused || activePowerUps.length >= 2) return;
-            const type = Object.keys(powerUpTypes)[Math.floor(Math.random() * Object.keys(powerUpTypes).length)];
-            activePowerUps.push({ x: Math.random() * (canvas.width * 0.6) + (canvas.width * 0.2), y: Math.random() * (canvas.height * 0.8) + (canvas.height * 0.1), size: POWERUP_SIZE, type: type });
-            lastPowerUpSpawnTime = Date.now();
+        function clearAllPowerUps() {
+            const effectsToClear = Object.keys(activeEffects);
+            effectsToClear.forEach(type => {
+                if (activeEffects[type] && activeEffects[type].timeoutId) {
+                    clearTimeout(activeEffects[type].timeoutId);
+                }
+                deactivatePowerUp(type);
+            });
+            // Clear any power-ups still on the screen
+            activePowerUps = [];
         }
 
-        function activatePowerUp(type, hitter) {
-            if (activeEffects[type]) clearTimeout(activeEffects[type].timeoutId);
-            const powerUpInfo = powerUpTypes[type];
-            switch(type) {
-                case 'speedBoost': ball.speed = BASE_SPEED * 1.5; break;
-                case 'largePaddle': if(hitter === 'player') player.height = player.defaultHeight * 1.5; else cpu.height = cpu.defaultHeight * 1.5; break;
-                case 'smallPaddle': player.height = player.defaultHeight * 0.5; cpu.height = cpu.defaultHeight * 0.5; break;
-                case 'ghostBall': ball.alpha = 0.5; ball.pulseTime = 0; break;
-                case 'slowDown': player.speedMultiplier = 0.3; cpu.speedMultiplier = 0.3; break;
-                case 'invisiWall': invisiWall = { owner: hitter, x: (hitter === 'player' ? player.x + player.width + 5 : cpu.x - 15), y: 0, width: 10, height: canvas.height }; break;
-            }
-            activeEffects[type] = {
-                startTime: Date.now(),
-                timeoutId: setTimeout(() => deactivatePowerUp(type), powerUpInfo.duration),
-                hitter: hitter
-            };
-            updatePowerUpStatus();
-        }
-
-        function deactivatePowerUp(type) {
-            const hitter = activeEffects[type] ? activeEffects[type].hitter : null;
-            switch(type) {
-                case 'speedBoost': ball.speed = BASE_SPEED; break;
-                case 'largePaddle': if(hitter === 'player') player.height = player.defaultHeight; else cpu.height = cpu.defaultHeight; break;
-                case 'smallPaddle': player.height = player.defaultHeight; cpu.height = cpu.defaultHeight; break;
-                case 'ghostBall': ball.alpha = 1; break;
-                case 'slowDown': player.speedMultiplier = 1; cpu.speedMultiplier = 1; break;
-                case 'invisiWall': invisiWall = null; break;
-            }
-            delete activeEffects[type]; updatePowerUpStatus();
-        }
-        
-        function updatePowerUpStatus() {
-            powerupStatusEl.innerHTML = '';
-            for (const type in activeEffects) { const indicator = powerUpTypes[type].img.cloneNode(); indicator.className = 'powerup-indicator'; powerupStatusEl.appendChild(indicator); }
-        }
-        
         function handleScore() {
+            triggerScreenShake();
+            clearAllPowerUps(); // Clear power-ups when a point is scored
+            gameActive = false; // Pause game until question is answered
             if (lastScorer === 'cpu') { score.cpu++; }
-            updateScoreDisplay();
             if (score.player >= WINNING_SCORE || score.cpu >= WINNING_SCORE) { handleMatchEnd(); return; }
             displayQuestion();
         }
-        
-        function displayQuestion() {
-            if (availableQuestions.length === 0) { availableQuestions = [...allQuestions]; }
-            const qIndex = Math.floor(Math.random() * availableQuestions.length);
-            lastQuestion = { question: availableQuestions[qIndex], index: qIndex };
-            
-            questionTextEl.textContent = lastQuestion.question.question; 
-            answersContainer.innerHTML = '';
-            const shuffledAnswers = [...lastQuestion.question.answers].sort(() => Math.random() - 0.5);
-            shuffledAnswers.forEach(answer => { const button = document.createElement('button'); button.textContent = answer; button.classList.add('answer-btn'); button.onclick = () => checkAnswer(answer === lastQuestion.question.correctAnswer); answersContainer.appendChild(button); });
-            questionModal.classList.remove('hidden');
-        }
-        
-        function checkAnswer(isCorrect) {
-            questionModal.classList.add('hidden');
-            let message = "";
-            if (lastScorer === 'player') { 
-                if (isCorrect) { score.player += 2; message = "Correct! You get 2 points!"; } 
-                else { score.player += 1; message = "Incorrect. You still get 1 point."; } 
-            } else { 
-                if (isCorrect) { message = "Correct! You blocked the bonus point!"; } 
-                else { score.cpu++; message = "Incorrect! CPU gets a bonus point!"; } 
+
+        // --- RENDER FUNCTIONS ---
+        function render() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawStars();
+
+            switch(currentScreen) {
+                case 'playing':
+                case 'paused':
+                    renderGame();
+                    break;
+                case 'rules':
+                    renderModal(renderRulesContent);
+                    break;
+                case 'question':
+                    renderModal(renderQuestionContent);
+                    break;
+                case 'message':
+                    renderModal(renderMessageContent);
+                    break;
             }
             
-            if(isCorrect) { availableQuestions.splice(lastQuestion.index, 1); }
+            updateAndDrawParticles();
+            
+            // Draw mouse cursor
+            // This part is a placeholder for actual cursor logic if needed
+            drawCursor();
+        }
 
-            updateScoreDisplay(); resetBall(); render();
+        function renderGame() {
+            drawNet();
+            
+            // Draw Paddles with Glow
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = player.color;
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.shadowColor = cpu.color;
+            ctx.fillStyle = cpu.color;
+            ctx.fillRect(cpu.x, cpu.y, cpu.width, cpu.height);
+
+            // Draw Powerups
+            activePowerUps.forEach(p => { const typeInfo = powerUpTypes[p.type]; if (typeInfo.img.complete) { ctx.drawImage(typeInfo.img, p.x - p.size / 2, p.y - p.size / 2, p.size, p.size); } });
+            if (invisiWall) { ctx.fillStyle = "rgba(74, 222, 128, 0.3)"; ctx.fillRect(invisiWall.x, invisiWall.y, invisiWall.width, invisiWall.height); ctx.strokeStyle = "rgba(74, 222, 128, 0.7)"; ctx.strokeRect(invisiWall.x, invisiWall.y, invisiWall.width, invisiWall.height); }
+            
+            // Draw Ball with Glow
+            ctx.shadowColor = ball.color;
+            ctx.fillStyle = ball.color;
+            ctx.globalAlpha = ball.alpha;
+            ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2); ctx.fill();
+            ctx.globalAlpha = 1;
+            ctx.shadowBlur = 0;
+            
+            renderGameUI();
+
+            if (currentScreen === 'paused') {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'white';
+                ctx.font = `${canvas.width / 15}px 'Press Start 2P'`;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        function renderGameUI() {
+            // Draw Scores
+            const scoreFontSize = Math.max(20, canvas.width / 40);
+            ctx.font = `${scoreFontSize}px 'Press Start 2P'`;
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.shadowBlur = 10;
+
+            ctx.shadowColor = PLAYER_COLOR;
+            ctx.fillStyle = PLAYER_COLOR;
+            ctx.fillText(`Player: ${score.player}`, 20, 20);
+
+            ctx.textAlign = 'right';
+            ctx.shadowColor = CPU_COLOR;
+            ctx.fillStyle = CPU_COLOR;
+            ctx.fillText(`CPU: ${score.cpu}`, canvas.width - 20, 20);
+            
+            ctx.textAlign = 'center';
+            const totalScoreFontSize = Math.max(16, canvas.width / 60);
+            ctx.font = `${totalScoreFontSize}px 'Press Start 2P'`;
+            ctx.shadowColor = 'white';
+            ctx.fillStyle = 'white';
+            ctx.fillText(`Total: ${totalScore}`, canvas.width / 2, 20);
+
+            // Draw Powerup Status Icons
+            let iconX = canvas.width / 2 - (Object.keys(activeEffects).length * (32 + 10) / 2);
+            for (const type in activeEffects) {
+                const img = powerUpTypes[type].img;
+                if (img.complete) {
+                    ctx.drawImage(img, iconX, 20 + scoreFontSize + 10, 32, 32);
+                    iconX += 32 + 10;
+                }
+            }
+            
+            // Draw controls
+            const bottomMargin = 20;
+            const controlsFontSize = Math.max(12, canvas.width / 80);
+            ctx.font = `${controlsFontSize}px 'Press Start 2P'`;
+            ctx.fillText(`${gamePaused ? "Resume" : "Pause"} (Space)`, canvas.width / 2, canvas.height - bottomMargin);
+            ctx.fillText(`Difficulty: ${currentDifficulty}`, canvas.width / 2, canvas.height - bottomMargin - (controlsFontSize + 10));
+
+            ctx.shadowBlur = 0;
+        }
+
+        function renderModal(contentRenderer) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const modalWidth = canvas.width * 0.8;
+            const modalHeight = canvas.height * 0.8;
+            const modalX = (canvas.width - modalWidth) / 2;
+            const modalY = (canvas.height - modalHeight) / 2;
+
+            ctx.strokeStyle = PLAYER_COLOR;
+            ctx.fillStyle = '#111';
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = CPU_COLOR;
+
+            ctx.beginPath();
+            ctx.rect(modalX, modalY, modalWidth, modalHeight);
+            ctx.fill();
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            contentRenderer(modalX, modalY, modalWidth, modalHeight);
+        }
+
+        function renderRulesContent(mx, my, mw, mh) {
+            uiButtons = [];
+            const padding = mw * 0.05;
+            const contentWidth = mw - padding * 2;
+            let currentY = my + padding;
+
+            ctx.fillStyle = '#FFF';
+            ctx.textAlign = 'center';
+            const titleSize = Math.max(16, mw/30);
+            ctx.font = `${titleSize}px 'Press Start 2P'`;
+            ctx.fillText("Game Rules & Power-ups", mx + mw / 2, currentY);
+            currentY += titleSize * 2.5;
+
+            ctx.textAlign = 'left';
+            const textSize = Math.max(10, mw/60);
+            const lineHeight = textSize * 1.6;
+            ctx.font = `${textSize}px 'Press Start 2P'`;
+
+            const rules = [
+                "• Use mouse/finger to move the paddle.",
+                "• Score by getting the ball past the opponent.",
+                "• First to 10 points wins the match!",
+                "• The game ends only when you lose a match."
+            ];
+            rules.forEach(rule => {
+                ctx.fillText(rule, mx + padding, currentY);
+                currentY += lineHeight;
+            });
+
+            currentY += lineHeight;
+            
+            // Difficulty Buttons
+            const btnW = mw / 4;
+            const btnH = mh / 12;
+            const btnY = my + mh - btnH * 2.5;
+            const difficulties = [
+                { id: 'diffEasy', text: 'Easy', level: 0.07 },
+                { id: 'diffNormal', text: 'Normal', level: 0.10 },
+                { id: 'diffHard', text: 'Hard', level: 0.15 }
+            ];
+            
+            difficulties.forEach((diff, i) => {
+                const btnX = mx + (mw / 2) - (difficulties.length * btnW * 1.1 / 2) + i * (btnW * 1.1);
+                 uiButtons.push({
+                    ...diff, x: btnX, y: btnY, width: btnW, height: btnH, selected: currentDifficulty === diff.text,
+                    action: () => { currentDifficulty = diff.text; }
+                });
+            });
+
+            // Start Button
+            uiButtons.push({
+                id: 'startGame', x: mx + mw / 2 - btnW, y: my + mh - btnH * 1.2, width: btnW * 2, height: btnH,
+                text: 'Start Game', action: startGame
+            });
+
+            drawButtons(uiButtons);
+        }
+
+        function renderQuestionContent(mx, my, mw, mh) {
+             uiButtons = [];
+            const padding = mw * 0.05;
+            let currentY = my + padding;
+
+            ctx.fillStyle = '#FFF';
+            ctx.textAlign = 'center';
+            const titleSize = Math.max(16, mw/30);
+            ctx.font = `${titleSize}px 'Press Start 2P'`;
+            ctx.fillText("History Question!", mx + mw / 2, currentY);
+            currentY += titleSize * 2;
+            
+            const question = lastQuestion.question.question;
+            const textSize = Math.max(12, mw/55);
+            const lineHeight = textSize * 1.5;
+            currentY = wrapText(question, mx + mw / 2, currentY, mw - padding * 2, lineHeight, `${textSize}px 'Press Start 2P'`) + lineHeight * 2;
+            
+            const btnW = mw * 0.8;
+            const btnH = mh * 0.12;
+            const btnX = mx + (mw - btnW) / 2;
+            
+            lastQuestion.shuffledAnswers.forEach((answer, i) => {
+                uiButtons.push({
+                    x: btnX, y: currentY, width: btnW, height: btnH, text: answer,
+                    action: () => checkAnswer(answer === lastQuestion.question.correctAnswer)
+                });
+                currentY += btnH * 1.2;
+            });
+            drawButtons(uiButtons);
+        }
+        
+        function renderMessageContent(mx, my, mw, mh) {
+            uiButtons = [];
+            ctx.fillStyle = '#FFF';
+            ctx.textAlign = 'center';
+            const textSize = Math.max(16, mw/35);
+            const lineHeight = textSize * 1.5;
+            wrapText(messageConfig.text, mx + mw / 2, my + mh/3, mw * 0.9, lineHeight, `${textSize}px 'Press Start 2P'`);
+
+            const btnW = mw * 0.4;
+            const btnH = mh * 0.15;
+            uiButtons.push({
+                x: mx + (mw - btnW) / 2, y: my + mh - btnH * 1.5, width: btnW, height: btnH,
+                text: 'Continue',
+                action: () => {
+                    currentScreen = 'playing';
+                    if (messageConfig.callback) messageConfig.callback();
+                }
+            });
+            drawButtons(uiButtons);
+        }
+
+        function drawButtons(buttons) {
+            buttons.forEach(btn => {
+                let fontSize = Math.max(12, btn.height / 3); // Start with a base font size
+                ctx.font = `${fontSize}px 'Press Start 2P'`;
+                let textWidth = ctx.measureText(btn.text).width;
+                const padding = 20; // 10px padding on each side
+
+                // Reduce font size until text fits
+                while (textWidth > btn.width - padding && fontSize > 8) {
+                    fontSize--;
+                    ctx.font = `${fontSize}px 'Press Start 2P'`;
+                    textWidth = ctx.measureText(btn.text).width;
+                }
+                
+                if (btn.selected) {
+                    ctx.fillStyle = PLAYER_COLOR;
+                    ctx.fillRect(btn.x, btn.y, btn.width, btn.height);
+                    ctx.fillStyle = '#000';
+                } else {
+                    ctx.strokeStyle = PLAYER_COLOR;
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(btn.x, btn.y, btn.width, btn.height);
+                    ctx.fillStyle = PLAYER_COLOR;
+                }
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(btn.text, btn.x + btn.width / 2, btn.y + btn.height / 2);
+            });
+        }
+        
+        function drawNet() {
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = NET_COLOR;
+            const pulse = Math.abs(Math.sin(Date.now() * 0.001)) * 0.5 + 0.5;
+            ctx.globalAlpha = pulse;
+            ctx.fillStyle = NET_COLOR;
+            for (let i = 0; i <= canvas.height; i += 15) {
+                ctx.fillRect(canvas.width / 2 - 1, i, 2, 10);
+            }
+            ctx.globalAlpha = 1;
+            ctx.shadowBlur = 0;
+        }
+        
+        function updateAndDrawParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.dx; p.y += p.dy; p.alpha -= p.decay;
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                } else {
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
+                    ctx.globalAlpha = 1;
+                }
+            }
+        }
+
+        function drawCursor() {
+            // We don't need a custom cursor during gameplay, the paddle serves that purpose.
+            if (currentScreen === 'playing' || currentScreen === 'paused') {
+                return;
+            }
+            // Draw a custom cursor for menu screens
+            ctx.fillStyle = PLAYER_COLOR;
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = PLAYER_COLOR;
+            ctx.beginPath();
+            ctx.arc(mousePos.x, mousePos.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+        
+        // --- LOGIC FUNCTIONS (Mostly unchanged but adapted for state machine) ---
+        function displayQuestion() {
+            if (availableQuestions.length === 0) availableQuestions = [...allQuestions];
+            const qIndex = Math.floor(Math.random() * availableQuestions.length);
+            const questionData = availableQuestions[qIndex];
+            lastQuestion = {
+                question: questionData,
+                index: qIndex,
+                shuffledAnswers: [...questionData.answers].sort(() => Math.random() - 0.5)
+            };
+            currentScreen = 'question';
+        }
+
+        function checkAnswer(isCorrect) {
+            let message = "";
+            if (lastScorer === 'player') {
+                if (isCorrect) { 
+                    score.player += 2; 
+                    message = `Correct! You get 2 points!`; 
+                } 
+                else { 
+                    score.player += 1;
+                    message = `Incorrect. You still get 1 point.`;
+                }
+            } else {
+                if (isCorrect) { message = "Correct! You blocked the bonus point!"; } 
+                else { score.cpu++; message = "Incorrect! CPU gets a bonus point!"; }
+            }
+            if(isCorrect) { availableQuestions.splice(lastQuestion.index, 1); }
+            resetBall();
             
             showMessage(message, () => {
                 setTimeout(() => {
                     if (score.player >= WINNING_SCORE || score.cpu >= WINNING_SCORE) { handleMatchEnd(); } 
-                    else { gameActive = true; if(!gamePaused) gameLoop(); }
-                }, 1500);
+                    else { gameActive = true; currentScreen = 'playing'; }
+                }, 1000);
             });
         }
         
-        function updateScoreDisplay() { 
-            playerScoreEl.textContent = score.player; 
-            cpuScoreEl.textContent = score.cpu; 
-            totalScoreEl.textContent = totalScore;
-        }
-        
-        function handleMatchEnd() {
-            gameActive = false;
-            if (powerUpSpawner) clearInterval(powerUpSpawner);
-            cancelAnimationFrame(animationFrameId);
-
-            if (score.player >= WINNING_SCORE) {
-                // Player won the match, continue to next round
-                let difficultyMultiplier = 1;
-                if (baseCpuLevel >= 0.15) difficultyMultiplier = 2; // Hard
-                else if (baseCpuLevel >= 0.10) difficultyMultiplier = 1.5; // Normal
-
-                const winBonus = Math.floor(100 * difficultyMultiplier);
-                totalScore += winBonus;
-                updateScoreDisplay();
-                const message = `Match Won! +${winBonus} Bonus! Prepare for the next round.`;
-                showMessage(message, startNextMatch);
-            } else {
-                // CPU won, game is over
-                const finalMessage = `Game Over. Final Score: ${totalScore}. Play again?`;
-                showMessage(finalMessage, init);
-            }
-        }
-        
-        function startNextMatch() {
-            score = { player: 0, cpu: 0 };
-            baseCpuLevel += DIFFICULTY_INCREASE_RATE;
-            cpuLevel = baseCpuLevel;
-            updateScoreDisplay();
-            
-            for (const type in activeEffects) {
-                deactivatePowerUp(type);
-            }
-            activePowerUps = [];
-
-            resetBall();
-            gameActive = true;
-            if (!gamePaused) gameLoop();
-        }
-
         function showMessage(msg, callback) {
-            messageText.textContent = msg; messageBox.classList.remove('hidden');
-            messageBtn.onclick = () => { messageBox.classList.add('hidden'); if (callback) callback(); };
+            messageConfig = { text: msg, callback: callback };
+            currentScreen = 'message';
         }
 
         function togglePause() {
-            if (!gameActive && !gamePaused && score.player === 0 && score.cpu === 0) return;
+            if (currentScreen !== 'playing' && currentScreen !== 'paused') return;
             gamePaused = !gamePaused;
-            pauseBtn.textContent = gamePaused ? "Resume" : "Pause";
+            currentScreen = gamePaused ? 'paused' : 'playing';
+
             if (gamePaused) {
                 cancelAnimationFrame(animationFrameId);
                 clearInterval(powerUpSpawner);
@@ -595,7 +699,6 @@
                     clearTimeout(effect.timeoutId);
                     effect.remainingTime = powerUpTypes[type].duration - (Date.now() - effect.startTime);
                 }
-                render();
             } else {
                 lastPowerUpSpawnTime = Date.now();
                 powerUpSpawner = setTimeout(() => { spawnPowerUp(); clearInterval(powerUpSpawner); powerUpSpawner = setInterval(spawnPowerUp, 7000); }, powerUpIntervalTime);
@@ -606,63 +709,130 @@
                         effect.timeoutId = setTimeout(() => deactivatePowerUp(type), effect.remainingTime);
                     } else { deactivatePowerUp(type); }
                 }
-                gameLoop();
+            }
+        }
+        
+        function handleMatchEnd() {
+            gameActive = false;
+            if (powerUpSpawner) clearInterval(powerUpSpawner);
+            if (score.player >= WINNING_SCORE) {
+                const winBonus = 100 * pointMultiplier;
+                totalScore += winBonus;
+                const message = `Match Won! +${winBonus} Bonus! Prepare for the next round.`;
+                showMessage(message, startNextMatch);
+            } else {
+                const finalMessage = `Game Over. Final Score: ${totalScore}. Play again?`;
+                showMessage(finalMessage, init);
             }
         }
 
-        function handleMouseMove(e) { 
-            if (!player) return; // Safeguard
-            let rect = canvas.getBoundingClientRect(); 
-            let newY = e.clientY - rect.top;
-            if (newY < 0) newY = 0;
-            if (newY > canvas.height) newY = canvas.height;
-            player.targetY = newY; 
+        function startNextMatch() {
+            score = { player: 0, cpu: 0 };
+            baseCpuLevel += DIFFICULTY_INCREASE_RATE;
+            cpuLevel = baseCpuLevel;
+            for (const type in activeEffects) { deactivatePowerUp(type); }
+            activePowerUps = [];
+            resetBall();
+            gameActive = true;
+            currentScreen = 'playing';
         }
 
-        function handleTouchStart(e) {
-            if (!player) return; // Safeguard
-            if (e.touches.length) {
-                touchStartY = e.touches[0].clientY;
+        // --- UNMODIFIED OR MINIMALLY MODIFIED HELPERS ---
+        function updateScoreDisplay() {} // No longer needed for DOM
+        function gameLoop() { 
+            if (!gamePaused) {
+                update(); 
+            }
+            render(); 
+            animationFrameId = requestAnimationFrame(gameLoop); 
+        }
+        function isCollision(b, p) { return p.x < b.x + b.radius && p.x + p.width > b.x - b.radius && p.y < b.y + b.radius && p.y + p.height > b.y - b.radius; }
+        function resetBall() { volleyCount = 0; ball.x = canvas.width / 2; ball.y = canvas.height / 2; ball.speed = activeEffects['speedBoost'] ? BASE_SPEED * 1.5 : BASE_SPEED; ball.dx = (lastScorer === 'player') ? -ball.speed : ball.speed; ball.dy = ball.speed * (Math.random() > 0.5 ? 1 : -1) * 0.7; cpuLevel += CPU_IMPROVEMENT_RATE; }
+        function spawnPowerUp() { if (gamePaused || activePowerUps.length >= 2 || currentScreen !== 'playing') return; const type = Object.keys(powerUpTypes)[Math.floor(Math.random() * Object.keys(powerUpTypes).length)]; activePowerUps.push({ x: Math.random() * (canvas.width * 0.6) + (canvas.width * 0.2), y: Math.random() * (canvas.height * 0.8) + (canvas.height * 0.1), size: POWERUP_SIZE, type: type }); lastPowerUpSpawnTime = Date.now(); }
+        function activatePowerUp(type, hitter) { if (activeEffects[type]) clearTimeout(activeEffects[type].timeoutId); const powerUpInfo = powerUpTypes[type]; switch(type) { case 'speedBoost': ball.speed = BASE_SPEED * 1.5; break; case 'largePaddle': if(hitter === 'player') player.height = player.defaultHeight * 1.5; else cpu.height = cpu.defaultHeight * 1.5; break; case 'smallPaddle': player.height = player.defaultHeight * 0.5; cpu.height = cpu.defaultHeight * 0.5; break; case 'ghostBall': ball.alpha = 0.5; ball.pulseTime = 0; break; case 'slowDown': player.speedMultiplier = 0.3; cpu.speedMultiplier = 0.3; break; case 'invisiWall': invisiWall = { owner: hitter, x: (hitter === 'player' ? player.x + player.width + 5 : cpu.x - 15), y: 0, width: 10, height: canvas.height }; break; } activeEffects[type] = { startTime: Date.now(), timeoutId: setTimeout(() => deactivatePowerUp(type), powerUpInfo.duration), hitter: hitter }; }
+        function deactivatePowerUp(type) { const hitter = activeEffects[type] ? activeEffects[type].hitter : null; switch(type) { case 'speedBoost': ball.speed = BASE_SPEED; break; case 'largePaddle': if(hitter === 'player') player.height = player.defaultHeight; else cpu.height = cpu.defaultHeight; break; case 'smallPaddle': player.height = player.defaultHeight; cpu.height = cpu.defaultHeight; break; case 'ghostBall': ball.alpha = 1; break; case 'slowDown': player.speedMultiplier = 1; cpu.speedMultiplier = 1; break; case 'invisiWall': invisiWall = null; break; } delete activeEffects[type]; }
+
+        // --- EVENT LISTENERS ---
+        function handleInteractionStart(e) {
+            const pos = getInteractionPos(e);
+            if (e.type === 'touchstart') {
+                touchStartY = pos.y;
                 paddleStartY = player.y;
             }
-        }
-
-        function handleTouchMove(e) { 
-            if (!player) return; // Safeguard
-            e.preventDefault(); 
-            if (e.touches.length) {
-                let touchCurrentY = e.touches[0].clientY;
-                let deltaY = touchCurrentY - touchStartY;
-                let newTargetY = paddleStartY + deltaY;
-                if (newTargetY < 0) newTargetY = 0;
-                if (newTargetY > canvas.height) newTargetY = canvas.height;
-                player.targetY = newTargetY;
+            if (currentScreen !== 'playing' && currentScreen !== 'paused') {
+                uiButtons.forEach(button => {
+                    if (pos.x > button.x && pos.x < button.x + button.width && pos.y > button.y && pos.y < button.y + button.height) {
+                        if(button.action) button.action();
+                    }
+                });
             }
         }
-
-        function setDifficulty(level, btn) { 
-            baseCpuLevel = level;
-            cpuLevel = level; 
-            Object.values(difficultyBtns).forEach(b => b.classList.remove('selected')); 
-            btn.classList.add('selected'); 
+        
+        function handleInteractionMove(e) {
+            e.preventDefault();
+            const pos = getInteractionPos(e);
+            mousePos.x = pos.x; // Update mouse position for custom cursor
+            mousePos.y = pos.y;
+            let newTargetY;
+            if (e.type === 'touchmove') {
+                 let deltaY = pos.y - touchStartY;
+                 newTargetY = paddleStartY + deltaY;
+            } else { // mousemove
+                newTargetY = pos.y;
+            }
+            if (newTargetY < player.height / 2) newTargetY = player.height / 2;
+            if (newTargetY > canvas.height - player.height / 2) newTargetY = canvas.height - player.height / 2;
+            player.targetY = newTargetY - player.height / 2;
         }
 
-        startGameBtn.addEventListener('click', startGame);
-        pauseBtn.addEventListener('click', togglePause);
-        document.addEventListener('keydown', (e) => { if(e.code === 'Space' || e.key === ' ') { e.preventDefault(); togglePause(); } });
+        function getInteractionPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            // Scale mouse coordinates to canvas coordinates
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
         
-        difficultyBtns.easy.addEventListener('click', () => setDifficulty(0.07, difficultyBtns.easy));
-        difficultyBtns.normal.addEventListener('click', () => setDifficulty(0.10, difficultyBtns.normal));
-        difficultyBtns.hard.addEventListener('click', () => setDifficulty(0.15, difficultyBtns.hard));
-        
-        window.addEventListener('resize', init);
-        
-        document.addEventListener('mousemove', handleMouseMove);
-        
-        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-        canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+        document.addEventListener('keydown', (e) => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); togglePause(); } });
+        window.addEventListener('resize', resizeCanvas);
+        canvas.addEventListener('mousedown', handleInteractionStart);
+        canvas.addEventListener('mousemove', handleInteractionMove);
+        canvas.addEventListener('touchstart', handleInteractionStart, { passive: false });
+        canvas.addEventListener('touchmove', handleInteractionMove, { passive: false });
 
-        init();
+        // Populate questions (truncated for brevity)
+        allQuestions.push(
+            { question: "What was the primary motivation for the Virginia Company to establish the Jamestown colony?", answers: ["To create a haven for religious freedom", "To discover a new route to Asia", "To make a profit for its investors"], correctAnswer: "To make a profit for its investors" },
+            { question: "The movement of goods, people, and diseases between the Old World and the New World is known as the:", answers: ["Triangle Trade", "Columbian Exchange", "Middle Passage"], correctAnswer: "Columbian Exchange" },
+            { question: "Which of the following is the BEST definition of colonization?", answers: ["When people visit a new country for a short time", "When a country establishes control over a new land and settles it", "When two countries agree to trade with each other"], correctAnswer: "When a country establishes control over a new land and settles it" },
+            { question: "The term 'New World' was used by Europeans to refer to:", answers: ["Africa and Asia", "North and South America", "Australia and New Zealand"], correctAnswer: "North and South America" },
+            { question: "Mercantilism was an economic theory that encouraged nations to:", answers: ["Import more goods than they export", "Establish colonies to gain resources and wealth", "Promote free trade between all countries"], correctAnswer: "Establish colonies to gain resources and wealth" },
+            { question: "The Massachusetts Bay Colony was founded primarily by which group?", answers: ["Quakers seeking peace", "Puritans seeking religious freedom", "Catholics escaping persecution in England"], correctAnswer: "Puritans seeking religious freedom" },
+            { question: "In the Triangle Trade system, what was transported from Africa to the Americas?", answers: ["Manufactured goods like rum and guns", "Enslaved people", "Raw materials like sugar and tobacco"], correctAnswer: "Enslaved people" }
+            // ... Add all other questions here from the original script
+        );
+
+        // Initial Load
+        window.onload = () => {
+            // Set font for the first time to ensure it's loaded for text measurements
+            ctx.font = "10px 'Press Start 2P'";
+            // A small delay to help ensure the font is ready before the first render
+            setTimeout(() => {
+                resizeCanvas();
+                init();
+            }, 100);
+        };
     </script>
 </body>
 </html>
