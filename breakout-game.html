@@ -13,7 +13,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            height: 100vh; 
             background-color: #0d0221;
             font-family: 'Orbitron', sans-serif;
             color: #f0f0f0;
@@ -35,6 +35,7 @@
         #game-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             width: 100%;
             margin-bottom: 15px;
             font-size: 1.2rem;
@@ -49,6 +50,23 @@
             border: 2px solid #ff00ff;
             box-shadow: 0 0 10px rgba(255, 0, 255, 0.5) inset;
         }
+
+        #sound-toggle {
+            cursor: pointer;
+            font-size: 1.5rem;
+            user-select: none;
+            transition: transform 0.2s, opacity 0.2s;
+            margin: 0 15px;
+        }
+
+        #sound-toggle:hover {
+            transform: scale(1.1);
+        }
+        
+        #sound-toggle.muted {
+            opacity: 0.5;
+        }
+
 
         canvas {
             background: #000;
@@ -148,6 +166,7 @@
             transform: scale(0.95);
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
 </head>
 <body>
 
@@ -155,6 +174,7 @@
         <div id="game-header">
             <div id="score-container">SCORE: <span id="score">0</span></div>
             <div id="level-container">LEVEL: <span id="level">1</span></div>
+            <div id="sound-toggle" title="Toggle Music">🎵</div>
             <div id="lives-container">LIVES: <span id="lives">3</span></div>
         </div>
         <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -188,6 +208,7 @@
         let currentLevel = 1;
         let comboCounter = 0;
         let screenShake = 0;
+        let audioInitialized = false;
 
         // --- Trivia State ---
         let inTriviaMode = false;
@@ -261,6 +282,112 @@
             { q: "In which country would you find the Pyramids of Giza?", a: ["Greece", "Mexico", "Egypt", "Peru"], correct: 2 },
             { q: "What does 'CPU' stand for?", a: ["Central Processing Unit", "Computer Personal Unit", "Central Power Unit", "Core Processing Unit"], correct: 0 }
         ];
+
+        // --- Sound & Music Engine ---
+        const sound = {
+            initialized: false,
+            isMuted: false,
+            musicLoop: null,
+            membraneSynth: null,
+            fmSynth: null,
+            noiseSynth: null,
+            polySynth: null,
+            laserSynth: null,
+
+            init: function() {
+                if (this.initialized) return;
+
+                this.membraneSynth = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 6, envelope: { attack: 0.001, decay: 0.2, sustain: 0.01, release: 0.4 } }).toDestination();
+                this.fmSynth = new Tone.FMSynth({ harmonicity: 2, modulationIndex: 3, envelope: { attack: 0.01, decay: 0.2, sustain: 0.01, release: 0.2 }, modulationEnvelope: { attack: 0.01, decay: 0.3, sustain: 0, release: 0.2 } }).toDestination();
+                this.noiseSynth = new Tone.NoiseSynth({ noise: { type: 'brown' }, envelope: { attack: 0.005, decay: 0.2, sustain: 0.1 } }).toDestination();
+                const laserFilter = new Tone.AutoFilter("8n").toDestination().start();
+                this.laserSynth = new Tone.FMSynth({ harmonicity: 0.5, modulationIndex: 10, envelope: { attack: 0.01, decay: 0.05, sustain: 0, release: 0.1 } }).connect(laserFilter);
+                this.polySynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "sawtooth" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 } }).toDestination();
+                
+                this.initialized = true;
+            },
+            
+            initMusic: function() {
+                if (this.musicLoop) return;
+
+                // A subtle reverb to add space and smoothness
+                const reverb = new Tone.Reverb({
+                    decay: 2,
+                    preDelay: 0.01,
+                    wet: 0.3
+                }).toDestination();
+                
+                // A low-pass filter to remove harsh high frequencies, making it sound warmer
+                const filter = new Tone.Filter(900, 'lowpass').connect(reverb);
+
+                // Main synth for chords, using a soft triangle wave instead of the harsh one
+                const chordSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: 'triangle' },
+                    volume: -14,
+                    envelope: { attack: 0.05, decay: 0.8, sustain: 0.2, release: 1.5 }
+                }).connect(filter);
+
+                // Bass synth remains a simple sine wave for a clean low-end
+                const bassSynth = new Tone.MonoSynth({
+                    oscillator: { type: 'sine' },
+                    volume: -8,
+                    envelope: { attack: 0.05, decay: 0.3, sustain: 0.1, release: 1 }
+                }).toDestination();
+
+                const chords = [
+                    ['C3', 'Eb3', 'G3', 'Bb3'], // Cm7
+                    ['F3', 'Ab3', 'C4', 'Eb4'], // Fm7
+                    ['G3', 'B3', 'D4', 'F4'],   // G7
+                    ['Eb3', 'G3', 'Bb3', 'D4']  // Ebmaj7 - Adjusted for smoother transition
+                ];
+                const bassNotes = ['C2', 'F2', 'G2', 'Eb2'];
+                let step = 0;
+
+                this.musicLoop = new Tone.Loop(time => {
+                    let chord = chords[step % chords.length];
+                    let bass = bassNotes[step % bassNotes.length];
+                    chordSynth.triggerAttackRelease(chord, '1n', time);
+                    bassSynth.triggerAttackRelease(bass, '2n', time);
+                    step++;
+                }, '1n').start(0);
+
+                Tone.Transport.bpm.value = 85;
+                Tone.Transport.start();
+            },
+
+            toggleMusic: function() {
+                this.isMuted = !this.isMuted;
+                Tone.Destination.mute = this.isMuted;
+                const soundToggleEl = document.getElementById('sound-toggle');
+                if (this.isMuted) {
+                    soundToggleEl.textContent = '🔇';
+                    soundToggleEl.classList.add('muted');
+                } else {
+                    soundToggleEl.textContent = '🎵';
+                    soundToggleEl.classList.remove('muted');
+                }
+            },
+            
+            paddleHit: function() { if(this.initialized) this.membraneSynth.triggerAttackRelease('C2', '8n'); },
+            wallHit: function() { if(this.initialized) this.membraneSynth.triggerAttackRelease('C3', '8n', Tone.now(), 0.5); },
+            
+            brickHit: function(combo) {
+                if (!this.initialized) return;
+                const notes = ['G4', 'A4', 'C5', 'D5', 'E5', 'G5', 'A5', 'C6', 'D6', 'E6', 'G6'];
+                const noteIndex = Math.min(combo, notes.length - 1);
+                this.fmSynth.triggerAttackRelease(notes[noteIndex], '16n', Tone.now(), 0.8);
+            },
+            
+            powerUp: function() { if(this.initialized) this.polySynth.triggerAttackRelease(['C5', 'E5', 'G5'], '16n'); },
+            laserFire: function() { if(this.initialized) this.laserSynth.triggerAttackRelease('C7', '32n'); },
+            explosion: function() { if(this.initialized) this.noiseSynth.triggerAttackRelease('0.2'); },
+            lifeLost: function() { if(this.initialized) this.polySynth.triggerAttackRelease(['G3', 'D3', 'A2'], '4n'); },
+            levelComplete: function() { if(this.initialized) this.polySynth.triggerAttackRelease(['C4', 'E4', 'G4', 'C5'], '4n'); },
+            gameOver: function() { if(this.initialized) this.polySynth.triggerAttackRelease(['C3', 'A2', 'F2', 'C2'], '2n'); },
+            triviaCorrect: function() { if(this.initialized) this.polySynth.triggerAttackRelease(['G5', 'C6'], '16n'); },
+            triviaIncorrect: function() { if(this.initialized) this.polySynth.triggerAttackRelease(['C4', 'B3'], '8n'); },
+        };
+
 
         // --- Effects & Graphics ---
         function createStars() {
@@ -393,7 +520,7 @@
         ];
 
         function spawnPowerUp(x, y) {
-            if (Math.random() < 0.15) { // 15% chance (was 30%)
+            if (Math.random() < 0.15) { // 15% chance
                 const type = powerUpTypes[Math.floor(Math.random() * powerUpTypes.length)];
                 powerUps.push({
                     x, y, width: 25, height: 12, dy: 2, ...type
@@ -435,6 +562,7 @@
                     setTimeout(() => { paddle.width = originalPaddleWidth; }, 10000);
                     break;
             }
+            sound.powerUp();
         }
         
         function drawAndManagePowerUps() {
@@ -464,6 +592,7 @@
         // --- Lasers ---
         function fireLaser() {
             if (paddle.hasLasers) {
+                sound.laserFire();
                 lasers.push({ x: paddle.x + 15, y: canvas.height - paddle.height - 10, width: 5, height: 10, dy: -8 });
                 lasers.push({ x: paddle.x + paddle.width - 15, y: canvas.height - paddle.height - 10, width: 5, height: 10, dy: -8 });
             }
@@ -523,16 +652,16 @@
              else fireLaser();
         });
         actionButton.addEventListener('click', startGame);
+        document.getElementById('sound-toggle').addEventListener('click', () => sound.toggleMusic());
+
 
         // --- Game Logic ---
         function launchBall() {
             if (ballIsStuck) {
                 ballIsStuck = false;
-                // This logic correctly sets the ball's direction ONCE at launch.
                 if (balls.length > 0) {
                     const ball = balls[0];
                     const speed = ball.speed;
-                    // Launch at a random upward angle (between 45 and 135 degrees)
                     const launchAngle = (Math.random() * Math.PI / 2) + Math.PI / 4; 
                     ball.dx = speed * Math.cos(launchAngle) * (Math.random() > 0.5 ? 1 : -1);
                     ball.dy = -speed * Math.sin(launchAngle);
@@ -544,6 +673,9 @@
             brick.health--;
             score++;
             comboCounter++;
+            
+            sound.brickHit(comboCounter);
+
             if (comboCounter >= 5) {
                 const bonus = comboCounter;
                 score += bonus;
@@ -555,38 +687,36 @@
                     color: '#ffffff'
                 });
             }
-            screenShake = 8; // Add a small shake
+            screenShake = 8;
             scoreEl.textContent = score;
             const color = brickInfo.colors[brick.health] || brickInfo.colors[0];
             createParticles(x + brickInfo.width/2, y + brickInfo.height/2, color);
 
-            // Combo text logic
             if (comboCounter >= 5) {
                 let text = `${comboCounter}x COMBO!`;
                 let color = '#00aaff';
                 if (comboCounter >= 10) {
                     text = `EXPLOSION!`;
-                    color = '#ffc107'; // A different color for explosions
+                    color = '#ffc107';
                 }
                 floatingTexts.push({
                     x: x + brickInfo.width / 2,
                     y: y + brickInfo.height / 2,
                     text: text,
-                    life: 60, // 60 frames = 1 second
+                    life: 60,
                     color: color
                 });
             }
 
-            // Combo explosion logic
             if (comboCounter >= 10) {
-                screenShake = 20; // Bigger shake for explosion
+                screenShake = 20;
+                sound.explosion();
                 for (let r = hitRow - 1; r <= hitRow + 1; r++) {
                     for (let c = hitCol - 1; c <= hitCol + 1; c++) {
-                        // Check bounds and if it's not the central brick itself
                         if (r >= 0 && r < bricks.length && c >= 0 && c < bricks[r].length && (r !== hitRow || c !== hitCol)) {
                             const surroundingBrick = bricks[r][c];
                             if (surroundingBrick && surroundingBrick.health > 0) {
-                                score += surroundingBrick.health; // Add score for destroyed bricks
+                                score += surroundingBrick.health;
                                 surroundingBrick.health = 0;
                                 const brickX = c * (brickInfo.width + brickInfo.padding) + brickInfo.offsetLeft;
                                 const brickY = r * (brickInfo.height + brickInfo.padding) + brickInfo.offsetTop;
@@ -595,7 +725,7 @@
                         }
                     }
                 }
-                comboCounter = 0; // Reset combo after explosion
+                comboCounter = 0;
             }
 
             if (brick.health <= 0) {
@@ -670,7 +800,7 @@
         
         function showMessage(title, text, buttonText) {
              messageTitle.textContent = title;
-             messageText.innerHTML = text; // Use innerHTML to render styled instructions
+             messageText.innerHTML = text;
              actionButton.textContent = buttonText;
              actionButton.style.display = 'block';
              triviaOptionsEl.style.display = 'none';
@@ -682,11 +812,11 @@
             gamePaused = true;
             inTriviaMode = true;
             
-            // Shuffle and pick 3 questions
             const shuffled = [...triviaData].sort(() => 0.5 - Math.random());
             currentTriviaQuestions = shuffled.slice(0, 3);
             currentQuestionIndex = 0;
             
+            sound.levelComplete();
             displayQuestion();
         }
 
@@ -715,7 +845,7 @@
 
         function checkAnswer(selectedIndex, correctIndex) {
             const buttons = triviaOptionsEl.querySelectorAll('button');
-            buttons.forEach(button => button.disabled = true); // Disable all buttons
+            buttons.forEach(button => button.disabled = true);
 
             if (selectedIndex === correctIndex) {
                 score += 50;
@@ -724,15 +854,17 @@
                  floatingTexts.push({
                     x: canvas.width / 2, y: canvas.height / 2, text: "+50 POINTS!", life: 90, color: '#4caf50'
                 });
+                sound.triviaCorrect();
             } else {
                 buttons[selectedIndex].classList.add('incorrect');
                 buttons[correctIndex].classList.add('correct');
+                sound.triviaIncorrect();
             }
 
             setTimeout(() => {
                 currentQuestionIndex++;
                 displayQuestion();
-            }, 1500); // Wait 1.5 seconds before next question
+            }, 1500);
         }
 
         function endTrivia() {
@@ -745,6 +877,13 @@
 
         function startGame() {
             if (gamePaused) {
+                if (!audioInitialized) {
+                    Tone.start().then(() => {
+                        sound.init(); // SFX
+                        sound.initMusic(); // Music
+                        audioInitialized = true;
+                    });
+                }
                 if (messageTitle.textContent.includes('WIN') || messageTitle.textContent.includes('OVER')) {
                     resetGame();
                 }
@@ -766,7 +905,6 @@
                 screenShake--;
             }
 
-            // Motion blur effect
             ctx.fillStyle = 'rgba(13, 2, 33, 0.25)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
@@ -779,7 +917,6 @@
             drawAndManageLasers();
             collisionDetection();
 
-            // Ball movement and collisions
             for(let i = balls.length - 1; i >= 0; i--) {
                 const ball = balls[i];
                 ball.draw();
@@ -793,9 +930,11 @@
                 
                 if (ball.x + ball.dx > canvas.width - ball.radius || ball.x < ball.radius) {
                     ball.dx = -ball.dx;
+                    sound.wallHit();
                 }
                 if (ball.y + ball.dy < ball.radius) {
                     ball.dy = -ball.dy;
+                    sound.wallHit();
                 } else if (ball.y > canvas.height - ball.radius - paddle.height) {
                     if (ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
                         if (paddle.isSticky) {
@@ -808,7 +947,8 @@
                             ball.dx = ball.speed * Math.sin(angle);
                             ball.dy = -ball.speed * Math.cos(angle);
                         }
-                        comboCounter = 0; // Reset combo on paddle hit
+                        sound.paddleHit();
+                        comboCounter = 0;
                     } else if (ball.y > canvas.height) {
                          balls.splice(i, 1);
                     }
@@ -821,22 +961,20 @@
                 if (!lives) {
                     showMessage('GAME OVER', `You reached level ${currentLevel} with a score of ${score}`, 'Restart');
                     gamePaused = true;
+                    sound.gameOver();
                 } else {
-                    comboCounter = 0; // Reset combo on life loss
+                    comboCounter = 0;
                     resetBallAndPaddle();
+                    sound.lifeLost();
                 }
             }
 
-
-            // Paddle movement
             const paddleMoveSpeed = ballIsStuck ? paddle.speed * 0.7 : paddle.speed;
             if (rightPressed && paddle.x < canvas.width - paddle.width) {
                 paddle.x += paddleMoveSpeed;
             } else if (leftPressed && paddle.x > 0) {
                 paddle.x -= paddleMoveSpeed;
             }
-            
-            // This buggy code was removed from here. It was incorrectly resetting the ball's direction every frame.
             
             ctx.restore();
             
@@ -870,10 +1008,5 @@
     </script>
 </body>
 </html>
-
-
-
-
-
 
 
