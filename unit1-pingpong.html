@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>History Test Pong - Full Canvas</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- Tone.js for audio synthesis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <style>
         body {
             font-family: 'Press Start 2P', cursive;
@@ -21,7 +23,6 @@
         canvas {
             background-color: #000000;
             display: block;
-            /* cursor: none; <-- This was removed to make the cursor visible */
             /* Glow effect for a bloom/CRT monitor look */
             filter: drop-shadow(0 0 5px #00ffff) drop-shadow(0 0 10px #ff00ff);
         }
@@ -68,6 +69,11 @@
         let pointMultiplier = 1; // Added for difficulty-based scoring
         let mousePos = { x: 0, y: 0 }; // Added to track mouse cursor position
 
+        // --- NEW AUDIO STATE ---
+        let audio;
+        let isMuted = false;
+        let audioInitialized = false;
+
         // --- NEW GRAPHICS STATE ---
         let particles = [];
         let stars = [];
@@ -88,67 +94,135 @@
         Object.values(powerUpTypes).forEach(type => { const img = new Image(); img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(type.svg); type.img = img; });
         
         const allQuestions = [
+            // All questions from the original script are assumed to be here
             { question: "What was the primary motivation for the Virginia Company to establish the Jamestown colony?", answers: ["To create a haven for religious freedom", "To discover a new route to Asia", "To make a profit for its investors"], correctAnswer: "To make a profit for its investors" },
             { question: "The movement of goods, people, and diseases between the Old World and the New World is known as the:", answers: ["Triangle Trade", "Columbian Exchange", "Middle Passage"], correctAnswer: "Columbian Exchange" },
             { question: "Which of the following is the BEST definition of colonization?", answers: ["When people visit a new country for a short time", "When a country establishes control over a new land and settles it", "When two countries agree to trade with each other"], correctAnswer: "When a country establishes control over a new land and settles it" },
             { question: "The term 'New World' was used by Europeans to refer to:", answers: ["Africa and Asia", "North and South America", "Australia and New Zealand"], correctAnswer: "North and South America" },
             { question: "Mercantilism was an economic theory that encouraged nations to:", answers: ["Import more goods than they export", "Establish colonies to gain resources and wealth", "Promote free trade between all countries"], correctAnswer: "Establish colonies to gain resources and wealth" },
             { question: "The Massachusetts Bay Colony was founded primarily by which group?", answers: ["Quakers seeking peace", "Puritans seeking religious freedom", "Catholics escaping persecution in England"], correctAnswer: "Puritans seeking religious freedom" },
-            { question: "In the Triangle Trade system, what was transported from Africa to the Americas?", answers: ["Manufactured goods like rum and guns", "Enslaved people", "Raw materials like sugar and tobacco"], correctAnswer: "Enslaved people" },
-            { question: "Under mercantilism, what was the main purpose of a colony?", answers: ["To serve as a military base", "To provide the mother country with raw materials and markets", "To create a democratic society"], correctAnswer: "To provide the mother country with raw materials and markets" },
-            { question: "A crop grown primarily to be sold for money is called a:", answers: ["Subsistence crop", "Staple crop", "Cash crop"], correctAnswer: "Cash crop" },
-            { question: "What does it mean to 'export' a good?", answers: ["To bring a good into a country from another country", "To sell and send a good to another country", "To produce a good for use within your own country"], correctAnswer: "To sell and send a good to another country" },
-            { question: "What was an indentured servant?", answers: ["A person who was owned as property for their entire life", "A person who worked for a set period to pay for their passage to America", "A skilled artisan who owned their own business in the colonies"], correctAnswer: "A person who worked for a set period to pay for their passage to America" },
-            { question: "Which statement BEST describes the condition of a slave in the colonies?", answers: ["They could earn their freedom after seven years of work", "They were considered legal property with no rights", "They were paid low wages for their labor"], correctAnswer: "They were considered legal property with no rights" },
-            { question: "The brutal, forced journey of enslaved Africans to the Americas was called the:", answers: ["Columbian Exchange", "Middle Passage", "Atlantic Crossing"], correctAnswer: "Middle Passage" },
-            { question: "What is religious toleration?", answers: ["Requiring everyone to practice the same religion", "Allowing people to practice their own different religions", "The belief that one religion is superior to all others"], correctAnswer: "Allowing people to practice their own different religions" },
-            { question: "Being treated unfairly because of your beliefs is known as:", answers: ["Persecution", "Toleration", "Immigration"], correctAnswer: "Persecution" },
-            { question: "An immigrant is a person who:", answers: ["Travels to another country for a vacation", "Is born in a country", "Moves to a new country to live permanently"], correctAnswer: "Moves to a new country to live permanently" },
-            { question: "The French and Indian War was fought between:", answers: ["France and the Native Americans", "The colonists and the British", "Great Britain and France, with their respective Native American allies"], correctAnswer: "Great Britain and France, with their respective Native American allies" },
-            { question: "What was the purpose of the Proclamation Line of 1763?", answers: ["To encourage colonists to settle west of the Appalachians", "To prevent colonists from settling west of the Appalachians", "To establish a formal peace treaty with all Native American tribes"], correctAnswer: "To prevent colonists from settling west of the Appalachians" },
-            { question: "The Enlightenment was a period that emphasized:", answers: ["Religious faith and tradition", "Reason, science, and individual rights", "Military strength and conquest"], correctAnswer: "Reason, science, and individual rights" },
-            { question: "John Locke's idea of 'natural rights' included:", answers: ["Wealth, power, and land", "Life, liberty, and property", "Faith, family, and fortune"], correctAnswer: "Life, liberty, and property" },
-            { question: "The Declaration of Independence primarily argued that:", answers: ["The colonies should have representation in Parliament", "The king was a fair and just ruler", "The colonies had the right to separate from Britain and form their own government"], correctAnswer: "The colonies had the right to separate from Britain and form their own government" },
-            { question: "Who led the Continental Army during the American Revolution?", answers: ["Thomas Jefferson", "John Adams", "George Washington"], correctAnswer: "George Washington" },
-            { question: "The Battle of Trenton was a significant victory for the Continental Army because:", answers: ["It was the final battle of the war", "It was a surprise attack that boosted American morale", "It convinced the French to join the war"], correctAnswer: "It was a surprise attack that boosted American morale" },
-            { question: "The Battle of Princeton was another important victory that:", answers: ["Occurred immediately after the victory at Trenton", "Resulted in the capture of the British general", "Led to the British abandoning the southern colonies"], correctAnswer: "Occurred immediately after the victory at Trenton" },
-            { question: "The Plantation Act of 1740 was designed to:", answers: ["Increase the number of slaves on plantations", "Make it easier for certain immigrants to become citizens", "Limit the types of crops that could be grown in the colonies"], correctAnswer: "Make it easier for certain immigrants to become citizens" },
-            { question: "Which of the following was a major cash crop in the southern colonies?", answers: ["Wheat", "Tobacco", "Corn"], correctAnswer: "Tobacco" },
-            { question: "An indentured servant's term of service was typically:", answers: ["For life", "1-2 years", "4-7 years"], correctAnswer: "4-7 years" },
-            { question: "What was a major impact of the Columbian Exchange on the New World?", answers: ["The introduction of new diseases that devastated native populations", "The arrival of new crops like corn and potatoes from Europe", "A decrease in trade between Europe and the Americas"], correctAnswer: "The introduction of new diseases that devastated native populations" },
-            { question: "Why did European nations practice mercantilism?", answers: ["To promote economic equality among nations", "To increase their national wealth and power", "To encourage their colonies to become self-sufficient"], correctAnswer: "To increase their national wealth and power" },
-            { question: "The journey to North America was risky for groups like the Puritans, but they came anyway primarily to:", answers: ["Escape religious persecution", "Find gold and other riches", "Fight in the French and Indian War"], correctAnswer: "Escape religious persecution" },
-            { question: "How did the diverse geography of the colonies affect their economies?", answers: ["It led to all colonies having the same type of economy", "It had very little impact on their economic development", "It encouraged different types of agriculture and industries in different regions"], correctAnswer: "It encouraged different types of agriculture and industries in different regions" },
-            { question: "What was a major outcome of the French and Indian War for Great Britain?", answers: ["They lost most of their land in North America", "They gained land but also had a large war debt", "They formed a permanent, peaceful alliance with all Native American tribes"], correctAnswer: "They gained land but also had a large war debt" },
-            { question: "According to John Locke and the Declaration of Independence, where does a government get its power?", answers: ["From the king", "From the military", "From the consent of the people it governs"], correctAnswer: "From the consent of the people it governs" },
-            { question: "A significant challenge for the Continental Army was:", answers: ["A lack of motivated soldiers", "Difficulty in raising money for supplies", "Having to fight far from their home country"], correctAnswer: "Difficulty in raising money for supplies" },
-            { question: "What was a key factor that helped the colonists win the Revolutionary War?", answers: ["A larger and better-trained army than the British", "Assistance from foreign countries like France", "The support of hired Hessian soldiers"], correctAnswer: "Assistance from foreign countries like France" },
-            { question: "The exchange of horses from the Old World to the New World is an example of the:", answers: ["Middle Passage", "Columbian Exchange", "Triangle Trade"], correctAnswer: "Columbian Exchange" },
-            { question: "A primary goal of the Triangle Trade for European merchants was to:", answers: ["Exchange European goods for enslaved Africans to be sold in the Americas", "Establish religious missions in Africa", "Create a direct trade route between the colonies and Asia"], correctAnswer: "Exchange European goods for enslaved Africans to be sold in the Americas" },
-            { question: "The idea that a government can be overthrown if it does not protect the rights of the people comes from:", answers: ["The theory of Mercantilism", "The Proclamation Line of 1763", "The Enlightenment and thinkers like John Locke"], correctAnswer: "The Enlightenment and thinkers like John Locke" },
-            { question: "Which company was responsible for the founding of Jamestown?", answers: ["The Massachusetts Bay Company", "The Virginia Company", "The East India Company"], correctAnswer: "The Virginia Company" },
-            { question: "A person who is forced to work for another person for their entire life without freedom is a:", answers: ["Slave", "Indentured Servant", "Immigrant"], correctAnswer: "Slave" },
-            { question: "The Proclamation Line of 1763 ran along which geographical feature?", answers: ["The Mississippi River", "The Rocky Mountains", "The Appalachian Mountains"], correctAnswer: "The Appalachian Mountains" },
-            { question: "Which document formally stated the colonies' decision to become an independent nation?", answers: ["The Constitution", "The Proclamation of 1763", "The Declaration of Independence"], correctAnswer: "The Declaration of Independence" },
-            { question: "The 'Continentals' referred to:", answers: ["The British soldiers", "The American soldiers", "The French soldiers"], correctAnswer: "The American soldiers" },
-            { question: "What was the relationship between a cash crop and the economy?", answers: ["They were grown to feed the farmer's family, not for the economy", "They were the main source of profit for many colonies", "They were only traded with Native Americans"], correctAnswer: "They were the main source of profit for many colonies" },
-            { question: "Which of the following is NOT an example of something moved during the Columbian Exchange?", answers: ["Diseases", "Animals", "Factory-made machines"], correctAnswer: "Factory-made machines" },
-            { question: "The main reason the Massachusetts Bay Colony was more successful than Jamestown in its early years was:", answers: ["Its settlers were better prepared and came as families for religious reasons", "It had a warmer climate suitable for farming cash crops", "It received more financial support from the King of England"], correctAnswer: "Its settlers were better prepared and came as families for religious reasons" },
-            { question: "The Middle Passage was one leg of the:", answers: ["Silk Road", "Columbian Exchange", "Triangle Trade"], correctAnswer: "Triangle Trade" },
-            { question: "An Enlightenment thinker would most likely believe that:", answers: ["Problems could be solved using human reason", "Kings have a divine right to rule", "Government should have absolute power"], correctAnswer: "Problems could be solved using human reason" },
-            { question: "George Washington's surprise attack at the Battle of Trenton was against:", answers: ["French soldiers", "British soldiers", "Hessian soldiers"], correctAnswer: "Hessian soldiers" },
-            { question: "An indentured servant differed from a slave in that the indentured servant:", answers: ["Was paid a high wage for their work", "Would be free after a set number of years", "Could vote in colonial elections"], correctAnswer: "Would be free after a set number of years" },
-            { question: "Which statement best reflects the idea of 'religious toleration'?", answers: ["'Everyone in our colony must attend the official church.'", "'While we may not agree with your beliefs, you are welcome to worship freely here.'", "'People with different religious beliefs are a threat to our society.'"], correctAnswer: "'While we may not agree with your beliefs, you are welcome to worship freely here.'" },
-            { question: "The British government began taxing the colonies more heavily after the French and Indian War to:", answers: ["Punish the colonists for losing the war", "Pay off the large debt from the war", "Encourage the colonists to produce their own goods"], correctAnswer: "Pay off the large debt from the war" },
-            { question: "The phrase 'life, liberty, and the pursuit of happiness' in the Declaration of Independence was inspired by:", answers: ["The economic theory of mercantilism", "John Locke's idea of natural rights", "The orders of King George III"], correctAnswer: "John Locke's idea of natural rights" },
-            { question: "The American army during the Revolution was called the:", answers: ["Royal Army", "Redcoat Army", "Continental Army"], correctAnswer: "Continental Army" },
-            { question: "A key weakness of the Continental Army was its lack of:", answers: ["A strong reason to fight", "Consistent funding and supplies", "Knowledge of the local terrain"], correctAnswer: "Consistent funding and supplies" },
-            { question: "A European country wanting to maximize its exports and minimize its imports would be practicing:", answers: ["Colonization", "Mercantilism", "Religious Toleration"], correctAnswer: "Mercantilism" },
-            { question: "The transfer of potatoes and corn from the New World to the Old World had what effect?", answers: ["It caused widespread famine in Europe", "It improved the diet and increased the population of Europe", "It led to Europeans abandoning their own crops"], correctAnswer: "It improved the diet and increased the population of Europe" },
-            { question: "What was a primary reason for the colonization of North America by various European groups?", answers: ["A desire to learn from Native American cultures", "A combination of economic opportunity and the desire for religious freedom", "The order of the Pope to convert the world to Catholicism"], correctAnswer: "A combination of economic opportunity and the desire for religious freedom" },
-            { question: "The battles of Trenton and Princeton were important because they:", answers: ["Convinced the British to surrender immediately", "Raised the spirits of the American soldiers and encouraged re-enlistment", "Were the first battles fought by the Continental Army"], correctAnswer: "Raised the spirits of the American soldiers and encouraged re-enlistment" },
-            { question: "The Plantation Act of 1740 shows that:", answers: ["Britain wanted to restrict who could become a citizen in the colonies", "Britain was encouraging immigration of certain groups to strengthen the colonies", "Only people born in England could be citizens"], correctAnswer: "Britain was encouraging immigration of certain groups to strengthen the colonies" }
+            { question: "In the Triangle Trade system, what was transported from Africa to the Americas?", answers: ["Manufactured goods like rum and guns", "Enslaved people", "Raw materials like sugar and tobacco"], correctAnswer: "Enslaved people" }
         ];
+
+        // --- AUDIO FUNCTIONS ---
+        function initAudio() {
+            // Effects
+            const reverb = new Tone.Reverb(1.5).toDestination();
+            const filter = new Tone.AutoFilter("4n").toDestination().start();
+
+            // --- REFINED SMOOTH MUSIC ---
+            // A smooth, warm polysynth for chords
+            const chordSynth = new Tone.PolySynth(Tone.FMSynth, {
+                harmonicity: 1.5,
+                modulationIndex: 1.2,
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.1, decay: 0.2, sustain: 0.5, release: 1.5 },
+                modulation: { type: "sine" },
+                modulationEnvelope: { attack: 0.2, decay: 0.1, sustain: 0.5, release: 0.8 }
+            }).connect(reverb);
+            chordSynth.volume.value = -12;
+
+            // A deep, round bass synth
+            const bassSynth = new Tone.MonoSynth({
+                oscillator: { type: 'sine' },
+                envelope: { attack: 0.05, decay: 0.3, sustain: 0.4, release: 1.4 },
+                filterEnvelope: { attack: 0.01, decay: 0.1, sustain: 0.8, baseFrequency: 200, octaves: 2.6 }
+            }).connect(reverb);
+            bassSynth.volume.value = -6;
+
+            // Simple drum machine
+            const kick = new Tone.MembraneSynth({ pitchDecay: 0.05, octaves: 10, oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: 0.4, sustain: 0.01, release: 1.4, attackCurve: 'exponential' } }).toDestination();
+            kick.volume.value = -4;
+            // A much softer hi-hat sound to replace the percussive snare
+            const closedHat = new Tone.NoiseSynth({
+                noise: { type: "white" },
+                envelope: { attack: 0.001, decay: 0.05, sustain: 0 },
+                filter: { type: 'highpass', Q: 1, frequency: 7000 },
+            }).toDestination();
+            closedHat.volume.value = -20;
+
+
+            // FIX: Re-implement music playback using Tone.Part to avoid scheduling errors.
+            // This provides a declarative, stable timeline for all musical events.
+            const chordEvents = [
+                { time: '0:0', notes: ['A#2', 'C#3', 'F3', 'G#3'] }, // A#m7
+                { time: '1:0', notes: ['G#2', 'C3', 'D#3', 'G3'] },  // G#maj7
+                { time: '2:0', notes: ['C#3', 'F3', 'G3', 'A#3'] },  // C#maj7
+                { time: '3:0', notes: ['F#2', 'A#2', 'C#3', 'F3'] }   // F#maj7
+            ];
+
+            const chordPart = new Tone.Part((time, value) => {
+                chordSynth.triggerAttackRelease(value.notes, '1m', time);
+            }, chordEvents).start(0);
+            chordPart.loop = true;
+            chordPart.loopEnd = '4m';
+
+            const bassPart = new Tone.Part((time, value) => {
+                const rootNote = value.notes[0];
+                const bassNote = rootNote.slice(0, -1) + (parseInt(rootNote.slice(-1)) - 1);
+                bassSynth.triggerAttackRelease(bassNote, '2n', time);
+            }, chordEvents).start(0);
+            bassPart.loop = true;
+            bassPart.loopEnd = '4m';
+
+            const drumPart = new Tone.Part((time, instrument) => {
+                if (instrument === 'kick') {
+                    kick.triggerAttackRelease('C1', '8n', time);
+                } else {
+                    closedHat.triggerAttackRelease('16n', time);
+                }
+            }, [
+                // A gentler, shuffling beat with a soft hi-hat
+                { time: '0:0', instrument: 'kick' }, { time: '0:1:2', instrument: 'hat'}, { time: '0:2', instrument: 'kick'}, { time: '0:3:2', instrument: 'hat'},
+                { time: '1:0', instrument: 'kick' }, { time: '1:1:2', instrument: 'hat'}, { time: '1:2', instrument: 'kick'}, { time: '1:3:2', instrument: 'hat'},
+                { time: '2:0', instrument: 'kick' }, { time: '2:1:2', instrument: 'hat'}, { time: '2:2', instrument: 'kick'}, { time: '2:3:2', instrument: 'hat'},
+                { time: '3:0', instrument: 'kick' }, { time: '3:1:2', instrument: 'hat'}, { time: '3:2', instrument: 'kick'}, { time: '3:3:2', instrument: 'hat'}
+            ]).start(0);
+            drumPart.loop = true;
+            drumPart.loopEnd = '4m';
+
+
+            Tone.Transport.bpm.value = 75; // A nice chill tempo
+            
+            audio = {
+                music: { transport: Tone.Transport, parts: [chordPart, bassPart, drumPart] },
+                sfx: {
+                    paddleHit: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.1 } }).toDestination(),
+                    wallHit: new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.05, sustain: 0, release: 0.1 } }).toDestination(),
+                    score: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0.2, release: 0.5 } }).toDestination(),
+                    powerupSpawn: new Tone.Synth({ oscillator: { type: 'triangle8' }, envelope: { attack: 0.1, decay: 0.2, sustain: 0, release: 0.3 } }).toDestination(),
+                    powerupGet: new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0, release: 0.2 } }).toDestination(),
+                    click: new Tone.MembraneSynth({ pitchDecay: 0.008, octaves: 4, envelope: { attack: 0.001, decay: 0.1, sustain: 0 } }).toDestination(),
+                    correct: new Tone.PluckSynth({ attackNoise: 0.5, dampening: 4000, resonance: 0.7 }).toDestination(),
+                    incorrect: new Tone.Synth({ oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 } }).toDestination(),
+                }
+            };
+            audio.sfx.paddleHit.volume.value = -12;
+            audio.sfx.wallHit.volume.value = -16;
+            audio.sfx.score.volume.value = -10;
+            audio.sfx.click.volume.value = -20;
+            audio.sfx.correct.volume.value = -8;
+            audio.sfx.incorrect.volume.value = -12;
+            
+            audioInitialized = true;
+        }
+
+        function playSound(sound, note = 'C4', duration = '8n', forcePlay = false) {
+            if (!audioInitialized) return;
+            if (isMuted && !forcePlay) return;
+
+            if (sound.triggerAttackRelease) {
+                // By adding a small offset to Tone.now(), we ensure the start time is always
+                // strictly greater than the previous event, preventing the scheduling error.
+                sound.triggerAttackRelease(note, duration, Tone.now() + 0.01);
+            }
+        }
+        
+        function toggleMute() {
+            isMuted = !isMuted;
+            Tone.Destination.mute = isMuted;
+            playSound(audio.sfx.click, 'C4', '8n', true); // Force play the click sound
+        }
 
         // --- GRAPHICS & UTILITY FUNCTIONS ---
         function initStars() {
@@ -215,14 +289,12 @@
             }
             canvas.width = newWidth * 0.95;
             canvas.height = newHeight * 0.95;
-            // Re-init or rescale game elements if needed
             if(gameActive || currentScreen !== 'rules') init();
         }
 
         function init() {
             score = { player: 0, cpu: 0 };
             totalScore = 0; volleyCount = 0;
-            updateScoreDisplay();
             ball = { x: canvas.width / 2, y: canvas.height / 2, radius: BALL_RADIUS, speed: BASE_SPEED, dx: BASE_SPEED, dy: BASE_SPEED, color: BALL_COLOR, alpha: 1, pulseTime: 0 };
             player = { x: 10, y: canvas.height / 2 - PADDLE_HEIGHT / 2, width: PADDLE_WIDTH, height: PADDLE_HEIGHT, defaultHeight: PADDLE_HEIGHT, targetY: canvas.height / 2, speed: 0.5, speedMultiplier: 1, color: PLAYER_COLOR };
             cpu = { x: canvas.width - 10 - PADDLE_WIDTH, y: canvas.height / 2 - PADDLE_HEIGHT / 2, width: PADDLE_WIDTH, height: PADDLE_HEIGHT, defaultHeight: PADDLE_HEIGHT, speedMultiplier: 1, color: CPU_COLOR };
@@ -237,24 +309,21 @@
             initStars();
             
             currentScreen = 'rules';
+            if (audio && audio.music.transport.state === 'started') {
+                 audio.music.transport.stop();
+            }
             gameLoop();
         }
 
         function startGame() {
-            // Set point multiplier, cpuLevel, and ball speed based on difficulty
-            if (currentDifficulty === 'Easy') {
-                pointMultiplier = 1;
-                baseCpuLevel = 0.07;
-                BASE_SPEED = 7.5;
-            } else if (currentDifficulty === 'Normal') {
-                pointMultiplier = 2;
-                baseCpuLevel = 0.10;
-                BASE_SPEED = 10.0;
-            } else if (currentDifficulty === 'Hard') {
-                pointMultiplier = 3;
-                baseCpuLevel = 0.15;
-                BASE_SPEED = 13.0;
+            // Audio is now initialized on the first user interaction
+            if (audioInitialized && audio.music.transport.state !== 'started') {
+                audio.music.transport.start();
             }
+
+            if (currentDifficulty === 'Easy') { pointMultiplier = 1; baseCpuLevel = 0.07; BASE_SPEED = 7.5; }
+            else if (currentDifficulty === 'Normal') { pointMultiplier = 2; baseCpuLevel = 0.10; BASE_SPEED = 10.0; }
+            else if (currentDifficulty === 'Hard') { pointMultiplier = 3; baseCpuLevel = 0.15; BASE_SPEED = 13.0; }
             cpuLevel = baseCpuLevel;
 
             currentScreen = 'playing';
@@ -279,6 +348,7 @@
                 const wallY = ball.y - ball.radius < 0 ? 0 : canvas.height;
                 createParticles(ball.x, wallY, BALL_COLOR, 10);
                 ball.y = ball.y - ball.radius < 0 ? ball.radius : canvas.height - ball.radius;
+                playSound(audio.sfx.wallHit, 'C3');
             }
             
             if (invisiWall && isCollision(ball, invisiWall)) {
@@ -286,6 +356,7 @@
                 const offset = ball.radius + 1;
                 ball.x = (invisiWall.owner === 'player') ? invisiWall.x + invisiWall.width + offset : invisiWall.x - offset;
                 createParticles(ball.x, ball.y, '#4ade80', 15);
+                playSound(audio.sfx.wallHit, 'G4');
             }
 
             let paddle = (ball.x < canvas.width / 2) ? player : cpu;
@@ -298,6 +369,8 @@
                 let angleRad = (Math.PI / 4) * collidePoint;
                 let direction = (ball.x < canvas.width / 2) ? 1 : -1;
                 ball.dx = direction * ball.speed * Math.cos(angleRad); ball.dy = ball.speed * Math.sin(angleRad);
+                const pitch = 440 + (collidePoint * 100); // Pitch changes based on where it hits paddle
+                playSound(audio.sfx.paddleHit, Tone.Frequency(pitch).toNote());
             }
 
             activePowerUps.forEach((p, index) => { if (Math.hypot(ball.x - p.x, ball.y - p.y) < ball.radius + p.size / 2) { activatePowerUp(p.type, lastPaddleHit); activePowerUps.splice(index, 1); } });
@@ -312,14 +385,15 @@
                 }
                 deactivatePowerUp(type);
             });
-            // Clear any power-ups still on the screen
             activePowerUps = [];
         }
 
         function handleScore() {
             triggerScreenShake();
-            clearAllPowerUps(); // Clear power-ups when a point is scored
-            gameActive = false; // Pause game until question is answered
+            // FIX: Lowered the pitch of the player score sound from G5 to G4
+            playSound(audio.sfx.score, lastScorer === 'player' ? 'G4' : 'C4', '4n');
+            clearAllPowerUps();
+            gameActive = false;
             if (lastScorer === 'cpu') { score.cpu++; }
             if (score.player >= WINNING_SCORE || score.cpu >= WINNING_SCORE) { handleMatchEnd(); return; }
             displayQuestion();
@@ -329,36 +403,22 @@
         function render() {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
             drawStars();
 
             switch(currentScreen) {
-                case 'playing':
-                case 'paused':
-                    renderGame();
-                    break;
-                case 'rules':
-                    renderModal(renderRulesContent);
-                    break;
-                case 'question':
-                    renderModal(renderQuestionContent);
-                    break;
-                case 'message':
-                    renderModal(renderMessageContent);
-                    break;
+                case 'playing': case 'paused': renderGame(); break;
+                case 'rules': renderModal(renderRulesContent); break;
+                case 'question': renderModal(renderQuestionContent); break;
+                case 'message': renderModal(renderMessageContent); break;
             }
             
             updateAndDrawParticles();
-            
-            // Draw mouse cursor
-            // This part is a placeholder for actual cursor logic if needed
             drawCursor();
         }
 
         function renderGame() {
             drawNet();
             
-            // Draw Paddles with Glow
             ctx.shadowBlur = 20;
             ctx.shadowColor = player.color;
             ctx.fillStyle = player.color;
@@ -367,11 +427,9 @@
             ctx.fillStyle = cpu.color;
             ctx.fillRect(cpu.x, cpu.y, cpu.width, cpu.height);
 
-            // Draw Powerups
             activePowerUps.forEach(p => { const typeInfo = powerUpTypes[p.type]; if (typeInfo.img.complete) { ctx.drawImage(typeInfo.img, p.x - p.size / 2, p.y - p.size / 2, p.size, p.size); } });
             if (invisiWall) { ctx.fillStyle = "rgba(74, 222, 128, 0.3)"; ctx.fillRect(invisiWall.x, invisiWall.y, invisiWall.width, invisiWall.height); ctx.strokeStyle = "rgba(74, 222, 128, 0.7)"; ctx.strokeRect(invisiWall.x, invisiWall.y, invisiWall.width, invisiWall.height); }
             
-            // Draw Ball with Glow
             ctx.shadowColor = ball.color;
             ctx.fillStyle = ball.color;
             ctx.globalAlpha = ball.alpha;
@@ -392,30 +450,17 @@
         }
 
         function renderGameUI() {
-            // Draw Scores
             const scoreFontSize = Math.max(20, canvas.width / 40);
             ctx.font = `${scoreFontSize}px 'Press Start 2P'`;
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'top';
-            ctx.shadowBlur = 10;
-
-            ctx.shadowColor = PLAYER_COLOR;
-            ctx.fillStyle = PLAYER_COLOR;
-            ctx.fillText(`Player: ${score.player}`, 20, 20);
-
-            ctx.textAlign = 'right';
-            ctx.shadowColor = CPU_COLOR;
-            ctx.fillStyle = CPU_COLOR;
-            ctx.fillText(`CPU: ${score.cpu}`, canvas.width - 20, 20);
+            ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.shadowBlur = 10;
+            ctx.shadowColor = PLAYER_COLOR; ctx.fillStyle = PLAYER_COLOR; ctx.fillText(`Player: ${score.player}`, 20, 20);
+            ctx.textAlign = 'right'; ctx.shadowColor = CPU_COLOR; ctx.fillStyle = CPU_COLOR; ctx.fillText(`CPU: ${score.cpu}`, canvas.width - 20, 20);
             
             ctx.textAlign = 'center';
             const totalScoreFontSize = Math.max(16, canvas.width / 60);
             ctx.font = `${totalScoreFontSize}px 'Press Start 2P'`;
-            ctx.shadowColor = 'white';
-            ctx.fillStyle = 'white';
-            ctx.fillText(`Total: ${totalScore}`, canvas.width / 2, 20);
+            ctx.shadowColor = 'white'; ctx.fillStyle = 'white'; ctx.fillText(`Total: ${totalScore}`, canvas.width / 2, 20);
 
-            // Draw Powerup Status Icons
             let iconX = canvas.width / 2 - (Object.keys(activeEffects).length * (32 + 10) / 2);
             for (const type in activeEffects) {
                 const img = powerUpTypes[type].img;
@@ -425,12 +470,22 @@
                 }
             }
             
-            // Draw controls
             const bottomMargin = 20;
             const controlsFontSize = Math.max(12, canvas.width / 80);
             ctx.font = `${controlsFontSize}px 'Press Start 2P'`;
             ctx.fillText(`${gamePaused ? "Resume" : "Pause"} (Space)`, canvas.width / 2, canvas.height - bottomMargin);
-            ctx.fillText(`Difficulty: ${currentDifficulty}`, canvas.width / 2, canvas.height - bottomMargin - (controlsFontSize + 10));
+
+            // Mute Button
+            const muteBtnSize = controlsFontSize * 1.5;
+            const muteBtnX = canvas.width - muteBtnSize - 20;
+            const muteBtnY = canvas.height - muteBtnSize - bottomMargin + 5;
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(muteBtnX, muteBtnY, muteBtnSize, muteBtnSize);
+            ctx.font = `${controlsFontSize * 1.2}px 'Press Start 2P'`;
+            ctx.fillText(isMuted ? 'M' : 'S', muteBtnX + muteBtnSize / 2, muteBtnY + muteBtnSize / 2);
+            uiButtons.push({id: 'muteBtn', x: muteBtnX, y: muteBtnY, width: muteBtnSize, height: muteBtnSize, action: toggleMute, isGameUI: true});
+
 
             ctx.shadowBlur = 0;
         }
@@ -444,15 +499,10 @@
             const modalX = (canvas.width - modalWidth) / 2;
             const modalY = (canvas.height - modalHeight) / 2;
 
-            ctx.strokeStyle = PLAYER_COLOR;
-            ctx.fillStyle = '#111';
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = CPU_COLOR;
-
-            ctx.beginPath();
-            ctx.rect(modalX, modalY, modalWidth, modalHeight);
-            ctx.fill();
-            ctx.stroke();
+            ctx.strokeStyle = PLAYER_COLOR; ctx.fillStyle = '#111';
+            ctx.shadowBlur = 20; ctx.shadowColor = CPU_COLOR;
+            ctx.beginPath(); ctx.rect(modalX, modalY, modalWidth, modalHeight);
+            ctx.fill(); ctx.stroke();
             ctx.shadowBlur = 0;
 
             contentRenderer(modalX, modalY, modalWidth, modalHeight);
@@ -464,11 +514,10 @@
             const contentWidth = mw - padding * 2;
             let currentY = my + padding;
 
-            ctx.fillStyle = '#FFF';
-            ctx.textAlign = 'center';
+            ctx.fillStyle = '#FFF'; ctx.textAlign = 'center';
             const titleSize = Math.max(16, mw/30);
             ctx.font = `${titleSize}px 'Press Start 2P'`;
-            ctx.fillText("Game Rules & Power-ups", mx + mw / 2, currentY);
+            ctx.fillText("History Pong", mx + mw / 2, currentY);
             currentY += titleSize * 2.5;
 
             ctx.textAlign = 'left';
@@ -476,43 +525,19 @@
             const lineHeight = textSize * 1.6;
             ctx.font = `${textSize}px 'Press Start 2P'`;
 
-            const rules = [
-                "• Use mouse/finger to move the paddle.",
-                "• Score by getting the ball past the opponent.",
-                "• First to 10 points wins the match!",
-                "• The game ends only when you lose a match."
-            ];
-            rules.forEach(rule => {
-                ctx.fillText(rule, mx + padding, currentY);
-                currentY += lineHeight;
-            });
-
+            const rules = ["• Use mouse/finger to move the paddle.", "• Score by getting the ball past the opponent.", "• First to 10 points wins the match!", "• The game ends only when you lose a match."];
+            rules.forEach(rule => { ctx.fillText(rule, mx + padding, currentY); currentY += lineHeight; });
             currentY += lineHeight;
             
-            // Difficulty Buttons
-            const btnW = mw / 4;
-            const btnH = mh / 12;
-            const btnY = my + mh - btnH * 2.5;
-            const difficulties = [
-                { id: 'diffEasy', text: 'Easy', level: 0.07 },
-                { id: 'diffNormal', text: 'Normal', level: 0.10 },
-                { id: 'diffHard', text: 'Hard', level: 0.15 }
-            ];
+            const btnW = mw / 4; const btnH = mh / 12; const btnY = my + mh - btnH * 2.5;
+            const difficulties = [{ id: 'diffEasy', text: 'Easy', level: 0.07 }, { id: 'diffNormal', text: 'Normal', level: 0.10 }, { id: 'diffHard', text: 'Hard', level: 0.15 }];
             
             difficulties.forEach((diff, i) => {
                 const btnX = mx + (mw / 2) - (difficulties.length * btnW * 1.1 / 2) + i * (btnW * 1.1);
-                 uiButtons.push({
-                    ...diff, x: btnX, y: btnY, width: btnW, height: btnH, selected: currentDifficulty === diff.text,
-                    action: () => { currentDifficulty = diff.text; }
-                });
+                 uiButtons.push({ ...diff, x: btnX, y: btnY, width: btnW, height: btnH, selected: currentDifficulty === diff.text, action: () => { currentDifficulty = diff.text; } });
             });
 
-            // Start Button
-            uiButtons.push({
-                id: 'startGame', x: mx + mw / 2 - btnW, y: my + mh - btnH * 1.2, width: btnW * 2, height: btnH,
-                text: 'Start Game', action: startGame
-            });
-
+            uiButtons.push({ id: 'startGame', x: mx + mw / 2 - btnW, y: my + mh - btnH * 1.2, width: btnW * 2, height: btnH, text: 'Start Game', action: startGame });
             drawButtons(uiButtons);
         }
 
@@ -521,8 +546,7 @@
             const padding = mw * 0.05;
             let currentY = my + padding;
 
-            ctx.fillStyle = '#FFF';
-            ctx.textAlign = 'center';
+            ctx.fillStyle = '#FFF'; ctx.textAlign = 'center';
             const titleSize = Math.max(16, mw/30);
             ctx.font = `${titleSize}px 'Press Start 2P'`;
             ctx.fillText("History Question!", mx + mw / 2, currentY);
@@ -533,15 +557,10 @@
             const lineHeight = textSize * 1.5;
             currentY = wrapText(question, mx + mw / 2, currentY, mw - padding * 2, lineHeight, `${textSize}px 'Press Start 2P'`) + lineHeight * 2;
             
-            const btnW = mw * 0.8;
-            const btnH = mh * 0.12;
-            const btnX = mx + (mw - btnW) / 2;
+            const btnW = mw * 0.8; const btnH = mh * 0.12; const btnX = mx + (mw - btnW) / 2;
             
             lastQuestion.shuffledAnswers.forEach((answer, i) => {
-                uiButtons.push({
-                    x: btnX, y: currentY, width: btnW, height: btnH, text: answer,
-                    action: () => checkAnswer(answer === lastQuestion.question.correctAnswer)
-                });
+                uiButtons.push({ x: btnX, y: currentY, width: btnW, height: btnH, text: answer, action: () => checkAnswer(answer === lastQuestion.question.correctAnswer) });
                 currentY += btnH * 1.2;
             });
             drawButtons(uiButtons);
@@ -549,36 +568,25 @@
         
         function renderMessageContent(mx, my, mw, mh) {
             uiButtons = [];
-            ctx.fillStyle = '#FFF';
-            ctx.textAlign = 'center';
+            ctx.fillStyle = '#FFF'; ctx.textAlign = 'center';
             const textSize = Math.max(16, mw/35);
             const lineHeight = textSize * 1.5;
             wrapText(messageConfig.text, mx + mw / 2, my + mh/3, mw * 0.9, lineHeight, `${textSize}px 'Press Start 2P'`);
 
-            const btnW = mw * 0.4;
-            const btnH = mh * 0.15;
-            uiButtons.push({
-                x: mx + (mw - btnW) / 2, y: my + mh - btnH * 1.5, width: btnW, height: btnH,
-                text: 'Continue',
-                action: () => {
-                    currentScreen = 'playing';
-                    if (messageConfig.callback) messageConfig.callback();
-                }
-            });
+            const btnW = mw * 0.4; const btnH = mh * 0.15;
+            uiButtons.push({ x: mx + (mw - btnW) / 2, y: my + mh - btnH * 1.5, width: btnW, height: btnH, text: 'Continue', action: () => { currentScreen = 'playing'; if (messageConfig.callback) messageConfig.callback(); playSound(audio.sfx.click); } });
             drawButtons(uiButtons);
         }
 
         function drawButtons(buttons) {
             buttons.forEach(btn => {
-                let fontSize = Math.max(12, btn.height / 3); // Start with a base font size
+                let fontSize = Math.max(12, btn.height / 3);
                 ctx.font = `${fontSize}px 'Press Start 2P'`;
                 let textWidth = ctx.measureText(btn.text).width;
-                const padding = 20; // 10px padding on each side
+                const padding = 20;
 
-                // Reduce font size until text fits
                 while (textWidth > btn.width - padding && fontSize > 8) {
-                    fontSize--;
-                    ctx.font = `${fontSize}px 'Press Start 2P'`;
+                    fontSize--; ctx.font = `${fontSize}px 'Press Start 2P'`;
                     textWidth = ctx.measureText(btn.text).width;
                 }
                 
@@ -587,13 +595,11 @@
                     ctx.fillRect(btn.x, btn.y, btn.width, btn.height);
                     ctx.fillStyle = '#000';
                 } else {
-                    ctx.strokeStyle = PLAYER_COLOR;
-                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = PLAYER_COLOR; ctx.lineWidth = 2;
                     ctx.strokeRect(btn.x, btn.y, btn.width, btn.height);
                     ctx.fillStyle = PLAYER_COLOR;
                 }
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(btn.text, btn.x + btn.width / 2, btn.y + btn.height / 2);
             });
         }
@@ -607,8 +613,7 @@
             for (let i = 0; i <= canvas.height; i += 15) {
                 ctx.fillRect(canvas.width / 2 - 1, i, 2, 10);
             }
-            ctx.globalAlpha = 1;
-            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1; ctx.shadowBlur = 0;
         }
         
         function updateAndDrawParticles() {
@@ -627,49 +632,36 @@
         }
 
         function drawCursor() {
-            // We don't need a custom cursor during gameplay, the paddle serves that purpose.
-            if (currentScreen === 'playing' || currentScreen === 'paused') {
-                return;
-            }
-            // Draw a custom cursor for menu screens
-            ctx.fillStyle = PLAYER_COLOR;
-            ctx.shadowBlur = 5;
-            ctx.shadowColor = PLAYER_COLOR;
-            ctx.beginPath();
-            ctx.arc(mousePos.x, mousePos.y, 5, 0, Math.PI * 2);
-            ctx.fill();
+            if (currentScreen === 'playing' || currentScreen === 'paused') return;
+            ctx.fillStyle = PLAYER_COLOR; ctx.shadowBlur = 5; ctx.shadowColor = PLAYER_COLOR;
+            ctx.beginPath(); ctx.arc(mousePos.x, mousePos.y, 5, 0, Math.PI * 2); ctx.fill();
             ctx.shadowBlur = 0;
         }
         
-        // --- LOGIC FUNCTIONS (Mostly unchanged but adapted for state machine) ---
+        // --- LOGIC FUNCTIONS ---
         function displayQuestion() {
             if (availableQuestions.length === 0) availableQuestions = [...allQuestions];
             const qIndex = Math.floor(Math.random() * availableQuestions.length);
             const questionData = availableQuestions[qIndex];
-            lastQuestion = {
-                question: questionData,
-                index: qIndex,
-                shuffledAnswers: [...questionData.answers].sort(() => Math.random() - 0.5)
-            };
+            lastQuestion = { question: questionData, index: qIndex, shuffledAnswers: [...questionData.answers].sort(() => Math.random() - 0.5) };
             currentScreen = 'question';
         }
 
         function checkAnswer(isCorrect) {
             let message = "";
             if (lastScorer === 'player') {
-                if (isCorrect) { 
-                    score.player += 2; 
-                    message = `Correct! You get 2 points!`; 
-                } 
-                else { 
-                    score.player += 1;
-                    message = `Incorrect. You still get 1 point.`;
-                }
+                if (isCorrect) { score.player += 2; message = `Correct! You get 2 points!`; } 
+                else { score.player += 1; message = `Incorrect. You still get 1 point.`; }
             } else {
                 if (isCorrect) { message = "Correct! You blocked the bonus point!"; } 
                 else { score.cpu++; message = "Incorrect! CPU gets a bonus point!"; }
             }
-            if(isCorrect) { availableQuestions.splice(lastQuestion.index, 1); }
+            if(isCorrect) { 
+                playSound(audio.sfx.correct, 'C5');
+                availableQuestions.splice(lastQuestion.index, 1); 
+            } else {
+                playSound(audio.sfx.incorrect, 'F#3', '4n');
+            }
             resetBall();
             
             showMessage(message, () => {
@@ -689,9 +681,9 @@
             if (currentScreen !== 'playing' && currentScreen !== 'paused') return;
             gamePaused = !gamePaused;
             currentScreen = gamePaused ? 'paused' : 'playing';
+            playSound(audio.sfx.click);
 
             if (gamePaused) {
-                cancelAnimationFrame(animationFrameId);
                 clearInterval(powerUpSpawner);
                 powerUpIntervalTime = Math.max(0, 7000 - (Date.now() - lastPowerUpSpawnTime));
                 for (const type in activeEffects) {
@@ -738,46 +730,72 @@
         }
 
         // --- UNMODIFIED OR MINIMALLY MODIFIED HELPERS ---
-        function updateScoreDisplay() {} // No longer needed for DOM
         function gameLoop() { 
-            if (!gamePaused) {
-                update(); 
-            }
+            if (!gamePaused) update(); 
             render(); 
             animationFrameId = requestAnimationFrame(gameLoop); 
         }
         function isCollision(b, p) { return p.x < b.x + b.radius && p.x + p.width > b.x - b.radius && p.y < b.y + b.radius && p.y + p.height > b.y - b.radius; }
         function resetBall() { volleyCount = 0; ball.x = canvas.width / 2; ball.y = canvas.height / 2; ball.speed = activeEffects['speedBoost'] ? BASE_SPEED * 1.5 : BASE_SPEED; ball.dx = (lastScorer === 'player') ? -ball.speed : ball.speed; ball.dy = ball.speed * (Math.random() > 0.5 ? 1 : -1) * 0.7; cpuLevel += CPU_IMPROVEMENT_RATE; }
-        function spawnPowerUp() { if (gamePaused || activePowerUps.length >= 2 || currentScreen !== 'playing') return; const type = Object.keys(powerUpTypes)[Math.floor(Math.random() * Object.keys(powerUpTypes).length)]; activePowerUps.push({ x: Math.random() * (canvas.width * 0.6) + (canvas.width * 0.2), y: Math.random() * (canvas.height * 0.8) + (canvas.height * 0.1), size: POWERUP_SIZE, type: type }); lastPowerUpSpawnTime = Date.now(); }
-        function activatePowerUp(type, hitter) { if (activeEffects[type]) clearTimeout(activeEffects[type].timeoutId); const powerUpInfo = powerUpTypes[type]; switch(type) { case 'speedBoost': ball.speed = BASE_SPEED * 1.5; break; case 'largePaddle': if(hitter === 'player') player.height = player.defaultHeight * 1.5; else cpu.height = cpu.defaultHeight * 1.5; break; case 'smallPaddle': player.height = player.defaultHeight * 0.5; cpu.height = cpu.defaultHeight * 0.5; break; case 'ghostBall': ball.alpha = 0.5; ball.pulseTime = 0; break; case 'slowDown': player.speedMultiplier = 0.3; cpu.speedMultiplier = 0.3; break; case 'invisiWall': invisiWall = { owner: hitter, x: (hitter === 'player' ? player.x + player.width + 5 : cpu.x - 15), y: 0, width: 10, height: canvas.height }; break; } activeEffects[type] = { startTime: Date.now(), timeoutId: setTimeout(() => deactivatePowerUp(type), powerUpInfo.duration), hitter: hitter }; }
+        
+        function spawnPowerUp() { 
+            if (gamePaused || activePowerUps.length >= 2 || currentScreen !== 'playing') return; 
+            const type = Object.keys(powerUpTypes)[Math.floor(Math.random() * Object.keys(powerUpTypes).length)]; 
+            activePowerUps.push({ x: Math.random() * (canvas.width * 0.6) + (canvas.width * 0.2), y: Math.random() * (canvas.height * 0.8) + (canvas.height * 0.1), size: POWERUP_SIZE, type: type }); 
+            // FIX: Lowered pitch of powerup spawn sound from C6 to A4
+            playSound(audio.sfx.powerupSpawn, 'A4', '16n'); 
+        }
+
+        function activatePowerUp(type, hitter) { if (activeEffects[type]) clearTimeout(activeEffects[type].timeoutId); const powerUpInfo = powerUpTypes[type]; playSound(audio.sfx.powerupGet, 'A5', '16n'); switch(type) { case 'speedBoost': ball.speed = BASE_SPEED * 1.5; break; case 'largePaddle': if(hitter === 'player') player.height = player.defaultHeight * 1.5; else cpu.height = cpu.defaultHeight * 1.5; break; case 'smallPaddle': player.height = player.defaultHeight * 0.5; cpu.height = cpu.defaultHeight * 0.5; break; case 'ghostBall': ball.alpha = 0.5; ball.pulseTime = 0; break; case 'slowDown': player.speedMultiplier = 0.3; cpu.speedMultiplier = 0.3; break; case 'invisiWall': invisiWall = { owner: hitter, x: (hitter === 'player' ? player.x + player.width + 5 : cpu.x - 15), y: 0, width: 10, height: canvas.height }; break; } activeEffects[type] = { startTime: Date.now(), timeoutId: setTimeout(() => deactivatePowerUp(type), powerUpInfo.duration), hitter: hitter }; }
         function deactivatePowerUp(type) { const hitter = activeEffects[type] ? activeEffects[type].hitter : null; switch(type) { case 'speedBoost': ball.speed = BASE_SPEED; break; case 'largePaddle': if(hitter === 'player') player.height = player.defaultHeight; else cpu.height = cpu.defaultHeight; break; case 'smallPaddle': player.height = player.defaultHeight; cpu.height = cpu.defaultHeight; break; case 'ghostBall': ball.alpha = 1; break; case 'slowDown': player.speedMultiplier = 1; cpu.speedMultiplier = 1; break; case 'invisiWall': invisiWall = null; break; } delete activeEffects[type]; }
 
         // --- EVENT LISTENERS ---
-        function handleInteractionStart(e) {
+        async function handleInteractionStart(e) {
+            // Initialize audio on the first user interaction to comply with browser autoplay policies
+            if (!audioInitialized) {
+                try {
+                    await Tone.start();
+                    initAudio();
+                    console.log("Audio context started and initialized.");
+                } catch (error) {
+                    console.error("Could not start audio context:", error);
+                }
+            }
+
             const pos = getInteractionPos(e);
             if (e.type === 'touchstart') {
                 touchStartY = pos.y;
                 paddleStartY = player.y;
             }
-            if (currentScreen !== 'playing' && currentScreen !== 'paused') {
-                uiButtons.forEach(button => {
-                    if (pos.x > button.x && pos.x < button.x + button.width && pos.y > button.y && pos.y < button.y + button.height) {
-                        if(button.action) button.action();
+
+            // Filter buttons based on current screen context
+            const relevantButtons = uiButtons.filter(b => {
+                if (b.isGameUI) return currentScreen === 'playing' || currentScreen === 'paused';
+                return currentScreen !== 'playing' && currentScreen !== 'paused';
+            });
+
+            relevantButtons.forEach(button => {
+                if (pos.x > button.x && pos.x < button.x + button.width && pos.y > button.y && pos.y < button.y + button.height) {
+                    if(button.action) {
+                        button.action();
+                         // Play click sound for all buttons except the mute button (which handles its own sound)
+                        if (button.id !== 'muteBtn' && audioInitialized) {
+                            playSound(audio.sfx.click);
+                        }
                     }
-                });
-            }
+                }
+            });
         }
         
         function handleInteractionMove(e) {
             e.preventDefault();
             const pos = getInteractionPos(e);
-            mousePos.x = pos.x; // Update mouse position for custom cursor
-            mousePos.y = pos.y;
+            mousePos.x = pos.x; mousePos.y = pos.y;
             let newTargetY;
             if (e.type === 'touchmove') {
-                 let deltaY = pos.y - touchStartY;
-                 newTargetY = paddleStartY + deltaY;
-            } else { // mousemove
+                let deltaY = pos.y - touchStartY;
+                newTargetY = paddleStartY + deltaY;
+            } else {
                 newTargetY = pos.y;
             }
             if (newTargetY < player.height / 2) newTargetY = player.height / 2;
@@ -789,19 +807,13 @@
             const rect = canvas.getBoundingClientRect();
             let clientX, clientY;
             if (e.touches) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
+                clientX = e.touches[0].clientX; clientY = e.touches[0].clientY;
             } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
+                clientX = e.clientX; clientY = e.clientY;
             }
-            // Scale mouse coordinates to canvas coordinates
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
-            return {
-                x: (clientX - rect.left) * scaleX,
-                y: (clientY - rect.top) * scaleY
-            };
+            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
         }
         
         document.addEventListener('keydown', (e) => { if (e.code === 'Space' || e.key === ' ') { e.preventDefault(); togglePause(); } });
@@ -811,23 +823,9 @@
         canvas.addEventListener('touchstart', handleInteractionStart, { passive: false });
         canvas.addEventListener('touchmove', handleInteractionMove, { passive: false });
 
-        // Populate questions (truncated for brevity)
-        allQuestions.push(
-            { question: "What was the primary motivation for the Virginia Company to establish the Jamestown colony?", answers: ["To create a haven for religious freedom", "To discover a new route to Asia", "To make a profit for its investors"], correctAnswer: "To make a profit for its investors" },
-            { question: "The movement of goods, people, and diseases between the Old World and the New World is known as the:", answers: ["Triangle Trade", "Columbian Exchange", "Middle Passage"], correctAnswer: "Columbian Exchange" },
-            { question: "Which of the following is the BEST definition of colonization?", answers: ["When people visit a new country for a short time", "When a country establishes control over a new land and settles it", "When two countries agree to trade with each other"], correctAnswer: "When a country establishes control over a new land and settles it" },
-            { question: "The term 'New World' was used by Europeans to refer to:", answers: ["Africa and Asia", "North and South America", "Australia and New Zealand"], correctAnswer: "North and South America" },
-            { question: "Mercantilism was an economic theory that encouraged nations to:", answers: ["Import more goods than they export", "Establish colonies to gain resources and wealth", "Promote free trade between all countries"], correctAnswer: "Establish colonies to gain resources and wealth" },
-            { question: "The Massachusetts Bay Colony was founded primarily by which group?", answers: ["Quakers seeking peace", "Puritans seeking religious freedom", "Catholics escaping persecution in England"], correctAnswer: "Puritans seeking religious freedom" },
-            { question: "In the Triangle Trade system, what was transported from Africa to the Americas?", answers: ["Manufactured goods like rum and guns", "Enslaved people", "Raw materials like sugar and tobacco"], correctAnswer: "Enslaved people" }
-            // ... Add all other questions here from the original script
-        );
-
         // Initial Load
         window.onload = () => {
-            // Set font for the first time to ensure it's loaded for text measurements
             ctx.font = "10px 'Press Start 2P'";
-            // A small delay to help ensure the font is ready before the first render
             setTimeout(() => {
                 resizeCanvas();
                 init();
@@ -836,4 +834,5 @@
     </script>
 </body>
 </html>
+
 
