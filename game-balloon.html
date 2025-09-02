@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Lumin Ascent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; background-color: #0c0a1a; }
+        canvas { display: block; background-color: #0c0a1a; cursor: pointer; }
+        .ui-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; align-items: center; pointer-events: none; color: white; text-shadow: 0 2px 6px rgba(0,0,0,0.6); }
+        .top-ui { display: flex; justify-content: space-between; align-items: start; width: 100%; padding: 2rem; }
+        .health-display { display: flex; gap: 0.5rem; }
+        .health-display svg { width: 40px; height: 40px; stroke: rgba(0,0,0,0.3); stroke-width: 2; transition: transform 0.2s; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));}
+        .score-display { font-size: 3rem; font-weight: 700; text-align: center; flex-grow: 1; }
+        .start-modal, .game-over-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(12, 10, 26, 0.7); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; flex-direction: column; text-align: center; pointer-events: all; z-index: 10; }
+        .modal-content { background-color: rgba(45, 55, 72, 0.8); padding: 2.5rem 4rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .modal-content h2 { font-size: 3.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .modal-content p { font-size: 1.2rem; margin-bottom: 2rem; }
+        .start-button, .restart-button { background-color: #4a5568; color: white; padding: 0.75rem 2rem; border-radius: 0.5rem; font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; }
+        .start-button:hover, .restart-button:hover { background-color: #718096; }
+        .start-button:disabled { background-color: #2d3748; cursor: not-allowed; }
+    </style>
+</head>
+<body class="bg-gray-900">
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="startScreen" class="start-modal">
+        <div class="modal-content">
+            <h2>Lumin Ascent</h2>
+            <p>Guide your balloon through the canyon.</p>
+            <button id="startButton" class="start-button">Start Ascent</button>
+        </div>
+    </div>
+
+    <div class="ui-container hidden" id="gameUI">
+        <div class="top-ui">
+            <div id="health" class="health-display"></div>
+            <div id="score" class="score-display">0</div>
+            <div style="width: 140px;"></div> <!-- Spacer -->
+        </div>
+    </div>
+
+    <div id="gameOverScreen" class="game-over-modal hidden">
+        <div class="modal-content">
+            <h2>Grounded</h2>
+            <p>Max Altitude: <span id="finalScore">0</span>m</p>
+            <button id="restartButton" class="restart-button">Ascend Again</button>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('load', () => {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const scoreEl = document.getElementById('score');
+            const healthEl = document.getElementById('health');
+            const startScreen = document.getElementById('startScreen');
+            const startButton = document.getElementById('startButton');
+            const gameUI = document.getElementById('gameUI');
+            const gameOverScreen = document.getElementById('gameOverScreen');
+            const finalScoreEl = document.getElementById('finalScore');
+            const restartButton = document.getElementById('restartButton');
+
+            let canvasWidth, canvasHeight, isGameOver = false, score = 0, frame = 0;
+            let backgroundLayers = [], sandstoneTexture, fabricTexture;
+
+            const player = { x: 0, y: 0, radius: 30, baseVelocityY: -1.4, boostVelocityY: -3.2, currentVelocityY: -1.4, velocityX: 0, controlSpeed: 0.28, maxVelocityX: 6, tilt: 0, health: 3, maxHealth: 3, isInvincible: false, invincibleTimer: 0, shieldActive: false, shieldTimer: 0, damagePatches: [] };
+            const world = { obstacles: [], tokens: [], powerups: [], birds: [], debris: [], windParticles: [], particles: [], sunRays: [], leftWall: [], rightWall: [], wallSegmentHeight: 50, minGap: 450, maxGap: 700, obstacleSpawnRate: 90, tokenSpawnRate: 90, cameraY: 0, wind: { x: 0, y: 0 }, isNarrowing: false };
+            const keys = { ArrowLeft: false, ArrowRight: false, ArrowUp: false };
+            let isTouching = false;
+            let audioReady = false, flameSound, windSound, musicSynth, musicPattern;
+            let sfx = {};
+            let gameStarted = false;
+
+            function createSandstoneTexture() {
+                const textureCanvas = document.createElement('canvas');
+                const tCtx = textureCanvas.getContext('2d');
+                textureCanvas.width = 400; textureCanvas.height = 400;
+                const baseRed = 180, baseGreen = 100, baseBlue = 80;
+                tCtx.fillStyle = `rgb(${baseRed}, ${baseGreen}, ${baseBlue})`; tCtx.fillRect(0,0,400,400);
+                 for (let i = 0; i < 800; i++) { tCtx.fillStyle = `rgba(${baseRed - 20 + Math.random()*40}, ${baseGreen-20+Math.random()*40}, ${baseBlue-20+Math.random()*40}, ${Math.random() * 0.3})`; tCtx.beginPath(); tCtx.arc(Math.random()*400, Math.random()*400, Math.random()*5+1, 0, Math.PI*2); tCtx.fill(); }
+                for (let i = 0; i < 20; i++) { tCtx.strokeStyle = `rgba(${baseRed - 40}, ${baseGreen-40}, ${baseBlue-40}, 0.5)`; tCtx.lineWidth = Math.random()*3 + 1; tCtx.beginPath(); const y = Math.random() * 400; tCtx.moveTo(0, y); tCtx.bezierCurveTo(100, y + (Math.random()-0.5)*20, 300, y + (Math.random()-0.5)*20, 400, y+(Math.random()-0.5)*10); tCtx.stroke(); }
+                return ctx.createPattern(textureCanvas, 'repeat');
+            }
+
+            function createFabricTexture() {
+                const textureCanvas = document.createElement('canvas');
+                const tCtx = textureCanvas.getContext('2d');
+                textureCanvas.width = 60; textureCanvas.height = 60;
+                tCtx.fillStyle = "rgba(0,0,0,0.03)";
+                for(let i=0; i<60; i+=4) { tCtx.fillRect(i,0,2,60); tCtx.fillRect(0,i,60,2); }
+                return ctx.createPattern(textureCanvas, 'repeat');
+            }
+
+            function createBackgroundLayers() {
+                backgroundLayers = [];
+                for(let i=0; i<4; i++) { backgroundLayers.push({ yOffset: Math.random() * 1000, scrollFactor: 0.05 + i * 0.08, color: `rgba(${150 + i*20}, ${80 + i*10}, ${60 + i*10}, ${0.2 + i*0.1})`, amplitude: 300 - i * 60, frequency: 0.001 * (i + 1) }); }
+            }
+            
+            function initializeAudio() {
+                if (typeof Tone === 'undefined') { console.error("Tone.js not loaded."); return; }
+                
+                const reverb = new Tone.Reverb(2.5).toDestination();
+                reverb.wet.value = 0.3;
+                
+                const delay = new Tone.FeedbackDelay("8n", 0.3).connect(reverb);
+
+                flameSound = new Tone.NoiseSynth({ noise: { type: 'pink' }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.1 } }).toDestination();
+                flameSound.volume.value = -8;
+                
+                windSound = new Tone.NoiseSynth({ noise: { type: 'brown' }, envelope: { attack: 1, decay: 0.5, sustain: 1, release: 1 } }).connect(new Tone.Filter(400, 'lowpass')).toDestination();
+                windSound.volume.value = -12;
+
+                sfx.token = new Tone.FMSynth({ harmonicity: 3, modulationIndex: 10, envelope: { attack: 0.01, decay: 0.3, sustain: 0.01, release: 0.4 }, modulationEnvelope: { attack: 0.01, decay: 0.1, sustain: 0.2, release: 0.2 } }).connect(reverb);
+                sfx.token.volume.value = -1;
+                
+                sfx.powerup = new Tone.PolySynth(Tone.Synth, { oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.4, sustain: 0.1, release: 0.4 }}).connect(reverb);
+                sfx.powerup.volume.value = 0;
+
+                sfx.damage = new Tone.FMSynth({ harmonicity: 0.5, modulationIndex: 5, envelope: { attack: 0.01, decay: 0.3 }, modulationEnvelope: { attack: 0.01, decay: 0.1 } }).toDestination();
+                sfx.damage.volume.value = 0;
+
+                sfx.shieldOn = new Tone.PolySynth(Tone.Synth, { oscillator: {type: 'triangle'}, envelope: { attack: 0.01, decay: 0.5, sustain: 0.2, release: 0.3 } }).connect(reverb);
+                sfx.shieldOff = new Tone.PolySynth(Tone.Synth, { oscillator: {type: 'triangle'}, envelope: { attack: 0.01, decay: 0.5, sustain: 0.2, release: 0.3 } }).connect(reverb);
+                
+                sfx.shockwave = new Tone.NoiseSynth({ noise: {type: 'white'}, envelope: { attack: 0.01, decay: 1.5, sustain: 0, release: 1 } }).connect(new Tone.Filter(1000, 'lowpass')).toDestination();
+                sfx.shockwave.volume.value = 0;
+
+                
+                // --- Updated Folksy Music Section ---
+                Tone.Transport.bpm.value = 110;
+
+                musicSynth = new Tone.PluckSynth({
+                    attackNoise: 1,
+                    dampening: 6000,
+                    resonance: 0.6,
+                }).connect(delay);
+                musicSynth.volume.value = -6;
+
+                const melodySynth = new Tone.AMSynth({
+                    harmonicity: 1.5,
+                    oscillator: { type: 'sine' },
+                    envelope: { attack: 0.1, decay: 0.2, sustain: 0.3, release: 0.5 },
+                    modulation: { type: 'square' },
+                    modulationEnvelope: { attack: 0.5, decay: 0.01, sustain: 1, release: 0.5 }
+                }).connect(reverb);
+                melodySynth.volume.value = -18;
+
+                const chords = [
+                    { time: "0:0", chord: ["G2", "B3", "D4"], melody: "G4" },
+                    { time: "1:0", chord: ["C3", "E4", "G4"], melody: "E4" },
+                    { time: "2:0", chord: ["G2", "B3", "D4"], melody: "D4" },
+                    { time: "3:0", chord: ["D3", "F#4", "A4"], melody: "C4" }
+                ];
+
+                musicPattern = new Tone.Part((time, value) => {
+                    musicSynth.triggerAttack(value.chord[0], time, 0.6); 
+                    musicSynth.triggerAttack(value.chord[1], time + Tone.Time("16n").toSeconds(), 0.4);
+                    musicSynth.triggerAttack(value.chord[2], time + Tone.Time("16n").toSeconds() * 1.5, 0.4);
+                    musicSynth.triggerAttack(value.chord[1], time + Tone.Time("8n.").toSeconds(), 0.3);
+                    musicSynth.triggerAttack(value.chord[2], time + Tone.Time("8n.").toSeconds() * 1.05, 0.3);
+                    melodySynth.triggerAttackRelease(value.melody, "1m", time);
+                }, chords).start(0);
+
+                musicPattern.loop = true;
+                musicPattern.loopEnd = '4m';
+                
+            }
+            
+            function resizeCanvas() { canvasWidth = window.innerWidth; canvasHeight = window.innerHeight; canvas.width = canvasWidth; canvas.height = canvasHeight; createBackgroundLayers(); }
+
+            function resetGame() {
+                isGameOver = false; score = 0; frame = 0;
+                player.health = player.maxHealth; player.isInvincible = false; player.invincibleTimer = 0; player.shieldActive = false; player.shieldTimer = 0; player.damagePatches = [];
+                world.cameraY = 0; player.x = canvasWidth / 2; player.y = canvasHeight - 100; player.velocityX = 0;
+                world.obstacles = []; world.tokens = []; world.powerups = []; world.birds = []; world.leftWall = []; world.rightWall = []; world.windParticles = []; world.particles = []; world.sunRays = [];
+                generateInitialWalls();
+                gameOverScreen.classList.add('hidden'); gameUI.classList.remove('hidden');
+                sandstoneTexture = createSandstoneTexture(); fabricTexture = createFabricTexture();
+                updateHealthUI();
+            }
+            
+            async function startGame() {
+                if (!audioReady && typeof Tone !== 'undefined') {
+                    try {
+                        await Tone.start();
+                        console.log("Audio context started successfully.");
+                        
+                        initializeAudio();
+                        audioReady = true;
+
+                        Tone.getDestination().volume.value = 6;
+                        Tone.Transport.start();
+                        musicPattern.start(0);
+                        windSound.triggerAttack();
+                    } catch (e) {
+                        console.error("Audio could not be started. The game will run without sound.", e);
+                    }
+                }
+
+                startScreen.classList.add('hidden');
+                gameStarted = true;
+                resetGame();
+                requestAnimationFrame(gameLoop);
+            }
+            
+            function gameLoop() {
+                if (!gameStarted || isGameOver) return;
+                update();
+                draw();
+                requestAnimationFrame(gameLoop);
+            }
+
+            function generateWallSegment(y) {
+                world.isNarrowing = score > 8000 && (Math.floor(score/8000) % 2 === 1);
+                const lastLeft = world.leftWall.length > 0 ? world.leftWall[world.leftWall.length - 1].x : canvasWidth / 2 - world.minGap / 2;
+                const lastRight = world.rightWall.length > 0 ? world.rightWall[world.rightWall.length - 1].x : canvasWidth / 2 + world.minGap / 2;
+                let difficulty = Math.max(0.7, 1 - score / 30000);
+                if (world.isNarrowing) difficulty = 0.75;
+                const currentGap = (world.minGap + Math.random() * (world.maxGap - world.minGap)) * difficulty;
+                const center = lastLeft + (lastRight - lastLeft) / 2 + (Math.random() - 0.5) * 300;
+                let newLeftX = Math.max(50, center - currentGap / 2); let newRightX = Math.min(canvasWidth - 50, center + currentGap / 2);
+                world.leftWall.push({ x: newLeftX, y }); world.rightWall.push({ x: newRightX, y });
+            }
+            
+            function generateInitialWalls() { for(let y = canvasHeight + 100; y > -canvasHeight * 2; y -= world.wallSegmentHeight) { generateWallSegment(y); } }
+
+            function update() {
+                frame++;
+                const difficultyFactor = 1 + score / 8000;
+                if (player.isInvincible) { player.invincibleTimer--; if(player.invincibleTimer <= 0) player.isInvincible = false; }
+                if (player.shieldActive) { player.shieldTimer--; if(player.shieldTimer <= 0) { player.shieldActive = false; if(audioReady) sfx.shieldOff.triggerAttackRelease(['C4', 'G3'], '0.5'); } }
+                if (frame % 300 === 0) world.wind.x = (Math.random() - 0.5) * (0.15 + difficultyFactor * 0.05);
+                if (audioReady) { windSound.filter.frequency.value = 200 + Math.abs(world.wind.x) * 2000; windSound.volume.value = -22 + Math.abs(world.wind.x) * 20; }
+                if (Math.random() < 0.3) { world.windParticles.push({ x: world.wind.x > 0 ? -20 : canvasWidth + 20, y: world.cameraY + Math.random() * canvasHeight, life: 120 + Math.random() * 80, maxLife: 200, width: Math.random() * 80 + 40, speed: Math.random() * 0.5 + 0.5 }); }
+                if (frame % 800 === 0) { const x = Math.random() * canvasWidth; world.sunRays.push({ x, life: 300, maxLife: 300, angle: (Math.random() - 0.5) * 0.4}); }
+                
+                player.currentVelocityY = (keys.ArrowUp || isTouching) ? player.boostVelocityY : player.baseVelocityY;
+                if (keys.ArrowLeft) player.velocityX -= player.controlSpeed; if (keys.ArrowRight) player.velocityX += player.controlSpeed;
+                player.velocityX += world.wind.x; player.velocityX *= 0.95; player.velocityX = Math.max(-player.maxVelocityX, Math.min(player.maxVelocityX, player.velocityX));
+                if ((keys.ArrowUp || isTouching) && audioReady && frame % 5 === 0) flameSound.triggerAttack();
+                player.x += player.velocityX; player.y += player.currentVelocityY; player.tilt += (player.velocityX * 0.05 - player.tilt) * 0.1;
+                const targetCameraY = player.y - canvasHeight * (2/3); world.cameraY += (targetCameraY - world.cameraY) * 0.1;
+                if (world.leftWall.length === 0 || world.leftWall[world.leftWall.length - 1].y > world.cameraY - 100) { const startY = world.leftWall.length > 0 ? world.leftWall[world.leftWall.length-1].y : player.y; for(let i=0; i<5; i++){ generateWallSegment(startY - (i * world.wallSegmentHeight)); } }
+                score += Math.floor(-player.currentVelocityY * 1.5); scoreEl.textContent = `${score}`;
+                checkWallCollision();
+
+                let currentObsSpawnRate = world.obstacleSpawnRate; if (world.isNarrowing) currentObsSpawnRate *= 2.5;
+                if (frame % Math.max(25, Math.floor(currentObsSpawnRate / difficultyFactor)) === 0) spawnObstacle();
+                if (frame % world.tokenSpawnRate === 0) spawnToken(); if (frame % 450 === 0) spawnPowerup(); if (frame % 500 === 0) spawnBirdFlock();
+
+                world.obstacles.forEach((obs, index) => { obs.y += obs.velocityY * difficultyFactor; obs.x += obs.velocityX; const bounds = getWallBoundsAtY(obs.y); if (bounds) { let hitWall = null; if (obs.x - obs.radius < bounds.left) hitWall = 'left'; if (obs.x + obs.radius > bounds.right) hitWall = 'right'; if (hitWall) { if (obs.radius > 15) { for(let i = 0; i < 2; i++) { const newRadius = obs.radius / 1.6; world.obstacles.push({ x: hitWall === 'left' ? bounds.left + newRadius + 1 : bounds.right - newRadius - 1, y: obs.y, radius: newRadius, velocityY: (Math.random() * 0.5 + 0.5), velocityX: (Math.random() * 0.5 + 0.5) * (hitWall === 'left' ? 1 : -1) * 0.5, points: createRockShape(newRadius, 7, 0.4), rotation: Math.random() * Math.PI * 2, rotationSpeed: (Math.random() - 0.5) * 0.1 }); } } createDebris(obs.x, obs.y, obs.radius, obs.velocityX); world.obstacles.splice(index, 1); return; } } if (obs.y > world.cameraY + canvasHeight + obs.radius) world.obstacles.splice(index, 1); if (Math.hypot(player.x - obs.x, player.y - obs.y) < player.radius + obs.radius) { takeDamage(1); world.obstacles.splice(index, 1); } });
+                world.birds.forEach((bird, index) => { bird.x += bird.vx; bird.y += Math.sin(frame * bird.freq + bird.offset) * bird.amp; if(bird.x < -100 || bird.x > canvasWidth + 100) world.birds.splice(index, 1); if (Math.hypot(player.x - bird.x, player.y - bird.y) < player.radius + 20) { takeDamage(1); world.birds.splice(index, 1); } });
+                world.debris.forEach((d, i) => { d.x += d.vx; d.y += d.vy; d.vy += 0.1; d.vx *= 0.99; d.life--; if (d.life <= 0) world.debris.splice(i, 1); });
+                world.particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.life--; if(p.life <= 0) world.particles.splice(i,1); });
+                world.tokens.forEach((token, index) => { 
+                    if (Math.hypot(player.x - token.x, player.y - token.y) < player.radius + token.radius) { 
+                        if(audioReady) {
+                            sfx.token.triggerAttackRelease("C5", "8n"); 
+                        }
+                        score += 500; 
+                        createParticleBurst(token.x, token.y, 'rgba(255,223,186,1)'); 
+                        world.tokens.splice(index, 1); 
+                    } 
+                });
+                world.powerups.forEach((p, i) => { if(Math.hypot(player.x - p.x, player.y - p.y) < player.radius + 20) { activatePowerup(p.type); createParticleBurst(p.x, p.y, 'rgba(255,255,255,1)'); world.powerups.splice(i, 1); } });
+            }
+            
+            function takeDamage(amount) { if(player.isInvincible) return; if(player.shieldActive) { player.shieldActive = false; if(audioReady) sfx.shieldOff.triggerAttackRelease(['C4', 'G3'], '0.5'); createParticleBurst(player.x, player.y, '#89CFF0'); return; } player.health -= amount; if(audioReady) sfx.damage.triggerAttackRelease("C2", "8n"); if (player.health < player.maxHealth) { player.damagePatches.push({ angle: Math.random() * Math.PI * 2, radius: Math.random() * player.radius * 0.4 + player.radius * 0.2, shape: Math.random() }); } updateHealthUI(); player.isInvincible = true; player.invincibleTimer = 180; if(player.health <= 0) endGame(); }
+            function activatePowerup(type) { if(!audioReady) return; if (type === 'repair') { sfx.powerup.triggerAttackRelease(['C5', 'E5', 'G5'], '0.2'); player.health = Math.min(player.maxHealth, player.health + 1); player.damagePatches.pop(); } if (type === 'shield') { sfx.shieldOn.triggerAttackRelease(['C4', 'E4', 'G4', 'C5'], '0.4'); player.shieldActive = true; player.shieldTimer = 600; } if (type === 'shockwave') { sfx.shockwave.triggerAttack(); world.obstacles.forEach(obs => createDebris(obs.x, obs.y, obs.radius * 2, 0)); world.obstacles = []; } updateHealthUI(); }
+            function checkWallCollision() { const bounds = getWallBoundsAtY(player.y); if(bounds) { if(player.x - player.radius < bounds.left) { takeDamage(1); player.velocityX = 5; } if(player.x + player.radius > bounds.right) { takeDamage(1); player.velocityX = -5; } } }
+            function getWallBoundsAtY(y) { for (let i = 0; i < world.leftWall.length - 1; i++) { if (world.leftWall[i+1] && world.leftWall[i].y >= y && world.leftWall[i+1].y <= y) { const p = (y - world.leftWall[i+1].y) / (world.leftWall[i].y - world.leftWall[i+1].y); const lx = world.leftWall[i+1].x + (world.leftWall[i].x - world.leftWall[i+1].x) * p; const rx = world.rightWall[i+1].x + (world.rightWall[i].x - world.rightWall[i+1].x) * p; return { left: lx, right: rx }; } } return null; }
+            function spawnObstacle() { const wallBounds = getWallBoundsAtY(world.cameraY - 50); if (!wallBounds) return; const pathWidth = wallBounds.right - wallBounds.left; const x = wallBounds.left + pathWidth * 0.1 + Math.random() * pathWidth * 0.8; const y = world.cameraY - 50; const radius = Math.random() * 20 + 15; world.obstacles.push({ x, y, radius, velocityY: 2, velocityX: (Math.random() - 0.5) * 4, points: createRockShape(radius, 7, 0.3), rotation: 0, rotationSpeed: (Math.random() - 0.5) * 0.05 }); }
+            function spawnToken() { const spawnY = world.cameraY - (Math.random() * canvasHeight * 0.8); const wallBounds = getWallBoundsAtY(spawnY); if (!wallBounds) return; const pathWidth = wallBounds.right - wallBounds.left; const x = wallBounds.left + pathWidth * 0.2 + Math.random() * pathWidth * 0.6; world.tokens.push({x, y: spawnY, radius: 15}); }
+            function spawnPowerup() { const spawnY = world.cameraY - (Math.random() * canvasHeight * 0.5); const wallBounds = getWallBoundsAtY(spawnY); if (!wallBounds) return; const pathWidth = wallBounds.right - wallBounds.left; const x = wallBounds.left + pathWidth * 0.3 + Math.random() * pathWidth * 0.4; const types = ['repair', 'shield', 'shockwave']; const type = types[Math.floor(Math.random() * types.length)]; world.powerups.push({x, y: spawnY, type}); }
+            function spawnBirdFlock() { const startY = world.cameraY + Math.random() * canvasHeight; const vx = (Math.random() > 0.5 ? 4 : -4); for (let i = 0; i < 5; i++) { world.birds.push({ x: vx > 0 ? -100 - i * 60 : canvasWidth + 100 + i*60, y: startY, vx, freq: 0.05, amp: 2, offset: Math.random() * Math.PI * 2 }); } }
+            function endGame() { 
+                if(isGameOver) return; 
+                isGameOver = true; 
+                if(audioReady) {
+                    sfx.damage.triggerAttackRelease("A1", "2n");
+                    windSound.triggerRelease();
+                }
+                finalScoreEl.textContent = `${score}`; 
+                gameOverScreen.classList.remove('hidden'); 
+                gameUI.classList.add('hidden'); 
+            }
+            function createRockShape(radius, sides, jaggedness) { const points = []; for (let i = 0; i < sides; i++) { const angle = (i / sides) * Math.PI * 2; const r = radius * (1 - jaggedness + Math.random() * jaggedness * 2); points.push({ x: Math.cos(angle) * r, y: Math.sin(angle) * r }); } return points; }
+            function createDebris(x, y, r, vx) { for (let i = 0; i < r / 2; i++) world.debris.push({ x, y, vx: (Math.random() - 0.5) * 8 - vx * 0.5, vy: (Math.random() - 0.5) * 5 - 2, size: Math.random() * 3 + 1, life: Math.random() * 60 + 40, maxLife: 100}); }
+            function createParticleBurst(x, y, color) { for(let i=0; i<20; i++) { const angle = Math.random() * Math.PI*2; const speed = Math.random()*4 + 2; world.particles.push({x, y, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, life: 40, maxLife: 40, color }); } }
+            function updateHealthUI() { healthEl.innerHTML = ''; for(let i = 0; i < player.maxHealth; i++) { const heart = document.createElementNS("http://www.w3.org/2000/svg", "svg"); heart.setAttribute("viewBox", "0 0 24 24"); heart.innerHTML = `<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>`; heart.style.fill = i < player.health ? 'rgba(239, 68, 68, 0.9)' : 'rgba(255, 255, 255, 0.3)'; healthEl.appendChild(heart); } }
+
+            function draw() {
+                ctx.save(); ctx.translate(0, -world.cameraY); 
+                const bgGrad = ctx.createLinearGradient(0, world.cameraY, 0, world.cameraY + canvasHeight); bgGrad.addColorStop(0, '#6DD5FA'); bgGrad.addColorStop(0.5, '#2980B9'); bgGrad.addColorStop(1, '#0F2027');
+                ctx.fillStyle = bgGrad; ctx.fillRect(0, world.cameraY, canvasWidth, canvasHeight);
+                backgroundLayers.forEach(layer => { ctx.fillStyle = layer.color; ctx.beginPath(); const startY = (world.cameraY * layer.scrollFactor + layer.yOffset) % (canvasHeight + layer.amplitude*2) - layer.amplitude*2; ctx.moveTo(0, startY); for(let x = 0; x < canvasWidth; x+=20) { ctx.lineTo(x, startY + Math.sin(x * layer.frequency + frame * 0.005) * layer.amplitude); } ctx.lineTo(canvasWidth, canvasHeight + world.cameraY); ctx.lineTo(0, canvasHeight + world.cameraY); ctx.closePath(); ctx.fill(); });
+                world.sunRays.forEach((ray, i) => { ray.life--; if (ray.life <= 0) world.sunRays.splice(i,1); const alpha = Math.sin((ray.life / ray.maxLife) * Math.PI) * 0.15; const grad = ctx.createLinearGradient(ray.x, world.cameraY, ray.x + Math.tan(ray.angle) * canvasHeight, world.cameraY + canvasHeight); grad.addColorStop(0, 'rgba(255, 255, 220, 0)'); grad.addColorStop(0.5, `rgba(255, 255, 220, ${alpha})`); grad.addColorStop(1, 'rgba(255, 255, 220, 0)'); ctx.save(); ctx.beginPath(); ctx.moveTo(ray.x-100, world.cameraY); ctx.lineTo(ray.x+100, world.cameraY); ctx.lineTo(ray.x+100 + Math.tan(ray.angle) * canvasHeight, world.cameraY + canvasHeight); ctx.lineTo(ray.x-100 + Math.tan(ray.angle) * canvasHeight, world.cameraY + canvasHeight); ctx.closePath(); ctx.fillStyle = grad; ctx.fill(); ctx.restore(); });
+                drawSedonaWall(world.leftWall, 'left'); drawSedonaWall(world.rightWall, 'right');
+                world.debris.forEach(d => { const alpha = Math.max(0, d.life / d.maxLife); ctx.fillStyle = `rgba(180, 100, 80, ${alpha})`; ctx.fillRect(d.x, d.y, d.size, d.size); });
+                world.windParticles.forEach((p, i) => { p.x += world.wind.x * 200 * p.speed; p.life--; if(p.life <= 0) world.windParticles.splice(i, 1); const alpha = Math.sin((p.life / p.maxLife) * Math.PI) * 0.2; ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.width/2, 0, Math.PI*2); ctx.fill(); });
+                world.particles.forEach(p => { const alpha = p.life / p.maxLife; ctx.fillStyle = p.color.slice(0, -2) + `${alpha})`; ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(0, p.life/10), 0, Math.PI*2); ctx.fill(); });
+                world.tokens.forEach(token => { const pulse = Math.sin(frame * 0.1 + token.x) * 0.2 + 0.8; const glow = ctx.createRadialGradient(token.x, token.y, 0, token.x, token.y, token.radius * 4 * pulse); glow.addColorStop(0, `rgba(255, 220, 100, ${0.8 * pulse})`); glow.addColorStop(0.5, `rgba(255, 180, 50, ${0.2 * pulse})`); glow.addColorStop(1, "transparent"); ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(token.x, token.y, token.radius * 4 * pulse, 0, Math.PI*2); ctx.fill(); ctx.save(); ctx.translate(token.x, token.y); ctx.rotate(frame*0.02); ctx.fillStyle = `rgba(255, 255, 240, ${pulse})`; ctx.beginPath(); for(let i=0; i<6; i++) { const a = i/6 * Math.PI*2; ctx.lineTo(Math.cos(a) * token.radius, Math.sin(a) * token.radius); } ctx.closePath(); ctx.fill(); ctx.restore(); });
+                world.obstacles.forEach(obs => drawObstacle(obs));
+                world.birds.forEach(bird => drawBird(bird));
+                world.powerups.forEach(p => drawPowerup(p.x, p.y, p.type));
+
+                drawPlayer();
+                
+                ctx.restore();
+            }
+
+            function drawSedonaWall(points, side) { if (points.length < 2) return; ctx.fillStyle = sandstoneTexture; ctx.beginPath(); ctx.moveTo(points[0].x, points[0].y + 100); for (let i = 1; i < points.length; i++) { if (points[i] && points[i - 1]) ctx.quadraticCurveTo(points[i - 1].x, points[i - 1].y, (points[i].x + points[i - 1].x) / 2, (points[i].y + points[i - 1].y) / 2); } const endPoint = points[points.length - 1]; ctx.lineTo(endPoint.x, endPoint.y - 100); const edgeY = points.length > 1 ? endPoint.y : 0, startY = points.length > 1 ? points[0].y : 0; ctx.lineTo(side === 'left' ? 0 : canvasWidth, edgeY - 100); ctx.lineTo(side === 'left' ? 0 : canvasWidth, startY + 100); ctx.closePath(); ctx.fill(); const shadowGrad = ctx.createLinearGradient(0,0,canvasWidth,0); shadowGrad.addColorStop(0, 'rgba(0,0,0,0.4)'); shadowGrad.addColorStop(0.5, 'rgba(0,0,0,0)'); shadowGrad.addColorStop(1, 'rgba(0,0,0,0.4)'); ctx.fillStyle = shadowGrad; ctx.fill(); const highlightGrad = ctx.createLinearGradient(0,0,canvasWidth, 0); highlightGrad.addColorStop(0, 'rgba(255,255,255,0)'); highlightGrad.addColorStop(0.5, 'rgba(255,220,180,0.2)'); highlightGrad.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = highlightGrad; ctx.fill(); }
+            
+            function drawObstacle(obs) { obs.rotation += obs.rotationSpeed; ctx.save(); ctx.translate(obs.x, obs.y); ctx.rotate(obs.rotation); const grad = ctx.createRadialGradient(-obs.radius*0.3, -obs.radius*0.3, 0, 0, 0, obs.radius*2); grad.addColorStop(0, `rgba(255,255,255,0.3)`); grad.addColorStop(0.2, `rgba(255,255,255,0)`); grad.addColorStop(0.8, `rgba(0,0,0,0)`); grad.addColorStop(1, `rgba(0,0,0,0.4)`); ctx.fillStyle = sandstoneTexture; ctx.beginPath(); ctx.moveTo(obs.points[0].x, obs.points[0].y); obs.points.forEach(p => ctx.lineTo(p.x, p.y)); ctx.closePath(); ctx.fill(); ctx.fillStyle = grad; ctx.fill(); ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 2; ctx.stroke(); ctx.restore(); }
+            
+            function drawBird(bird) {
+                const size = 30;
+                bird.wingAngle = Math.sin(frame * 0.4 + bird.offset) * size * 0.4;
+                ctx.save();
+                ctx.translate(bird.x, bird.y);
+                ctx.scale(bird.vx > 0 ? 1 : -1, 1);
+                ctx.fillStyle = '#3a3a3a';
+                ctx.strokeStyle = '#1a1a1a';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(-size, bird.wingAngle); 
+                ctx.quadraticCurveTo(-size / 2, 0, 0, size * 0.2); 
+                ctx.quadraticCurveTo(size / 2, 0, size, bird.wingAngle);
+                ctx.quadraticCurveTo(size / 2, size * 0.1, 0, size * 0.4);
+                ctx.quadraticCurveTo(-size / 2, size * 0.1, -size, bird.wingAngle);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+            }
+            
+            function drawPlayer() { ctx.save(); ctx.translate(player.x, player.y); if(player.isInvincible && frame % 10 < 5) ctx.globalAlpha = 0.5; ctx.rotate(player.tilt); const balloonHeight = player.radius * 1.6; const balloonWidth = player.radius * 1.1; const balloonTopY = -balloonHeight; const balloonBottomY = 0; const colors = ['#e56b6f', '#f1faee', '#bde0fe', '#5390d9', '#1d3557']; const panelCount = 12; for (let i = 0; i < panelCount; i++) { const angle1 = (i / panelCount) * Math.PI * 2 - Math.PI/2; const angle2 = ((i + 1) / panelCount) * Math.PI * 2 - Math.PI/2; const eq_x1 = Math.cos(angle1) * balloonWidth; const eq_x2 = Math.cos(angle2) * balloonWidth; const bottom_cp1_x = Math.cos(angle1) * balloonWidth * 0.8; const bottom_cp2_x = Math.cos(angle2) * balloonWidth * 0.8; ctx.fillStyle = colors[i % colors.length]; ctx.beginPath(); ctx.moveTo(0, balloonTopY); ctx.quadraticCurveTo(eq_x1, balloonTopY, eq_x1, balloonTopY + balloonHeight / 2); ctx.quadraticCurveTo(bottom_cp1_x, balloonBottomY, 0, balloonBottomY); ctx.quadraticCurveTo(bottom_cp2_x, balloonBottomY, eq_x2, balloonTopY + balloonHeight / 2); ctx.quadraticCurveTo(eq_x2, balloonTopY, 0, balloonTopY); ctx.closePath(); ctx.fill(); } const grad = ctx.createRadialGradient(balloonWidth*0.3, balloonTopY, 0, 0, 0, balloonWidth*2); grad.addColorStop(0, 'rgba(255,255,255,0.4)'); grad.addColorStop(0.5, 'rgba(255,255,255,0)'); grad.addColorStop(1, 'rgba(0,0,0,0.4)'); ctx.fillStyle = grad; ctx.fill(); ctx.fillStyle = fabricTexture; ctx.globalAlpha = 0.1; ctx.fill(); ctx.globalAlpha = 1; player.damagePatches.forEach(patch => drawDamagePatch(patch)); const basketWidth = player.radius * 0.8, basketHeight = player.radius * 0.6, basketY = player.radius * 0.1; const basketGrad = ctx.createLinearGradient(-basketWidth/2, 0, basketWidth/2, 0); basketGrad.addColorStop(0,'#a1662f'); basketGrad.addColorStop(0.5,'#d48c46'); basketGrad.addColorStop(1,'#a1662f'); ctx.fillStyle = basketGrad; ctx.fillRect(-basketWidth/2, basketY, basketWidth, basketHeight); ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth=1; for(let i=0; i<basketWidth; i+=4) { ctx.beginPath(); ctx.moveTo(-basketWidth/2+i, basketY); ctx.lineTo(-basketWidth/2+i, basketY+basketHeight); ctx.stroke(); } for(let i=0; i<basketHeight; i+=4) { ctx.beginPath(); ctx.moveTo(-basketWidth/2, basketY+i); ctx.lineTo(basketWidth/2, basketY+i); ctx.stroke(); } ctx.strokeStyle = '#5a3821'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-basketWidth/2 + 3, basketY); ctx.lineTo(-balloonWidth * 0.5, 0); ctx.moveTo(basketWidth/2 - 3, basketY); ctx.lineTo(balloonWidth * 0.5, 0); ctx.stroke(); if ((keys.ArrowUp || isTouching)) { const flameBaseY = player.radius * 0.1; ctx.save(); for(let i = 0; i < 3; i++) { const flicker = Math.random(), color = i === 0 ? `rgba(255, 220, 150, ${0.5 + flicker * 0.2})` : `rgba(255, 180, 80, ${0.7 + flicker * 0.3})`, height = (i+1) * 10 + flicker * 15, width = (i+1) * 6; ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(0, flameBaseY); ctx.quadraticCurveTo(-width, flameBaseY - height/2, 0, flameBaseY - height); ctx.quadraticCurveTo(width, flameBaseY - height/2, 0, flameBaseY); ctx.fill(); } ctx.restore(); } if(player.shieldActive) { const pulse = Math.abs(Math.sin(frame*0.05)); ctx.save(); const shieldRadius = player.radius * 1.6; const shieldGrad = ctx.createRadialGradient(0, -player.radius*0.5, 0, 0, -player.radius*0.5, shieldRadius); shieldGrad.addColorStop(0, `rgba(173, 216, 230, ${0.1 + pulse * 0.3})`); shieldGrad.addColorStop(0.8, `rgba(173, 216, 230, ${0.4 + pulse * 0.3})`); shieldGrad.addColorStop(1, `rgba(255, 255, 255, ${0.5 + pulse * 0.3})`); ctx.fillStyle = shieldGrad; ctx.beginPath(); ctx.arc(0, -player.radius*0.5, shieldRadius, 0, Math.PI*2); ctx.fill(); ctx.restore(); } ctx.restore(); }
+            function drawPowerup(x, y, type) { const r = 20, pulse = Math.sin(frame * 0.05 + x) * 0.15 + 0.85; const glow = ctx.createRadialGradient(x, y, 0, x, y, r * 3 * pulse); glow.addColorStop(0, 'rgba(255,255,255,0.7)'); glow.addColorStop(0.5, 'rgba(255,255,255,0.2)'); glow.addColorStop(1, 'transparent'); ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(x,y,r*3*pulse,0,Math.PI*2); ctx.fill(); ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); ctx.save(); ctx.translate(x,y); ctx.strokeStyle = '#4A5568'; ctx.lineWidth = 3; ctx.fillStyle = '#4A5568'; if(type === 'repair') { ctx.fillStyle = '#d16a4c'; ctx.beginPath(); ctx.rect(-r*0.6, -r*0.4, r*1.2, r*0.8); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(-r*0.4, -r*0.15); ctx.lineTo(r*0.4, -r*0.15); ctx.moveTo(0, -r*0.4); ctx.lineTo(0, r*0.1); ctx.stroke(); } if(type === 'shield') { ctx.beginPath(); ctx.moveTo(0, -r*0.7); ctx.quadraticCurveTo(r*0.9, -r*0.6, r*0.9, 0); ctx.quadraticCurveTo(r*0.9, r*0.6, 0, r*0.8); ctx.quadraticCurveTo(-r*0.9, r*0.6, -r*0.9, 0); ctx.quadraticCurveTo(-r*0.9, -r*0.6, 0, -r*0.7); ctx.closePath(); ctx.fillStyle = 'rgba(173, 216, 230, 0.8)'; ctx.fill(); ctx.stroke(); } if(type === 'shockwave') { for(let i=1; i<4; i++) { ctx.beginPath(); ctx.arc(0,0, r*0.25*i, 0, Math.PI*2); ctx.strokeStyle = `rgba(70,130,180, ${1 - i*0.2})`; ctx.lineWidth=3; ctx.stroke();} } ctx.restore(); }
+            function drawDamagePatch(patch) { ctx.save(); ctx.rotate(patch.angle); ctx.translate(0, -patch.radius); ctx.fillStyle = 'rgba(110, 59, 19, 0.8)'; ctx.strokeStyle = 'rgba(240, 230, 200, 0.9)'; ctx.lineWidth = 1.5; const w = 15, h = 10; ctx.beginPath(); ctx.rect(-w, -h, w*2, h*2); ctx.fill(); for(let i = -w; i <= w; i += 5) { ctx.beginPath(); ctx.moveTo(i, -h); ctx.lineTo(i-2, -h-3); ctx.stroke(); ctx.beginPath(); ctx.moveTo(i, h); ctx.lineTo(i+2, h+3); ctx.stroke(); } for(let i = -h; i <= h; i += 5) { ctx.beginPath(); ctx.moveTo(-w, i); ctx.lineTo(-w-3, i+2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(w, i); ctx.lineTo(w+3, i-2); ctx.stroke(); } ctx.restore(); }
+            
+            window.addEventListener('keydown', (e) => { 
+                if (keys[e.key] !== undefined) { 
+                    keys[e.key] = true; 
+                } 
+            });
+            window.addEventListener('keyup', (e) => { if (keys[e.key] !== undefined) keys[e.key] = false; });
+            canvas.addEventListener('touchstart', (e) => { 
+                e.preventDefault(); 
+                const tX = e.touches[0].clientX; 
+                if (tX < canvasWidth / 3) { keys.ArrowLeft = true; keys.ArrowRight = false; } 
+                else if (tX > canvasWidth * 2 / 3) { keys.ArrowRight = true; keys.ArrowLeft = false; } 
+                else { isTouching = true; } 
+            }, { passive: false });
+            canvas.addEventListener('touchend', () => { keys.ArrowLeft = false; keys.ArrowRight = false; isTouching = false; });
+            
+            startButton.addEventListener('click', startGame);
+            restartButton.addEventListener('click', () => { 
+                if(audioReady) windSound.triggerAttack();
+                resetGame(); 
+                requestAnimationFrame(gameLoop); 
+            });
+            window.addEventListener('resize', resizeCanvas);
+
+            resizeCanvas();
+        });
+    </script>
+</body>
+</html>
+
