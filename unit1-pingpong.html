@@ -356,7 +356,7 @@
             activeEffects = {};
             if (powerUpSpawner) clearInterval(powerUpSpawner);
             if (animationFrameId) cancelAnimationFrame(animationFrameId);
-            availableQuestions = [...allQuestions];
+            availableQuestions = [...questions]; // FIX: Changed allQuestions to questions
             
             initStars();
             
@@ -612,7 +612,7 @@
             const btnW = mw * 0.8; const btnH = mh * 0.12; const btnX = mx + (mw - btnW) / 2;
             
             lastQuestion.shuffledAnswers.forEach((answer, i) => {
-                uiButtons.push({ x: btnX, y: currentY, width: btnW, height: btnH, text: answer, action: () => checkAnswer(answer === lastQuestion.question.correctAnswer) });
+                uiButtons.push({ x: btnX, y: currentY, width: btnW, height: btnH, text: answer, action: () => checkAnswer(answer === lastQuestion.question.answer) });
                 currentY += btnH * 1.2;
             });
             drawButtons(uiButtons);
@@ -692,10 +692,11 @@
         
         // --- LOGIC FUNCTIONS ---
         function displayQuestion() {
-            if (availableQuestions.length === 0) availableQuestions = [...allQuestions];
+            if (availableQuestions.length === 0) availableQuestions = [...questions]; // FIX: Changed allQuestions to questions
             const qIndex = Math.floor(Math.random() * availableQuestions.length);
             const questionData = availableQuestions[qIndex];
-            lastQuestion = { question: questionData, index: qIndex, shuffledAnswers: [...questionData.answers].sort(() => Math.random() - 0.5) };
+            // FIX: Changed questionData.answers to questionData.options
+            lastQuestion = { question: questionData, index: qIndex, shuffledAnswers: [...questionData.options].sort(() => Math.random() - 0.5) };
             currentScreen = 'question';
         }
 
@@ -886,5 +887,3 @@
     </script>
 </body>
 </html>
-
-
