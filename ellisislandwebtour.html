@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ellis Island: An Interactive Field Trip</title>
+  <!-- Load Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Use a standard sans-serif font family */
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    }
+    /* Simple pulse animation for "Did You Know" buttons */
+    .animate-pulse-slow {
+      animation: pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: .7;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-sky-50 to-white text-gray-900 p-4 md:p-8">
+
+  <!-- Header -->
+  <header class="max-w-6xl mx-auto py-8 md:py-12">
+    <h1 class="text-4xl md:text-5xl font-extrabold text-sky-900">Ellis Island: An Interactive Field Trip</h1>
+    <p class="mt-3 text-lg text-gray-700 max-w-4xl">
+      Journey through ten immersive stops on Ellis Island to experience what immigrants encountered upon arriving in America. Click on the interactive panels to reveal fun facts and details.
+    </p>
+
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="p-5 bg-white shadow-lg rounded-lg border border-gray-200">
+        <h3 class="font-semibold text-lg text-sky-800">Learning Intention</h3>
+        <p class="mt-2 text-sm text-gray-600">
+          Students will explore and analyze the immigration process through Ellis Island and understand the personal and cultural impact of immigration on American history.
+        </p>
+      </div>
+      <div class="p-5 bg-white shadow-lg rounded-lg border border-gray-200">
+        <h3 class="font-semibold text-lg text-sky-800">Success Criteria</h3>
+        <ul class="mt-2 text-sm text-gray-600 list-disc list-inside space-y-1">
+          <li>Explain what immigrants experienced at each stage of Ellis Island processing.</li>
+          <li>Identify key facts about inspection, legal processing, and family reunification.</li>
+          <li>Use information from each stop to accurately answer the web tour quiz questions.</li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content: All stops are here, but only one is shown at a time by JavaScript -->
+  <main class="max-w-6xl mx-auto my-12">
+    
+    <!-- Stop 1: The Journey to America -->
+    <section id="stop-1" class="stop-section p-4 md:p-6 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Image Column -->
+        <div class="w-full">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 md:hidden">Stop 1 — The Journey to America</h2>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/1/1a/Steerage_passengers_on_deck_of_SS_Pennland_c1893.jpg" alt="Steerage passengers crowd the deck of the S.S. Pennland during their journey to America, circa 1893." class="w-full h-full object-cover rounded-md shadow-inner" onerror="addImageFallback(event)">
+        </div>
+        <!-- Text & Interaction Column -->
+        <div class="flex flex-col justify-center">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 hidden md:block">Stop 1 — The Journey to America</h2>
+          <p class="mt-3 text-gray-700">Before even seeing Ellis Island, immigrants first had to endure a long and difficult voyage across the Atlantic. For the more than 75% of passengers traveling in 'steerage' (the lowest class), this meant spending up to two weeks in cramped, noisy, and foul-smelling quarters below the ship's waterline.</p>
+          <p class="mt-3 text-gray-700">These decks were overcrowded with diverse groups of people fleeing poverty, famine, religious persecution, and political unrest. They had little fresh air, shared few toilets, and ate simple food like stew and bread. Their one hope was for a new life in America, but first, they had to survive the journey and the inspection to come.</p>
+          <!-- Interactive Buttons -->
+          <div class="mt-6 space-y-3">
+            <button onclick="openModal('modal-fact1')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-sky-50 hover:bg-sky-100 text-sky-800">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+              Fun Fact: First-Class Passengers
+            </button>
+            <button onclick="openModal('modal-fact1_extra')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-amber-50 hover:bg-amber-100 text-amber-800 animate-pulse-slow">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.5 0 2.5 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M19.38 19.38A2.4 2.4 0 0 0 21 17l-1-4-3-2-3 2-1 4a2.4 2.4 0 0 0 1.62 2.38"/><path d="M12 11V4.07a.5.5 0 0 1 .5-.5h0a.5.5 0 0 1 .5.5V11"/><path d="M12 4h.01"/></svg>
+              Did You Know? Steerage Decks
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stop 2: The Arrival -->
+    <section id="stop-2" class="stop-section p-4 md:p-6 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Image Column -->
+        <div class="w-full md:order-2">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 md:hidden">Stop 2 — The Arrival</h2>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/4/4d/Ellis_Island_Arrival.jpg" alt="A ferry crowded with immigrants arrives at the main processing building on Ellis Island." class="w-full h-full object-cover rounded-md shadow-inner" onerror="addImageFallback(event)">
+        </div>
+        <!-- Text & Interaction Column -->
+        <div class="flex flex-col justify-center md:order-1">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 hidden md:block">Stop 2 — The Arrival</h2>
+          <p class="mt-3 text-gray-700">When ships pulled into New York Harbor, the first sight for many was the Statue of Liberty, a powerful symbol of freedom. But anxiety quickly set in. Before anyone could disembark, U.S. Public Health Service doctors boarded the ship to perform a brief inspection.</p>
+          <p class="mt-3 text-gray-700">First and second-class passengers were inspected in the comfort of their cabins and, if cleared, were allowed to land directly in Manhattan. Only the steerage passengers were herded onto crowded ferries for the transfer to Ellis Island, where their fate would be decided.</p>
+          <!-- Interactive Buttons -->
+          <div class="mt-6 space-y-3">
+            <button onclick="openModal('modal-fact2')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-sky-50 hover:bg-sky-100 text-sky-800">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+              Fun Fact: Ship Inspections
+            </button>
+            <button onclick="openModal('modal-fact2_extra')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-amber-50 hover:bg-amber-100 text-amber-800 animate-pulse-slow">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12v-2a1 1 0 0 1 1-1h.5A2.5 2.5 0 0 1 13 11.5v1a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1Z"/><path d="M6 12v5a1 1 0 0 0 1 1h1"/><path d="M15 12v5a1 1 0 0 1-1 1h-1"/><path d="M12 12v9"/><path d="M9 21h6"/><path d="m14 4 1 2-1 2"/><path d="m10 4-1 2 1 2"/><path d="M14 10V6.2c0-1.4-1.1-2.5-2.5-2.5h0A2.5 2.5 0 0 0 9 6.2V10"/><path d="M16 4h.5A2.5 2.5 0 0 1 19 6.5v0A2.5 2.5 0 0 1 16.5 9H14"/></svg>
+              Did You Know? Statue of Liberty
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stop 3: The Baggage Room -->
+    <section id="stop-3" class="stop-section p-4 md:p-6 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Image Column -->
+        <div class="w-full">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 md:hidden">Stop 3 — The Baggage Room</h2>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/8/8f/Baggage_room_in_main_building%2C_Ellis_Island%2C_New_York_City_LCCN2003653195.jpg" alt="Immigrants wait amidst massive piles of luggage in the Ellis Island Baggage Room." class="w-full h-full object-cover rounded-md shadow-inner" onerror="addImageFallback(event)">
+        </div>
+        <!-- Text & Interaction Column -->
+        <div class="flex flex-col justify-center">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 hidden md:block">Stop 3 — The Baggage Room</h2>
+          <p class="mt-3 text-gray-700">The first stop on the island itself was the chaotic Baggage Room on the ground floor. Immigrants left their worldly possessions—trunks, sacks, and bundles—to be inspected later. They carried only their most valuable items, like money and identification papers, with them.</p>
+          <p class="mt-3 text-gray-700">For many, this was a moment of great fear. They were given a baggage tag and had to trust that their one bag, containing everything they owned, would not be lost or stolen. After checking their luggage, they were directed up the main staircase to the Great Hall.</p>
+          <!-- Interactive Buttons -->
+          <div class="mt-6 space-y-3">
+            <button onclick="openModal('modal-fact3')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-sky-50 hover:bg-sky-100 text-sky-800">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+              Fun Fact: What They Brought
+            </button>
+            <button onclick="openModal('modal-fact3_extra')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-amber-50 hover:bg-amber-100 text-amber-800 animate-pulse-slow">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>
+              Did You Know? Baggage Tags
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stop 4: Registration and Waiting -->
+    <section id="stop-4" class="stop-section p-4 md:p-6 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Image Column -->
+        <div class="w-full md:order-2">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 md:hidden">Stop 4 — Registration and Waiting</h2>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/f/f3/Immigrants_in_Great_Hall_at_Ellis_Island_c1907.jpg" alt="Immigrants wait in long lines for processing in the Great Hall (Registry Room) at Ellis Island, circa 1907." class="w-full h-full object-cover rounded-md shadow-inner" onerror="addImageFallback(event)">
+        </div>
+        <!-- Text & Interaction Column -->
+        <div class="flex flex-col justify-center md:order-1">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 hidden md:block">Stop 4 — Registration and Waiting</h2>
+          <p class="mt-3 text-gray-700">The massive Registry Room, known as the Great Hall, was the main processing center. It was a terrifying and confusing place, filled with the sounds of thousands of people and dozens of languages. Immigrants waited in long, winding lines for their turn to be inspected, a process that could take three to five hours.</p>
+          <p class="mt-3 text-gray-700">Officials used ship 'manifests'—lists of passenger names and information—to process people. Interpreters were crucial, shouting out names and trying to organize the chaos. Many immigrants feared their names would be misspelled or 'changed,' but inspectors were generally working from the lists provided by the steamship companies.</p>
+          <!-- Interactive Buttons -->
+          <div class="mt-6 space-y-3">
+            <button onclick="openModal('modal-fact4')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-sky-50 hover:bg-sky-100 text-sky-800">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+              Fun Fact: Time on the Island
+            </button>
+            <button onclick="openModal('modal-fact4_extra')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-amber-50 hover:bg-amber-100 text-amber-800 animate-pulse-slow">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Did You Know? 'Tower of Babel'
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stop 5: Medical Inspection -->
+    <section id="stop-5" class="stop-section p-4 md:p-6 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Image Column -->
+        <div class="w-full">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 md:hidden">Stop 5 — Medical Inspection</h2>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/b/b3/Doctor_examining_immigrant_children_at_Ellis_Island_c1911.jpg" alt="A doctor in uniform performs a medical examination on immigrant children at Ellis Island." class="w-full h-full object-cover rounded-md shadow-inner" onerror="addImageFallback(event)">
+        </div>
+        <!-- Text & Interaction Column -->
+        <div class="flex flex-col justify-center">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 hidden md:block">Stop 5 — Medical Inspection</h2>
+          <p class="mt-3 text-gray-700">As immigrants walked up the stairs to the Great Hall, doctors watched them closely in what became known as the '6-second medical exam.' They looked for any sign of illness, physical disability, or mental conditions. If a doctor saw a potential problem, they would mark the immigrant's coat with a chalk letter (e.g., 'H' for heart, 'X' for mental defect).</p>
+          <p class="mt-3 text-gray-700">Those marked with chalk were pulled from the line for a more thorough examination. The most feared diagnosis was 'trachoma,' a highly contagious eye disease that caused blindness. Being diagnosed with trachoma meant mandatory detention and almost certain deportation back to Europe.</p>
+          <!-- Interactive Buttons -->
+          <div class="mt-6 space-y-3">
+            <button onclick="openModal('modal-fact5')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-sky-50 hover:bg-sky-100 text-sky-800">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+              Fun Fact: The Buttonhook Test
+            </button>
+            <button onclick="openModal('modal-fact5_extra')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-amber-50 hover:bg-amber-100 text-amber-800 animate-pulse-slow">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18a4 4 0 0 0 4 4h0a4 4 0 0 0 4-4V6a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M18 18a4 4 0 0 1-4 4h0a4 4 0 0 1-4-4V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><circle cx="6" cy="4" r="2"/><circle cx="18" cy="4" r="2"/></svg>
+              Did You Know? The Island Hospital
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stop 6: A Family’s Story -->
+    <section id="stop-6" class="stop-section p-4 md:p-6 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Image Column -->
+        <div class="w-full md:order-2">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 md:hidden">Stop 6 — A Family’s Story</h2>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/Ellis_Island_Family.jpg" alt="An immigrant family with identification tags on their clothes waits at Ellis Island." class="w-full h-full object-cover rounded-md shadow-inner" onerror="addImageFallback(event)">
+        </div>
+        <!-- Text & Interaction Column -->
+        <div class="flex flex-col justify-center md:order-1">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 hidden md:block">Stop 6 — A Family’s Story</h2>
+          <p class="mt-3 text-gray-700">For families, the inspection process was especially terrifying due to the risk of being separated. If one family member was detained for medical or legal reasons, the entire family faced a terrible choice: stay with them, or continue on and split the family apart.</p>
+          <p class="mt-3 text-gray-700">Even simple misunderstandings could cause delays. In one famous story, a mother was nearly detained for a 'disability' because she was stumbling. Her children finally explained to the inspector that she was simply wearing high-heeled shoes for the first time. The inspector laughed and allowed them to pass.</p>
+          <!-- Interactive Buttons -->
+          <div class="mt-6 space-y-3">
+            <button onclick="openModal('modal-fact6')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-sky-50 hover:bg-sky-100 text-sky-800">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+              Fun Fact: The Heel Story
+            </button>
+            <button onclick="openModal('modal-fact6_extra')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-amber-50 hover:bg-amber-100 text-amber-800 animate-pulse-slow">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Did You Know? Family Separation
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stop 7: Legal Inspection -->
+    <section id="stop-7" class="stop-section p-4 md:p-6 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Image Column -->
+        <div class="w-full">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 md:hidden">Stop 7 — Legal Inspection</h2>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/e/e3/Immigrants_questioned_by_officials_at_Ellis_Island_1907.jpg" alt="Immigrant families stand before inspectors' desks for legal questioning in the Registry Room." class="w-full h-full object-cover rounded-md shadow-inner" onerror="addImageFallback(event)">
+        </div>
+        <!-- Text & Interaction Column -->
+        <div class="flex flex-col justify-center">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 hidden md:block">Stop 7 — Legal Inspection</h2>
+          <p class="mt-3 text-gray-700">After the medical check, immigrants faced a legal inspector who would ask a series of 29 questions. Standing at a tall desk, the inspector, often with an interpreter, would verify the answers from the ship's manifest: 'What is your name?' 'What is your occupation?' 'Who paid for your passage?' 'Do you have a job waiting for you?' 'How much money do you have?'</p>
+          <p class="mt-3 text-gray-700">The primary goal was to ensure the immigrant could support themselves and was not a criminal. The most common reason for detention was being marked 'LPC'—Likely to Become a Public Charge. This meant the inspector believed the person was too old, too sick, or too unskilled to find work and would end up relying on the government for support.</p>
+          <!-- Interactive Buttons -->
+          <div class="mt-6 space-y-3">
+            <button onclick="openModal('modal-fact7')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-sky-50 hover:bg-sky-100 text-sky-800">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+              Fun Fact: 29 Questions
+            </button>
+            <button onclick="openModal('modal-fact7_extra')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-amber-50 hover:bg-amber-100 text-amber-800 animate-pulse-slow">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+              Did You Know? Board of Inquiry
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stop 8: The Money Exchange -->
+    <section id="stop-8" class="stop-section p-4 md:p-6 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Image Column -->
+        <div class="w-full md:order-2">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 md:hidden">Stop 8 — The Money Exchange</h2>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/f/ff/Ellis_Island_Money_exchange_LCCN2002716757.jpg" alt="Immigrants exchange their foreign currency for U.S. dollars at the money exchange counter." class="w-full h-full object-cover rounded-md shadow-inner" onerror="addImageFallback(event)">
+        </div>
+        <!-- Text & Interaction Column -->
+        <div class="flex flex-col justify-center md:order-1">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 hidden md:block">Stop 8 — The Money Exchange</h2>
+          <p class="mt-3 text-gray-700">For the 80% of immigrants who passed all inspections, the final stops were sources of great relief. In the Money Exchange office, they converted their home currency into U.S. dollars. This was a required stop, designed to protect them from being scammed by dishonest money changers once they reached Manhattan.</p>
+          <p class="mt-3 text-gray-700">Inspectors often required immigrants to prove they had a certain amount of money (around $25) to show they were not 'LPC.' After exchanging their money, immigrants who were traveling beyond New York City would purchase train tickets to their final destinations.</p>
+          <!-- Interactive Buttons -->
+          <div class="mt-6 space-y-3">
+            <button onclick="openModal('modal-fact8')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-sky-50 hover:bg-sky-100 text-sky-800">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+              Fun Fact: Passports and Visas
+            </button>
+            <button onclick="openModal('modal-fact8_extra')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-amber-50 hover:bg-amber-100 text-amber-800 animate-pulse-slow">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Did You Know? Show Me the Money
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stop 9: The Ferry to Manhattan -->
+    <section id="stop-9" class="stop-section p-4 md:p-6 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Image Column -->
+        <div class="w-full">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 md:hidden">Stop 9 — The Ferry to Manhattan</h2>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/e/e7/Ellis_Island_ferry_to_Manhattan.jpg" alt="The ferry boat 'Immigrant' waits to take cleared immigrants from Ellis Island to Manhattan." class="w-full h-full object-cover rounded-md shadow-inner" onerror="addImageFallback(event)">
+        </div>
+        <!-- Text & Interaction Column -->
+        <div class="flex flex-col justify-center">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 hidden md:block">Stop 9 — The Ferry to Manhattan</h2>
+          <p class="mt-3 text-gray-700">After being cleared, immigrants had two main paths. About one-third, who were staying in New York City, would board the 'Ellis Island' ferry for the short trip to Manhattan. This ferry, often just as crowded as the one that brought them, symbolized the true beginning of their new life.</p>
+          <p class="mt-3 text-gray-700">The other two-thirds of immigrants would proceed to the railroad ticket office and board ferries to train terminals in New Jersey, where they would begin longer journeys to join relatives in cities like Chicago, Cleveland, or farming communities across the Midwest.</p>
+          <!-- Interactive Buttons -->
+          <div class="mt-6 space-y-3">
+            <button onclick="openModal('modal-fact9')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-sky-50 hover:bg-sky-100 text-sky-800">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+              Fun Fact: The Manhattan Ferry
+            </button>
+            <button onclick="openModal('modal-fact9_extra')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-amber-50 hover:bg-amber-100 text-amber-800 animate-pulse-slow">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9a3 3 0 0 1 0 6v5a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a3 3 0 0 1 0-6V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 12v.01"/><path d="M13 6v.01"/><path d="M13 18v.01"/></svg>
+              Did You Know? The 1-Cent Ride
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stop 10: The Kissing Post -->
+    <section id="stop-10" class="stop-section p-4 md:p-6 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Image Column -->
+        <div class="w-full md:order-2">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 md:hidden">Stop 10 — The Kissing Post</h2>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/7/73/Reunion_of_immigrant_families_at_Ellis_Island.jpg" alt="A joyful family reunion at the 'Kissing Post' at Ellis Island, where relatives embrace." class="w-full h-full object-cover rounded-md shadow-inner" onerror="addImageFallback(event)">
+        </div>
+        <!-- Text & Interaction Column -->
+        <div class="flex flex-col justify-center md:order-1">
+          <h2 class="text-3xl font-bold text-sky-900 mb-4 hidden md:block">Stop 10 — The Kissing Post</h2>
+          <p class="mt-3 text-gray-700">At the very end of the long process, on the first floor near the exit, was an area that earned the nickname the 'Kissing Post.' This was not an official sign but a location known to all: the spot where families, after being processed and cleared, would finally reunite with their loved ones who were waiting for them.</p>
+          <p class="mt-3 text-gray-700">After weeks of travel and hours of agonizing inspection, this was a place of overwhelming emotion. Families embraced, wept with joy, and kissed after separations that had often lasted for years. It was the end of one journey and the true beginning of their new life in America.</p>
+          <!-- Interactive Buttons -->
+          <div class="mt-6 space-y-3">
+            <button onclick="openModal('modal-fact10')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-sky-50 hover:bg-sky-100 text-sky-800">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.7.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+              Fun Fact: The Kissing Post
+            </button>
+            <button onclick="openModal('modal-fact10_extra')" class="w-full flex items-center p-3 rounded-lg shadow-sm transition-all font-medium text-left bg-amber-50 hover:bg-amber-100 text-amber-800 animate-pulse-slow">
+              <svg class="w-5 h-5 mr-3 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+              Did You Know? Not an Official Sign
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Navigation Footer -->
+  <footer class="max-w-6xl mx-auto flex justify-between items-center py-8 border-t border-gray-200">
+    <button id="prev-btn" class="flex items-center px-4 py-2 md:px-6 md:py-3 bg-white rounded-lg shadow-md font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+      <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Previous Stop
+    </button>
+    <span id="stop-counter" class="text-gray-600 font-medium text-sm md:text-base">
+      Stop 1 of 10
+    </span>
+    <button id="next-btn" class="flex items-center px-4 py-2 md:px-6 md:py-3 bg-sky-600 text-white rounded-lg shadow-md font-medium hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+      Next Stop
+      <svg class="w-5 h-5 ml-2" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
+  </footer>
+
+  <!-- 
+    --- Modal Container ---
+    All modals are here, hidden by default. JavaScript will show them.
+  -->
+  <div id="modal-container">
+    <div id="modal-fact1" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Fun Fact — First-Class Passengers</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">Wealthier passengers in first and second class were seen as less of a risk. They underwent a brief inspection aboard their ship and, if cleared, were allowed to disembark directly at the pier in Manhattan, completely bypassing Ellis Island.</div>
+      </div>
+    </div>
+    <div id="modal-fact1_extra" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Did You Know? — Steerage Decks</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">Steerage decks were often just 2-3 feet above the water line, with hundreds of people sharing a single large, windowless room with rows of triple-decker bunk beds. The stench from unwashed bodies, seasickness, and shared toilets was overwhelming.</div>
+      </div>
+    </div>
+    <div id="modal-fact2" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Fun Fact — Ship Inspections</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">The first inspection in the harbor was to check for outbreaks of highly contagious diseases like cholera, typhus, or smallpox. If such a disease was found, the entire ship and all its passengers could be 'quarantined' (isolated) for weeks.</div>
+      </div>
+    </div>
+    <div id="modal-fact2_extra" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Did You Know? — Statue of Liberty</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">For many, the first sight of the Statue of Liberty was a powerful emotional moment. They called her 'Lady Liberty' or the 'Mother of Freedom.' For some, it was a symbol of hope; for others, it was a sign that their terrifying inspection was about to begin.</div>
+      </div>
+    </div>
+    <div id="modal-fact3" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Fun Fact — What They Brought</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">Immigrants often carried sentimental keepsakes like photos, family Bibles, or small musical instruments. They also brought practical items like feather beds, linens, and tools for their trade, such as carpentry or sewing supplies.</div>
+      </div>
+    </div>
+    <div id="modal-fact3_extra" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Did You Know? — Baggage Tags</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">Immigrants were given baggage tags that matched the manifest number on their inspection card. This was a crucial, (mostly) reliable system for helping them reclaim their correct luggage after their inspection was complete.</div>
+      </div>
+    </div>
+    <div id="modal-fact4" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Fun Fact — Time on the Island</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">While the *average* processing time was 3-5 hours, about 20% of all immigrants were detained overnight or longer for medical or legal reasons. This could turn into days or even weeks of anxious waiting.</div>
+      </div>
+    </div>
+    <div id="modal-fact4_extra" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Did You Know? — 'Tower of Babel'</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">The Great Hall was often nicknamed the 'Tower of Babel' because of the overwhelming, echoing noise. With officials shouting and thousands of people from dozens of countries speaking different languages, the sound was described as a deafening roar.</div>
+      </div>
+    </div>
+    <div id="modal-fact5" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Fun Fact — The Buttonhook Test</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">To check for trachoma, a doctor would use a tool called a buttonhook (or their bare fingers) to flip the immigrant's eyelid inside out. This was painful and terrifying, especially for children, and helped spread the disease.</div>
+      </div>
+    </div>
+    <div id="modal-fact5_extra" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Did You Know? — The Island Hospital</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">About 2% of immigrants were sent to the island's hospital. It was actually one of the most advanced hospitals in the world at the time, with 22 separate buildings, operating rooms, a morgue, and a contagious disease ward.</div>
+      </div>
+    </div>
+    <div id="modal-fact6" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Fun Fact — The Heel Story</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">The story of the woman in high heels is a famous piece of Ellis Island oral history, told by her daughter. It highlights how any unusual behavior or appearance could lead to a 'chalk mark' and potential detention by the observant doctors.</div>
+      </div>
+    </div>
+    <div id="modal-fact6_extra" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Did You Know? — Family Separation</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">If a child under 11 was found to be sick, one parent was required to stay with them in the island's hospital, while the rest of the family had to continue their journey. This led to heartbreaking separations.</div>
+      </div>
+    </div>
+    <div id="modal-fact7" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Fun Fact — 29 Questions</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">The 29 questions were surprisingly practical. They included 'Are you an anarchist?' and 'Are you a polygamist?' Inspectors also had to note the immigrant's race, which was often based on their own visual judgment.</div>
+      </div>
+    </div>
+    <div id="modal-fact7_extra" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Did You Know? — Board of Inquiry</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">Immigrants who were detained for legal reasons (like being 'LPC') had the right to a hearing. A 'Board of Special Inquiry,' made of three inspectors, would listen to their case and vote on whether to admit or deport them. Their decision was usually final.</div>
+      </div>
+    </div>
+    <div id="modal-fact8" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Fun Fact — Passports and Visas</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">For most of Ellis Island's peak years, passports and visas were not required to enter the United States. It was only after World War I, with the Quota Acts of the 1920s, that these documents became mandatory.</div>
+      </div>
+    </div>
+    <div id="modal-fact8_extra" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Did You Know? — Show Me the Money</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">The amount of money required fluctuated, but for a long time, immigrants had to show they had about $25 (worth over $800 today). If they didn't, a waiting relative could show the money for them.</div>
+      </div>
+    </div>
+    <div id="modal-fact9" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Fun Fact — The Manhattan Ferry</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">The ferry that ran from Ellis Island to the Battery in Manhattan was named 'Immigrant.' It ran constantly, carrying thousands of newly arrived Americans to their new lives in the city.</div>
+      </div>
+    </div>
+    <div id="modal-fact9_extra" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Did You Know? — The 1-Cent Ride</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">The ferry ride to Manhattan was not free! It cost 1 cent. However, the cost was paid by the steamship company that brought the immigrant to America, as part of their contract to transport them.</div>
+      </div>
+    </div>
+    <div id="modal-fact10" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Fun Fact — The Kissing Post</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">The Kissing Post earned its name because it was the one place on the island where public displays of affection were common. After the rigid, non-emotional inspection process, it was a site of joyous, tearful reunions.</div>
+      </div>
+    </div>
+    <div id="modal-fact10_extra" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 hidden" onclick="closeModal()">
+      <div class="modal-content bg-white rounded-lg shadow-xl max-w-xl w-full p-6 m-4" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center pb-3 border-b border-gray-200">
+          <h3 class="font-semibold text-lg text-sky-800">Did You Know? — Not an Official Sign</h3>
+          <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 text-3xl leading-none font-bold transition-colors" aria-label="Close">&times;</button>
+        </div>
+        <div class="mt-4 text-gray-700">There was never an official sign that said 'Kissing Post.' It was a nickname for the area on the first floor, near the exit, where families would wait. Today, a plaque in the museum marks the spot where so many families reunited.</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- JavaScript for Interactivity -->
+  <script>
+    let currentStop = 1;
+    const totalStops = 10;
+
+    // Get references to navigation elements
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const stopCounter = document.getElementById('stop-counter');
+    const stopSections = document.querySelectorAll('.stop-section');
+    const modals = document.querySelectorAll('.modal-backdrop');
+
+    // --- Modal Functions ---
+    
+    function openModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.classList.remove('hidden');
+      }
+    }
+
+    function closeModal() {
+      // Simple and robust: just hide all modals
+      modals.forEach(modal => {
+        modal.classList.add('hidden');
+      });
+    }
+
+    // --- Stop Navigation Functions ---
+
+    function updateStopDisplay() {
+      // Hide all stops
+      stopSections.forEach(section => {
+        section.classList.add('hidden');
+      });
+
+      // Show the current stop
+      const activeStop = document.getElementById(`stop-${currentStop}`);
+      if (activeStop) {
+        activeStop.classList.remove('hidden');
+      }
+
+      // Update counter text
+      stopCounter.textContent = `Stop ${currentStop} of ${totalStops}`;
+
+      // Update button disabled states
+      prevBtn.disabled = (currentStop === 1);
+      nextBtn.disabled = (currentStop === totalStops);
+
+      // Scroll to the top of the main content for better UX
+      window.scrollTo({
+        top: document.querySelector('main').offsetTop - 20,
+        behavior: 'smooth'
+      });
+    }
+
+    function goToNext() {
+      if (currentStop < totalStops) {
+        currentStop++;
+        updateStopDisplay();
+      }
+    }
+
+    function goToPrev() {
+      if (currentStop > 1) {
+        currentStop--;
+        updateStopDisplay();
+      }
+    }
+
+    // --- Image Fallback Function ---
+    function addImageFallback(event) {
+      const text = event.target.alt || "Image Placeholder";
+      event.target.onerror = null; // Prevent infinite loop
+      event.target.src = `https://placehold.co/600x400/f0f9ff/333?text=${encodeURIComponent(text)}`;
+    }
+
+    // --- Initial Setup ---
+    
+    // Add event listeners to buttons
+    prevBtn.addEventListener('click', goToPrev);
+    nextBtn.addEventListener('click', goToNext);
+
+    // Set the initial state on page load
+    updateStopDisplay();
+
+  </script>
+
+</body>
+</html>
+
+
+
