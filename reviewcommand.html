@@ -125,8 +125,8 @@
             text-align: center;
             border-radius: 12px;
             box-shadow: 0 0 25px var(--glow-color);
-            max-height: 90vh;
-            overflow-y: auto;
+            max-height: 90vh; /* Added for scroll */
+            overflow-y: auto; /* Added for scroll */
         }
 
         .modal-content h1, .modal-content h2 {
@@ -228,7 +228,7 @@
             color: var(--bg-dark);
             box-shadow: 0 0 15px var(--glow-color);
         }
-
+        
         #answerResultText.correct {
             color: var(--correct-color);
             text-shadow: 0 0 10px var(--correct-color);
@@ -265,7 +265,7 @@
 <div id="questionModal" class="modal"><div class="modal-content"><h2 id="questionText"></h2><div id="optionsContainer"></div></div></div>
 <div id="doubleOrNothingModal" class="modal"><div class="modal-content"><h2 id="doubleOrNothingText"></h2><div id="doubleOrNothingOptionsContainer"><button id="doubleButton" class="option-btn">Double Bonus!</button><button id="continueButton" class="option-btn">No Thanks</button></div></div></div>
 
-<!-- Unit Selection Screen (NEW) -->
+<!-- Unit Selection Screen (NEW) - Now shown first -->
 <div id="unitSelectionScreen" class="modal" style="display: flex;"><div class="modal-content">
     <h2 style="font-size: 1.5rem; color: var(--warn-color); text-shadow: 0 0 8px var(--warn-color);">Select Your Unit</h2>
     <div class="unit-select-grid">
@@ -280,7 +280,7 @@
     </div>
 </div></div>
 
-<!-- Start Screen (Now hidden by default) -->
+<!-- Start Screen (MODIFIED) - Now hidden by default -->
 <div id="startScreen" class="modal" style="display: none;"><div class="modal-content"><h1>History Missile Command</h1><p>The year is 2242. Rogue AI has launched a temporal attack, disguised as missile strikes on historical pressure points. Defend the timeline! Intercept the strikes, and when a city is hit, correct the corrupted history data to prevent a paradox. The fate of the past and future is in your hands.</p><button id="startButton" class="action-btn">Engage Defense System</button></div></div>
 
 <div id="gameOverScreen" class="modal"><div class="modal-content"><h1>System Failure</h1><p>Final Score: <span id="finalScore">0</span></p><p>Re-initialize from restore point:</p<div id="restartOptionsContainer"></div></div></div>
@@ -361,7 +361,6 @@
     };
 
     // --- NEW: All Unit Question Banks ---
-    // (Using 'options' and 'answer' to match this game's existing logic)
     const unitQuestionBanks = {
         unit1: [
             { question: "What was one of the most devastating impacts of the Columbian Exchange on the \"New World\" (The Americas)?", options: ["The introduction of crops like potatoes and tomatoes.", "The introduction of European diseases to which natives had no immunity.", "The exchange of precious metals, which enriched native populations.", "The introduction of livestock like cattle, which destroyed all native crops."], answer: "The introduction of European diseases to which natives had no immunity." },
@@ -425,116 +424,265 @@
             { question: "Which of the following was a central reform concern in the U.S. during the mid-1800s?", options: ["Abolitionism and women's suffrage.", "Trust-busting and food safety.", "The Red Scare and Prohibition.", "Environmental protection."], answer: "Abolitionism and women's suffrage." },
             { question: "What policy allowed residents of the Kansas and Nebraska territories to decide on the issue of slavery?", options: ["Manifest Destiny", "The Compromise of 1850", "Popular sovereignty", "The Emancipation Proclamation"], answer: "Popular sovereignty" },
             { question: "What was the outcome of popular sovereignty in the Kansas territory?", options: ["A peaceful vote that satisfied both North and South.", "Violent conflicts known as \"Bleeding Kansas.\"", "The immediate adoption of the cotton gin.", "The creation of the Treaty of Guadalupe-Hidalgo."], answer: "Violent conflicts known as \"Bleeding Kansas.\"" },
-            { question: "Following the 13th Amendment, why did sharecropping emerge in the South?", options: ["It was a way to industrialize the Southern economy.", "It emerged as a substitute for slavery, though it often led to economic dependency.", "It was a government program to give all formerly enslaved people 40 acres and a mule.", "It was a new reform movement to improve conditions for prisoners."], answer: "It emerged as a substitute for slavery, though it often led to economic dependency." },
+            { question: "Following the passage of the 13th Amendment, how and why did sharecropping emerge as a substitute for slavery in the post-Reconstruction South?", options: ["It was a way to industrialize the Southern economy.", "It emerged as a substitute for slavery, though it often led to economic dependency.", "It was a government program to give all formerly enslaved people 40 acres and a mule.", "It was a new reform movement to improve conditions for prisoners."], answer: "It emerged as a substitute for slavery, though it often led to economic dependency." },
         ],
         unit4: [
             { question: "What was a primary reason people settled in the West in the late 1800s?", options: ["To escape the impacts of the transcontinental railroad.", "To work in established, safe factories.", "The promise of economic opportunities like mining, ranching, and farming.", "To join Native American tribes."], answer: "The promise of economic opportunities like mining, ranching, and farming." },
             { question: "What was one of the impacts of the transcontinental railroad?", options: ["It slowed down westward settlement.", "It connected the East and West coasts, facilitating the transport of goods and people.", "It led to the downfall of capitalism.", "It was primarily used to assimilate Native Americans."], answer: "It connected the East and West coasts, facilitating the transport of goods and people." },
-            { question: "What did the Homestead Act of 1862 provide to settlers?", options: ["160 acres of land for a small fee, if they improved it.", "A guaranteed job in a factory.", "Free passage on the transcontinental railroad.", "Assimilation into Native American tribes."], answer: "160 acres of land for a small fee, if they improved it." },
-            { question: "What was the primary purpose of the Dawes Act of 1887?", options: ["To assimilate Native Americans by redistributing tribal lands.", "To encourage the growth of labor unions.", "To provide 160 acres of land to all settlers.", "To build the transcontinental railroad."], answer: "To assimilate Native Americans by redistributing tribal lands." },
+            { question: "What was the Homestead Act of 1862 and what impact did it have?", options: ["It provided 160 acres of land for a small fee, if they improved it.", "A guaranteed job in a factory.", "Free passage on the transcontinental railroad.", "Assimilation into Native American tribes."], answer: "It provided 160 acres of land for a small fee, if they improved it." },
+            { question: "What was the primary purpose of the Dawes Act and what did it do?", options: ["To assimilate Native Americans by redistributing tribal lands.", "To encourage the growth of labor unions.", "To provide 160 acres of land to all settlers.", "To build the transcontinental railroad."], answer: "To assimilate Native Americans by redistributing tribal lands." },
             { question: "What was a major result of the Dawes Act?", options: ["The preservation of Native American culture.", "The loss of Native American lands and culture.", "The establishment of Angel Island.", "The rise of capitalism."], answer: "The loss of Native American lands and culture." },
-            { question: "What are two important characteristics of capitalism mentioned in the study guide?", options: ["Government control and fixed prices.", "Freedom of competition and supply and demand.", "Nativism and assimilation.", "The Dawes Act and the Homestead Act."], answer: "Freedom of competition and supply and demand." },
+            { question: "What are characteristics of capitalism?", options: ["Government control and fixed prices.", "Freedom of competition and supply and demand.", "Nativism and assimilation.", "The Dawes Act and the Homestead Act."], answer: "Freedom of competition and supply and demand." },
             { question: "According to Andrew Carnegie's \"Gospel of Wealth,\" what was the responsibility of wealthy individuals?", options: ["To keep all their wealth for their families.", "To use their wealth for the greater good of society through philanthropy.", "To invest only in the transcontinental railroad.", "To run for political office."], answer: "To use their wealth for the greater good of society through philanthropy." },
-            { question: "Which of the following was a key issue faced by workers in the late 19th century?", options: ["Short working hours and high wages.", "Safe working conditions.", "Long working hours, low wages, and unsafe conditions.", "Generous child labor laws."], answer: "Long working hours, low wages, and unsafe conditions." },
-            { question: "How did labor unions in the 1900s impact working conditions?", options: ["They advocated for longer hours and lower pay.", "They had no impact on working conditions.", "They advocated for better wages, shorter hours, and safer workplaces.", "They were primarily focused on nativism."], answer: "They advocated for better wages, shorter hours, and safer workplaces." },
-            { question: "How did the experience for immigrants at Angel Island and Ellis Island differ?", options: ["Ellis Island processed Asian immigrants, while Angel Island processed Europeans.", "Angel Island processed immigrants quickly, while Ellis Island detained them for months.", "Angel Island had a more restrictive and discriminatory approach, especially towards Asian immigrants.", "There was no difference; both were identical."], answer: "Angel Island had a more restrictive and discriminatory approach, especially towards Asian immigrants." },
-            { question: "What is nativism?", options: ["The belief that native-born Americans were superior to immigrants.", "The process of assimilating Native Americans.", "The economic theory of supply and demand.", "The \"Gospel of Wealth\"."], answer: "The belief that native-born Americans were superior to immigrants." },
-            { question: "How did nativism impact immigration in the late 19th century?", options: ["It led to more open and welcoming immigration policies.", "It resulted in discriminatory policies like the Chinese Exclusion Act.", "It encouraged the work of labor unions.", "It led to the creation of Ellis and Angel Islands."], answer: "It resulted in discriminatory policies like the Chinese Exclusion Act." },
+            { question: "What were key issues that workers faced in the late 19th century?", options: ["Short working hours and high wages.", "Safe working conditions.", "Long working hours, low wages, and unsafe conditions.", "Generous child labor laws."], answer: "Long working hours, low wages, and unsafe conditions." },
+            { question: "How did the efforts of labor unions impact working conditions in the 1900s?", options: ["They advocated for longer hours and lower pay.", "They had no impact on working conditions.", "They advocated for better wages, shorter hours, and safer workplaces.", "They were primarily focused on nativism."], answer: "They advocated for better wages, shorter hours, and safer workplaces." },
+            { question: "Compare the experiences of immigrants at Angel Island and Ellis Island. How were they different?", options: ["Ellis Island processed Asian immigrants, while Angel Island processed Europeans.", "Angel Island processed immigrants quickly, while Ellis Island detained them for months.", "Angel Island had a more restrictive and discriminatory approach, especially towards Asian immigrants.", "There was no difference; both were identical."], answer: "Angel Island had a more restrictive and discriminatory approach, especially towards Asian immigrants." },
+            { question: "What is nativism and how did it impact immigration in the late 19th century?", options: ["The belief that native-born Americans were superior to immigrants.", "The process of assimilating Native Americans.", "The economic theory of supply and demand.", "The \"Gospel of Wealth\"."], answer: "The belief that native-born Americans were superior to immigrants." },
         ],
         unit5: [
-            { question: "Which of the following was a goal of the Progressive Movement?", options: ["Expanding voting rights and promoting social welfare.", "Establishing monopolies and trusts.", "Promoting imperialism and colonization.", "Encouraging unrestricted submarine warfare."], answer: "Expanding voting rights and promoting social welfare." },
-            { question: "How did political machines like Tammany Hall impact growing cities?", options: ["They influenced local politics through corrupt practices like patronage and bribery.", "They worked to end corruption and promote fair elections.", "They were primarily focused on advocating for women's suffrage.", "They were established by Progressive Presidents to regulate businesses."], answer: "They influenced local politics through corrupt practices like patronage and bribery." },
-            { question: "What actions did the federal government take in 1906 in response to muckraking works like Upton Sinclair's \"The Jungle\"?", options: ["The establishment of Tammany Hall.", "The passage of the 19th Amendment.", "The passage of the Pure Food and Drug Act and the Meat Inspection Act.", "The declaration of war against Germany."], answer: "The passage of the Pure Food and Drug Act and the Meat Inspection Act." },
-            { question: "How did Progressive Presidents like Theodore Roosevelt and Woodrow Wilson reshape public perception of the government's role?", options: ["By arguing that the government should never intervene in private business.", "By actively engaging in the regulation of private businesses to curb monopolies and protect consumers.", "By establishing political machines like Tammany Hall.", "By legalizing racial segregation."], answer: "By actively engaging in the regulation of private businesses to curb monopolies and protect consumers." },
-            { question: "What was the outcome of the Supreme Court's ruling in *Plessy v. Ferguson* (1896)?", options: ["It granted women the right to vote.", "It busted all major trusts and monopolies.", "It established the \"separate but equal\" doctrine, legalizing racial segregation.", "It outlawed child labor."], answer: "It established the \"separate but equal\" doctrine, legalizing racial segregation." },
-            { question: "What common goal did Booker T. Washington, W.E.B. Du Bois, and Marcus Garvey share, despite their different strategies?", options: ["The promotion of American imperialism.", "The establishment of political machines.", "The regulation of the meatpacking industry.", "Achieving equal rights for Black Americans."], answer: "Achieving equal rights for Black Americans." },
-            { question: "What is the significance of the 19th Amendment?", options: ["It established the \"separate but equal\" doctrine.", "It granted women the right to vote.", "It prohibited the sale of alcohol.", "It created the League of Nations."], answer: "It granted women the right to vote." },
-            { question: "What was an argument *against* American Imperialism?", options: ["The U.S. needed new markets and resources.", "Imperialism contradicted American principles and the Constitution.", "The U.S. needed to spread its values and civilization.", "The U.S. needed to strengthen its national security."], answer: "Imperialism contradicted American principles and the Constitution." },
-            { question: "What was an argument *for* American Imperialism?", options: ["The desire for new markets and resources.", "The U.S. had sufficient sources of raw materials.", "Imperialism violated the Constitution.", "Imperialism would weaken national security."], answer: "The desire for new markets and resources." },
-            { question: "How did President Theodore Roosevelt impact U.S. foreign policy?", options: ["He pursued a policy of \"Dollar Diplomacy.\"", "He pursued a policy of \"Moral Diplomacy.\"", "He pursued a policy of \"Big Stick Diplomacy.\"", "He advocated for American isolationism."], answer: "He pursued a policy of \"Big Stick Diplomacy.\"" },
+            { question: "What were the goals of the Progressive Movement?", options: ["Expanding voting rights and promoting social welfare.", "Establishing monopolies and trusts.", "Promoting imperialism and colonization.", "Encouraging unrestricted submarine warfare."], answer: "Expanding voting rights and promoting social welfare." },
+            { question: "How did political machines like Tammany Hall impact growing cities during the late 19th century?", options: ["They influenced local politics through corrupt practices like patronage and bribery.", "They worked to end corruption and promote fair elections.", "They were primarily focused on advocating for women's suffrage.", "They were established by Progressive Presidents to regulate businesses."], answer: "They influenced local politics through corrupt practices like patronage and bribery." },
+            { question: "In response to the issues highlighted by muckrakers, such as those described in Upton Sinclair's \"The Jungle,\" what actions did the federal government take?", options: ["The establishment of Tammany Hall.", "The passage of the 19th Amendment.", "The passage of the Pure Food and Drug Act and the Meat Inspection Act.", "The declaration of war against Germany."], answer: "The passage of the Pure Food and Drug Act and the Meat Inspection Act." },
+            { question: "How did the Progressive Presidents reshape public perceptions of the government's roles and responsibilities in relation to private businesses?", options: ["By arguing that the government should never intervene in private business.", "By actively engaging in the regulation of private businesses to curb monopolies and protect consumers.", "By establishing political machines like Tammany Hall.", "By legalizing racial segregation."], answer: "By actively engaging in the regulation of private businesses to curb monopolies and protect consumers." },
+            { question: "What was the outcome to the ruling in the Supreme Court case of Plessy v Ferguson?", options: ["It granted women the right to vote.", "It busted all major trusts and monopolies.", "It established the \"separate but equal\" doctrine, legalizing racial segregation.", "It outlawed child labor."], answer: "It established the \"separate but equal\" doctrine, legalizing racial segregation." },
+            { question: "Despite different strategies employed by Washington, DuBois, and Garvey, what common goal were they all working toward?", options: ["The promotion of American imperialism.", "The establishment of political machines.", "The regulation of the meatpacking industry.", "Achieving equal rights for Black Americans."], answer: "Achieving equal rights for Black Americans." },
+            { question: "What is the significance of the 19th Amendment to the United States Constitution?", options: ["It established the \"separate but equal\" doctrine.", "It granted women the right to vote.", "It prohibited the sale of alcohol.", "It created the League of Nations."], answer: "It granted women the right to vote." },
+            { question: "What were arguments *against* American Imperialism?", options: ["The U.S. needed new markets and resources.", "Imperialism contradicted American principles and the Constitution.", "The U.S. needed to spread its values and civilization.", "The U.S. needed to strengthen its national security."], answer: "Imperialism contradicted American principles and the Constitution." },
+            { question: "What were arguments and reasons *for* imperialism?", options: ["The desire for new markets and resources.", "The U.S. had sufficient sources of raw materials.", "Imperialism violated the Constitution.", "Imperialism would weaken national security."], answer: "The desire for new markets and resources." },
+            { question: "How did Presidents Roosevelt, Taft, and Wilson impact US foreign policy?", options: ["Roosevelt's \"Big Stick Diplomacy,\" Taft's \"Dollar Diplomacy,\" and Wilson's \"Moral Diplomacy\" were different approaches.", "They all advocated for American isolationism.", "They all worked to create the League of Nations.", "They all supported the \"separate but equal\" doctrine."], answer: "Roosevelt's \"Big Stick Diplomacy,\" Taft's \"Dollar Diplomacy,\" and Wilson's \"Moral Diplomacy\" were different approaches." },
             { question: "What were the MAIN causes of World War I?", options: ["Militarism, Alliances, Imperialism, and Nationalism.", "Monopolies, Activism, Industry, and Nativism.", "Muckraking, Amendments, Injunctions, and Neutrality.", "Moral, Dollar, and Big Stick Diplomacies."], answer: "Militarism, Alliances, Imperialism, and Nationalism." },
-            { question: "Which of the following was *not* one of the three events listed as causing the U.S. to join World War I?", options: ["The interception of the Zimmerman Telegram.", "Unrestricted submarine warfare by the Germans.", "The sinking of the RMS Lusitania.", "The ratification of the 19th Amendment."], answer: "The ratification of the 19th Amendment." },
-            { question: "How did the Committee on Public Information try to change public opinion during WWI?", options: ["By restricting freedom of speech and punishing critics.", "By using propaganda to shape a positive narrative about the war.", "By exposing unsanitary conditions in the army.", "By advocating for the U.S. to not join the war."], answer: "By using propaganda to shape a positive narrative about the war." },
-            { question: "How did the Espionage and Sedition Acts try to change public opinion during WWI?", options: ["By restricting freedom of speech and punishing those critical of the government.", "By using propaganda to create a positive narrative.", "By legalizing the \"separate but equal\" doctrine.", "By funding muckraking journalists."], answer: "By restricting freedom of speech and punishing those critical of the government." },
-            { question: "Why did the United States *not* approve the Treaty of Versailles?", options: ["Because Germany was not punished harshly enough.", "Because it granted women the right to vote.", "Due to concerns over reparations, disagreements over borders, and opposition to the League of Nations.", "Because the Zimmerman Telegram was proven to be a fake."], answer: "Due to concerns over reparations, disagreements over borders, and opposition to the League of Nations." },
+            { question: "What were the three events that caused the U.S. to eventually join World War 1?", options: ["The interception of the Zimmerman Telegram.", "Unrestricted submarine warfare by the Germans.", "The sinking of the RMS Lusitania.", "All of the above."], answer: "All of the above." },
+            { question: "How did the Committee on Public Information as well as the Espionage and Sedition Acts try to change public opinion of World War I?", options: ["By using propaganda (Committee) and restricting freedom of speech (Acts).", "By exposing unsanitary conditions in the army.", "By advocating for the U.S. to not join the war.", "By supporting political machines like Tammany Hall."], answer: "By using propaganda (Committee) and restricting freedom of speech (Acts)." },
+            { question: "Why did the United States not approve the Treaty of Versailles?", options: ["Because Germany was not punished harshly enough.", "Because it granted women the right to vote.", "Due to concerns over reparations, disagreements over borders, and opposition to the League of Nations.", "Because the Zimmerman Telegram was proven to be a fake."], answer: "Due to concerns over reparations, disagreements over borders, and opposition to the League of Nations." },
         ],
         unit6: [
-            { question: "What factor contributed to the development of a unique teenage culture in the 1920s?", options: ["The Great Depression", "Advancements like the automobile and radio.", "The Red Scare", "The implementation of New Deal programs."], answer: "Advancements like the automobile and radio." },
-            { question: "Which of the following was a cultural change that occurred in the 1920s?", options: ["The decline of consumer culture.", "The emergence of the Harlem Renaissance and the Jazz Age.", "A return to Victorian-era norms.", "The success of Prohibition in ending alcohol consumption."], answer: "The emergence of the Harlem Renaissance and the Jazz Age." },
-            { question: "What new opportunity became available for women in the 1920s, as mentioned in the study guide?", options: ["The right to vote, with the 19th Amendment.", "The requirement to work in \"Hoovervilles.\"", "The right to consumer credit.", "The opportunity to join the Palmer Raids."], answer: "The right to vote, with the 19th Amendment." },
-            { question: "What was the importance and significance of the Harlem Renaissance?", options: ["It was a period of fear of communism and radicalism.", "It was a government program to provide relief during the Great Depression.", "It was a cultural renaissance for African American artists, writers, and musicians.", "It was the name for the underground economy created by Prohibition."], answer: "It was a cultural renaissance for African American artists, writers, and musicians." },
-            { question: "What was the Red Scare of the 1920s?", options: ["A cultural movement celebrating African American artists.", "A period of heightened fear of communism and radicalism.", "An economic crisis caused by overproduction.", "A reform movement to end Prohibition."], answer: "A period of heightened fear of communism and radicalism." },
-            { question: "How did the U.S. government respond to the Red Scare?", options: ["By implementing New Deal programs.", "By promoting consumer culture.", "With measures like the Palmer Raids, which curtailed civil liberties.", "By ratifying the 19th Amendment."], answer: "With measures like the Palmer Raids, which curtailed civil liberties." },
-            { question: "Was Prohibition considered a success according to the study guide?", options: ["Yes, it successfully curbed all alcohol consumption.", "Yes, it led to a decrease in organized crime.", "No, it failed to curb consumption and gave rise to organized crime.", "No, it was the leading cause of the Great Depression."], answer: "No, it failed to curb consumption and gave rise to organized crime." },
-            { question: "Which of the following was a factor that led to the stock market crash of 1929?", options: ["The success of Prohibition.", "The Harlem Renaissance.", "Speculative investing and overextended credit.", "The implementation of the New Deal."], answer: "Speculative investing and overextended credit." },
-            { question: "The stock market crash of 1929 triggered...", options: ["The start of the Harlem Renaissance.", "A new wave of opportunities for women.", "The Great Depression.", "The Red Scare."], answer: "The Great Depression." },
-            { question: "How did overproduction in the 1920s lead to economic issues?", options: ["It flooded the market with surplus goods, driving down prices.", "It created too many jobs, leading to inflation.", "It caused the Red Scare.", "It was the main goal of the New Deal."], answer: "It flooded the market with surplus goods, driving down prices." },
-            { question: "What criticism did Herbert Hoover face for his handling of the Great Depression?", options: ["He intervened too much and created the New Deal.", "His adherence to laissez-faire economics and reluctance to intervene decisively.", "He caused the Red Scare with his Palmer Raids.", "He started the stock market crash through speculative investing."], answer: "His adherence to laissez-faire economics and reluctance to intervene decisively." },
-            { question: "How did the Great Depression impact individuals?", options: ["It led to widespread employment and confidence in the American Dream.", "It plunged millions into unemployment, poverty, and homelessness.", "It created a unique teenage culture of leisure.", "It led to a boom in the birth rate."], answer: "It plunged millions into unemployment, poverty, and homelessness." },
-            { question: "What were the \"Three R's\" (goals) of the New Deal programs?", options: ["Reading, Writing, and Arithmetic", "Rebellion, Raids, and Radicalism", "Relief, Recovery, and Reform", "Reduce, Reuse, and Recycle"], answer: "Relief, Recovery, and Reform" },
-            { question: "What was one of the issues people had with the New Deal programs?", options: ["They did not do enough to address the Great Depression.", "They were seen as government overreach.", "They relied too much on laissez-faire economics.", "They caused the stock market crash of 1929."], answer: "They were seen as government overreach." },
+            { question: "What led to a unique teenage culture developing in the 1920s?", options: ["The Great Depression", "Advancements like the automobile and radio.", "The Red Scare", "The implementation of New Deal programs."], answer: "Advancements like the automobile and radio." },
+            { question: "What were some of the cultural changes that occurred in the 1920s?", options: ["A return to Victorian-era norms.", "The emergence of the Harlem Renaissance and the Jazz Age.", "The success of Prohibition in ending alcohol consumption.", "The decline of consumer culture."], answer: "The emergence of the Harlem Renaissance and the Jazz Age." },
+            { question: "What new opportunities were available for women in the 1920s?", options: ["The right to vote (19th Amendment) and new employment opportunities.", "The requirement to work in \"Hoovervilles.\"", "The right to consumer credit only.", "The opportunity to join the Palmer Raids."], answer: "The right to vote (19th Amendment) and new employment opportunities." },
+            { question: "What was the importance and significance of the Harlem Renaissance?", options: ["It was a period of fear of communism and radicalism.", "It was a government program to provide relief during the Great Depression.", "A cultural renaissance for African American artists, writers, and musicians.", "The name for the underground economy created by Prohibition."], answer: "A cultural renaissance for African American artists, writers, and musicians." },
+            { question: "What was the Red Scare and how did the US respond to it in the 1920s?", options: ["A cultural movement, met with government funding.", "A period of fear of communism, met with measures like the Palmer Raids.", "An economic crisis, met with the New Deal.", "A reform movement, met with Prohibition."], answer: "A period of fear of communism, met with measures like the Palmer Raids." },
+            { question: "Was Prohibition a success? Describe its impact on society.", options: ["Yes, it successfully curbed all alcohol consumption.", "Yes, it led to a decrease in organized crime.", "No, it failed to curb consumption and gave rise to organized crime.", "No, it was the leading cause of the Great Depression."], answer: "No, it failed to curb consumption and gave rise to organized crime." },
+            { question: "What led to the stock market crash of 1929?", options: ["The success of Prohibition.", "The Harlem Renaissance.", "Speculative investing, overextended credit, and structural weaknesses.", "The implementation of the New Deal."], answer: "Speculative investing, overextended credit, and structural weaknesses." },
+            { question: "How did the overproduction in the 1920s lead to economic issues by 1929?", options: ["It flooded the market with surplus goods, driving down prices.", "It created too many jobs, leading to inflation.", "It caused the Red Scare.", "It was the main goal of the New Deal."], answer: "It flooded the market with surplus goods, driving down prices." },
+            { question: "Describe the criticism Herbert Hoover faced for how he attempted to address the Great Depression.", options: ["He intervened too much and created the New Deal.", "His adherence to laissez-faire economics and reluctance to intervene decisively.", "He caused the Red Scare with his Palmer Raids.", "He started the stock market crash through speculative investing."], answer: "His adherence to laissez-faire economics and reluctance to intervene decisively." },
+            { question: "How did the Great Depression impact individuals and their lives?", options: ["It led to widespread employment and confidence in the American Dream.", "It plunged millions into unemployment, poverty, and homelessness.", "It created a unique teenage culture of leisure.", "It led to a boom in the birth rate."], answer: "It plunged millions into unemployment, poverty, and homelessness." },
+            { question: "What were the Three R’s or goals of the New Deal programs?", options: ["Reading, Writing, and Arithmetic", "Rebellion, Raids, and Radicalism", "Relief, Recovery, and Reform", "Reduce, Reuse, and Recycle"], answer: "Relief, Recovery, and Reform" },
+            { question: "What were some of the issues that people had with the New Deal programs?", options: ["They did not do enough to address the Great Depression.", "Accusations of government overreach and insufficient relief efforts.", "They relied too much on laissez-faire economics.", "They caused the stock market crash of 1929."], answer: "Accusations of government overreach and insufficient relief efforts." },
         ],
         unit7: [
-            { question: "What U.S. policy shaped its initial reaction to the rise of dictators and aggression in Europe and Asia before WWII?", options: ["Isolationism", "Brinkmanship", "Imperialism", "The Marshall Plan"], answer: "Isolationism" },
-            { question: "Why did the United States initially adopt a policy of isolationism?", options: ["To recover from WWI and focus on domestic issues like the Great Depression.", "To actively participate in European conflicts.", "To prepare for an immediate attack on Japan.", "To form the North Atlantic Treaty Organization (NATO)."], answer: "To recover from WWI and focus on domestic issues like the Great Depression." },
-            { question: "What event significantly altered the United States' position on WWII and effectively ended its policy of isolationism?", options: ["The D-Day invasion.", "The implementation of the Marshall Plan.", "The attack on Pearl Harbor by Japan.", "The start of the Space Race."], answer: "The attack on Pearl Harbor by Japan." },
-            { question: "What were the Japanese internment camps?", options: ["Military bases set up to train Japanese American soldiers.", "Camps where approximately 120,000 Japanese Americans were forcibly relocated and detained.", "Economic aid packages sent to Japan after the war.", "Strategic islands captured during the Island-Hopping campaign."], answer: "Camps where approximately 120,000 Japanese Americans were forcibly relocated and detained." },
-            { question: "What was the strategic importance of the D-Day (Invasion of Normandy)?", options: ["It was the final battle of the war against Japan.", "It enabled the Allies to breach German defenses and establish a foothold in Western Europe.", "It was a failed invasion that prolonged the war.", "It was the event that brought the U.S. into the war."], answer: "It enabled the Allies to breach German defenses and establish a foothold in Western Europe." },
-            { question: "What was the \"Island-Hopping\" strategy used by the U.S. in the Pacific?", options: ["Bypassing all islands to launch a direct attack on mainland Japan.", "Selectively targeting strategically important islands while bypassing heavily fortified ones.", "Establishing Japanese internment camps on various islands.", "A naval blockade of all Japanese ports."], answer: "Selectively targeting strategically important islands while bypassing heavily fortified ones." },
-            { question: "What was President Truman's justification for using atomic bombs on Japan?", options: ["To test the new weapon without any regard for ending the war.", "To expedite the end of the war and reduce anticipated casualties from a prolonged conflict.", "As a first strike in the emerging Cold War against the Soviet Union.", "In response to the D-Day invasion."], answer: "To expedite the end of the war and reduce anticipated casualties from a prolonged conflict." },
-            { question: "What was the *economic* impact of World War II on the United States?", options: ["It worsened the Great Depression.", "It stimulated production, ended the Great Depression, and increased employment for women.", "It led to a policy of isolationism.", "It decreased employment opportunities for women."], answer: "It stimulated production, ended the Great Depression, and increased employment for women." },
-            { question: "The U.S. joining the United Nations (UN) and NATO after WWII indicated what shift in foreign policy?", options: ["A return to strict isolationism.", "A move away from isolationism toward multilateralism and collective security.", "A focus on \"Brinkmanship\" and starting the Space Race.", "A plan to rebuild Japan with the Marshall Plan."], answer: "A move away from isolationism toward multilateralism and collective security." },
-            { question: "What was a major factor contributing to the beginning of the Cold War?", options: ["The D-Day invasion.", "Ideological differences and the Soviet Union's reluctance to permit free elections in Eastern Europe.", "The attack on Pearl Harbor.", "The 1950s gender norms."], answer: "Ideological differences and the Soviet Union's reluctance to permit free elections in Eastern Europe." },
-            { question: "What was the primary objective of the Marshall Plan?", options: ["To provide economic assistance to facilitate the recovery of Europe and mitigate the appeal of communism.", "To establish a military alliance against Japan.", "To fund the U.S. side of the Space Race.", "To relocate Japanese Americans into internment camps."], answer: "To provide economic assistance to facilitate the recovery of Europe and mitigate the appeal of communism." },
-            { question: "What impact did the Space Race have on the United States?", options: ["It decreased investment in science and technology.", "It prompted increased investment in science and education and intensified geopolitical tensions.", "It led to the Marshall Plan.", "It ended the Cold War peacefully."], answer: "It prompted increased investment in science and education and intensified geopolitical tensions." },
-            { question: "What is \"Brinkmanship\" as it relates to the Cold War?", options: ["The practice of pursuing a policy to the verge of war to compel an opponent to yield.", "The U.S. initiative to provide economic aid to Europe.", "The strategy of \"Island-Hopping\" in the Pacific.", "The 1950s expectation for men to be the primary providers."], answer: "The practice of pursuing a policy to the verge of war to compel an opponent to yield." },
-            { question: "What were the gender norms and expectations of the 1950s?", options: ["Men and women shared domestic and provider roles equally.", "Men were typically expected to be providers, while women were expected to fulfill domestic responsibilities.", "Women were the primary providers, while men fulfilled domestic roles.", "There were no defined gender roles or expectations."], answer: "Men were typically expected to be providers, while women were expected to fulfill domestic responsibilities." },
+            { question: "Explain how the policy of isolationism shaped the United States' initial reaction to the rise of dictators and aggression in Europe and Asia leading up to World War II.", options: ["The U.S. immediately intervened to stop aggression.", "The U.S. adopted neutrality to focus on domestic issues like the Great Depression.", "The U.S. formed NATO to challenge dictators.", "The U.S. provided economic aid through the Marshall Plan."], answer: "The U.S. adopted neutrality to focus on domestic issues like the Great Depression." },
+            { question: "What was the impact of the attack on Pearl Harbor and how did it change America’s stance on the war?", options: ["It caused the U.S. to double down on isolationism.", "It ended U.S. isolationism and led to a declaration of war against Japan.", "It led to the D-Day invasion the very next day.", "It started the Cold War with the Soviet Union."], answer: "It ended U.S. isolationism and led to a declaration of war against Japan." },
+            { question: "What were the Japanese internment camps and what impact did they have on Japanese Americans?", options: ["Military bases to train Japanese American soldiers.", "Camps where 120,000 Japanese Americans were forcibly relocated, resulting in severe violations of civil liberties.", "Economic aid packages sent to Japan after the war.", "Strategic islands captured during the Island-Hopping campaign."], answer: "Camps where 120,000 Japanese Americans were forcibly relocated, resulting in severe violations of civil liberties." },
+            { question: "Explain the strategic importance of the D-Day invasion and its impact on the outcome of World War II.", options: ["It was the final battle of the war against Japan.", "It enabled the Allies to breach German defenses and establish a foothold in Western Europe.", "It was a failed invasion that prolonged the war.", "It was the event that brought the U.S. into the war."], answer: "It enabled the Allies to breach German defenses and establish a foothold in Western Europe." },
+            { question: "Describe the Island-Hopping strategy used in the Pacific during World War II and its effectiveness.", options: ["Bypassing all islands to launch a direct attack on mainland Japan.", "Selectively targeting strategically important islands while bypassing heavily fortified ones.", "Establishing Japanese internment camps on various islands.", "A naval blockade of all Japanese ports."], answer: "Selectively targeting strategically important islands while bypassing heavily fortified ones." },
+            { question: "What was President Truman’s justification for using the atomic bombs on Japan, and what was the outcome?", options: ["To test the new weapon; it led to Japan's surrender.", "To expedite the end of the war and reduce anticipated casualties; it led to Japan's surrender.", "As a first strike against the Soviet Union; it started the Cold War.", "In response to the D-Day invasion; it prolonged the war."], answer: "To expedite the end of the war and reduce anticipated casualties; it led to Japan's surrender." },
+            { question: "What was the economic impact of World War II on the United States?", options: ["It worsened the Great Depression.", "It stimulated production, ended the Great Depression, and increased employment for women.", "It led to a policy of isolationism.", "It decreased employment opportunities for women."], answer: "It stimulated production, ended the Great Depression, and increased employment for women." },
+            { question: "What did joining the United Nations and NATO after WW2 say about how America’s foreign policy was changing in the post-war era?", options: ["A return to strict isolationism.", "A shift away from isolationism toward multilateralism and collective security.", "A focus on \"Brinkmanship\" and starting the Space Race.", "A plan to rebuild Japan with the Marshall Plan."], answer: "A shift away from isolationism toward multilateralism and collective security." },
+            { question: "What were the major factors that contributed to the beginning of the Cold War between the United States and the Soviet Union?", options: ["The D-Day invasion.", "Ideological differences and the Soviet Union's reluctance to permit free elections in Eastern Europe.", "The attack on Pearl Harbor.", "The 1950s gender norms."], answer: "Ideological differences and the Soviet Union's reluctance to permit free elections in Eastern Europe." },
+            { question: "Describe the Marshall Plan. Consider its purpose and its effects on post-war Europe.", options: ["An initiative to provide economic assistance to rebuild Europe and mitigate the appeal of communism.", "A military alliance against Japan.", "A plan to fund the U.S. side of the Space Race.", "A plan to relocate Japanese Americans into internment camps."], answer: "An initiative to provide economic assistance to rebuild Europe and mitigate the appeal of communism." },
+            { question: "Explain the impact the Space Race and the Cold War tensions had on the United States.", options: ["It decreased investment in science and technology.", "It prompted increased investment in science and education and intensified geopolitical tensions.", "It led to the Marshall Plan.", "It ended the Cold War peacefully."], answer: "It prompted increased investment in science and education and intensified geopolitical tensions." },
+            { question: "What is Brinkmanship as it relates to the Cold War?", options: ["The practice of pursuing a policy to the verge of war to compel an opponent to yield.", "The U.S. initiative to provide economic aid to Europe.", "The strategy of \"Island-Hopping\" in the Pacific.", "The 1950s expectation for men to be the primary providers."], answer: "The practice of pursuing a policy to the verge of war to compel an opponent to yield." },
+            { question: "Explain gender norms and expectations of the 1950s.", options: ["Men and women shared domestic and provider roles equally.", "Men were typically expected to be providers, while women were expected to fulfill domestic responsibilities.", "Women were the primary providers, while men fulfilled domestic roles.", "There were no defined gender roles or expectations."], answer: "Men were typically expected to be providers, while women were expected to fulfill domestic responsibilities." },
         ],
         unit8: [
-            { question: "What was the primary significance of the Supreme Court's ruling in *Brown v. Board of Education*?", options: ["It established the \"separate but equal\" doctrine.", "It overturned the \"separate but equal\" doctrine, ending segregation in public education.", "It gave women the right to vote.", "It authorized federal oversight of voter registration."], answer: "It overturned the \"separate but equal\" doctrine, ending segregation in public education." },
-            { question: "The *Brown v. Board of Education* decision was a crucial catalyst for...", options: ["The broader Civil Rights Movement.", "The Vietnam War.", "The Watergate scandal.", "The counter-culture movement."], answer: "The broader Civil Rights Movement." },
-            { question: "Why did figures like Malcolm X and groups like the Black Panthers advocate for more assertive strategies?", options: ["They believed Martin Luther King Jr.'s nonviolent approach was working too quickly.", "Frustration with the slow pace of change and continued violence against African Americans.", "They were part of the counter-culture movement.", "They supported the U.S. involvement in Vietnam."], answer: "Frustration with the slow pace of change and continued violence against African Americans." },
-            { question: "Compared to Martin Luther King Jr.'s approach of civil disobedience, Malcolm X and the Black Panthers believed in...", options: ["Self-defense and Black nationalism.", "The \"separate but equal\" doctrine.", "The policy of containment.", "Passing the Equal Rights Amendment (ERA)."], answer: "Self-defense and Black nationalism." },
-            { question: "What was the importance of the Voting Rights Act of 1965?", options: ["It outlawed discriminatory voting practices like literacy tests and poll taxes.", "It gave women the right to vote.", "It legalized segregation in public schools.", "It was the primary goal of the Great Society agenda."], answer: "It outlawTensionsed discriminatory voting practices like literacy tests and poll taxes." },
-            { question: "The Voting Rights Act of 1965 led to a significant increase in...", options: ["U.S. troops in Vietnam.", "Anti-American sentiment in the Middle East.", "Black voter registration and political participation.", "Public trust in the government."], answer: "Black voter registration and political participation." },
-            { question: "What was the principal factor contributing to heightened tensions between Cuba and the U.S. in the 1960s?", options: ["Fidel Castro's communist revolution and alliance with the Soviet Union.", "The U.S. policy of containment in Southeast Asia.", "The rise of the counter-culture movement.", "The U.S. support for Israel."], answer: "Fidel Castro's communist revolution and alliance with the Soviet Union." },
-            { question: "The between the U.S. and Cuba during the 1960s led to which event that brought the world to the brink of nuclear war?", options: ["The Bay of Pigs invasion", "The Gulf of Tonkin incident", "The Cuban Missile Crisis", "The Watergate scandal"], answer: "The Cuban Missile Crisis" },
-            { question: "What were the key goals of President Lyndon B. Johnson's Great Society agenda?", options: ["To win the war in Vietnam and contain communism.", "To eliminate poverty and racial injustice.", "To promote the counter-culture movement.", "To land a man on the moon."], answer: "To eliminate poverty and racial injustice." },
-            { question: "What led to the U.S. becoming militarily involved in Vietnam?", options: ["The policy of containment, to prevent the spread of communism.", "The Watergate scandal.", "The 1953 Iranian coup.", "A direct attack on the U.S. mainland by North Vietnam."], answer: "The policy of containment, to prevent the spread of communism." },
-            { question: "What was the outcome of the Vietnam War?", options: ["The U.S. successfully contained communism, and South Vietnam remains independent.", "The reunification of Vietnam under communist rule.", "The U.S. remains militarily involved in Vietnam today.", "It led to the resignation of President Johnson."], answer: "The reunification of Vietnam under communist rule." },
-            { question: "Which of the following was a key argument raised by anti-war protestors during the Vietnam War?", options: ["The war was immoral and a civil conflict in which the U.S. should not intervene.", "The U.S. was not spending enough money on the war.", "The war was necessary to stop the spread of communism.", "The war was diverting resources from the counter-culture movement."], answer: "The war was immoral and a civil conflict in which the U.S. should not intervene." },
-            { question: "What was the counter-culture movement of the late 1960s?", options: ["A government program to end poverty.", "A youth-driven phenomenon that rejected mainstream American values.", "The women's rights movement.", "The group of advisors responsible for the Watergate scandal."], answer: "A youth-driven phenomenon that rejected mainstream American values." },
-            { question: "What was a major consequence of the Watergate scandal?", options: ["An increase in public trust in the government.", "The re-election of President Richard Nixon.", "An erosion of public trust in the government and the resignation of President Nixon.", "The U.S. withdrawal from Vietnam."], answer: "An erosion of public trust in the government and the resignation of President Nixon." },
-            { question: "What did the women's rights movement of the 1960s and 70s work to achieve?", options: ["The \"separate but equal\" doctrine.", "U.S. withdrawal from Vietnam.", "Equal rights and opportunities, including equal pay and ending discrimination.", "The rise of the counter-culture movement."], answer: "Equal rights and opportunities, including equal pay and ending discrimination." },
-            { question: "What was a reason for the rise of anti-American sentiment in some parts of the Middle East?", options: ["U.S. support for Israel and involvement in regional politics.", "The U.S. counter-culture movement.", "The U.S. policy of containment in Vietnam.", "The *Brown v. Board of Education* decision."], answer: "U.S. support for Israel and involvement in regional politics." },
+            { question: "Explain the primary significance of the Supreme Court's ruling in *Brown v. Board of Education* regarding public schooling in the United States.", options: ["It established the \"separate but equal\" doctrine.", "It overturned the \"separate but equal\" doctrine, thereby legally ending segregation in public education.", "It gave women the right to vote.", "It authorized federal oversight of voter registration."], answer: "It overturned the \"separate but equal\" doctrine, thereby legally ending segregation in public education." },
+            { question: "What were the main reasons that figures like Malcolm X and groups such as the Black Panthers advocated for more assertive strategies compared to Martin Luther King Jr.'s approach of civil disobedience?", options: ["They believed nonviolent protest was working too quickly.", "Frustration with the slow pace of change and continued violence against African Americans.", "They were part of the counter-culture movement.", "They supported the U.S. involvement in Vietnam."], answer: "Frustration with the slow pace of change and continued violence against African Americans." },
+            { question: "Explain the importance of the Voting Rights Act of 1965.", options: ["It outlawed discriminatory voting practices like literacy tests and poll taxes.", "It gave women the right to vote.", "It legalized segregation in public schools.", "It was the primary goal of the Great Society agenda."], answer: "It outlawed discriminatory voting practices like literacy tests and poll taxes." },
+            { question: "What was the principal factor contributing to the heightened tensions between Cuba and the United States during the 1960s?", options: ["Fidel Castro's communist revolution and alliance with the Soviet Union.", "The U.S. policy of containment in Southeast Asia.", "The rise of the counter-culture movement.", "The U.S. support for Israel."], answer: "Fidel Castro's communist revolution and alliance with the Soviet Union." },
+            { question: "What were the key goals and achievements of Johnson’s Great Society Agenda?", options: ["To win the war in Vietnam and contain communism.", "To eliminate poverty and racial injustice, achieving laws like the Civil Rights Act of 1964.", "To promote the counter-culture movement.", "To land a man on the moon."], answer: "To eliminate poverty and racial injustice, achieving laws like the Civil Rights Act of 1964." },
+            { question: "What led to the United States becoming militarily involved in Vietnam?", options: ["The policy of containment, to prevent the spread of communism.", "The Watergate scandal.", "The 1953 Iranian coup.", "A direct attack on the U.S. mainland by North Vietnam."], answer: "The policy of containment, to prevent the spread of communism." },
+            { question: "What was the outcome of the Vietnam War?", options: ["The U.S. successfully contained communism, and South Vietnam remains independent.", "The reunification of Vietnam under communist rule and deep social divisions in the U.S.", "The U.S. remains militarily involved in Vietnam today.", "It led to the resignation of President Johnson."], answer: "The reunification of Vietnam under communist rule and deep social divisions in the U.S." },
+            { question: "List at least three key arguments commonly raised by anti-war protestors in the United States during the Vietnam War.", options: ["The war was immoral, a civil conflict, and diverted resources from domestic needs.", "The war was not costly enough and needed more troops.", "The war was a moral crusade against communism that all should support.", "The war was supported by the counter-culture movement."], answer: "The war was immoral, a civil conflict, and diverted resources from domestic needs." },
+            { question: "Define and provide examples of the counter-culture movement that emerged in the United States during the late 1960s?", options: ["A government program to end poverty.", "A youth-driven phenomenon that rejected mainstream values, exemplified by hippies and rock music.", "The women's rights movement.", "The group of advisors responsible for the Watergate scandal."], answer: "A youth-driven phenomenon that rejected mainstream values, exemplified by hippies and rock music." },
+            { question: "What was a major consequence of the Watergate scandal?", options: ["An increase in public trust in the government.", "The re-election of President Richard Nixon.", "A significant erosion of public trust in the government and the resignation of President Nixon.", "The U.S. withdrawal from Vietnam."], answer: "A significant erosion of public trust in the government and the resignation of President Nixon." },
+            { question: "What did the women's rights movement during the 1960s and 70s work to achieve?", options: ["The \"separate but equal\" doctrine.", "U.S. withdrawal from Vietnam.", "Equal rights and opportunities, such as equal pay and an end to discrimination.", "The rise of the counter-culture movement."], answer: "Equal rights and opportunities, such as equal pay and an end to discrimination." },
+            { question: "What were the reasons for the rise of anti-American sentiment in some parts of the Middle East?", options: ["U.S. support for Israel and involvement in regional politics.", "The U.S. counter-culture movement.", "The U.S. policy of containment in Vietnam.", "The *Brown v. Board of Education* decision."], answer: "U.S. support for Israel and involvement in regional politics." },
         ]
     };
 
     let availableQuestions = []; // Will be populated by unit selection
     let selectedUnitBank = []; // Stores the master list for the current game
     
-    // --- Game Functions ---
+    function clearAllGameTimeouts() { activeTimeouts.forEach(id => clearTimeout(id)); activeTimeouts = []; }
+    function gameSetTimeout(callback, delay) { const id = setTimeout(callback, delay); activeTimeouts.push(id); return id; }
 
-    function resizeCanvas() {
-        // This function can be expanded if dynamic resizing is needed
-        // For now, it respects the 800x600 defined in the HTML
-        canvas.width = 800;
-        canvas.height = 600;
+    // --- Enhanced Graphics Classes ---
+    class Particle {
+        constructor(x, y, color, speed, life, gravity = 0) {
+            this.x = x; this.y = y; this.color = color; this.life = life || Math.random() * 20 + 20;
+            this.initialLife = this.life; this.speed = speed; this.gravity = gravity;
+            const angle = Math.random() * Math.PI * 2;
+            this.dx = Math.cos(angle) * this.speed; this.dy = Math.sin(angle) * this.speed;
+        }
+        update() { this.x += this.dx; this.y += this.dy; this.dy += this.gravity; this.life--; }
+        draw(context) {
+            context.fillStyle = this.color;
+            context.globalAlpha = Math.max(0, this.life / this.initialLife);
+            context.beginPath(); context.arc(this.x, this.y, 2, 0, Math.PI * 2); context.fill();
+        }
+    }
+    
+    class MuzzleFlash {
+        constructor(x,y) { this.x = x; this.y = y; this.radius = 30; this.life = 10; this.isAlive = true; }
+        update() { this.life--; if (this.life <= 0) this.isAlive = false; }
+        draw() {
+            const lifeRatio = this.life / 10;
+            const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius * lifeRatio);
+            grad.addColorStop(0, `rgba(255, 255, 220, ${0.9 * lifeRatio})`);
+            grad.addColorStop(0.5, `rgba(255, 200, 0, ${0.5 * lifeRatio})`);
+            grad.addColorStop(1, 'rgba(255, 150, 0, 0)');
+            ctx.fillStyle = grad;
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+        }
     }
 
+    class City {
+        constructor(x, y) {
+            this.x = x; this.y = y; this.width = 70; this.height = 40; this.isAlive = true;
+            this.health = 3; this.smokeParticles = [];
+            this.buildings = [];
+            for(let i = 0; i < 5; i++) {
+                const w = Math.random() * 10 + 8; const h = Math.random() * 30 + 10;
+                const bx = Math.random() * (this.width - w); const by = this.height - h;
+                const lightness = Math.floor(Math.random() * 20 + 40);
+                this.buildings.push({ x: bx, y: by, w, h, color: `hsl(210, 20%, ${lightness}%)` });
+            }
+        }
+        takeDamage() {
+            if (!this.isAlive) return;
+            this.health--;
+            if (this.health <= 0) { this.isAlive = false; this.health = 0; }
+        }
+        update() {
+            if (this.isAlive && this.health < 3 && Math.random() < 0.2) {
+                const smokeX = this.x + Math.random() * this.width;
+                const smokeY = this.y + this.height - 10;
+                this.smokeParticles.push(new Particle(smokeX, smokeY, `rgba(200,200,200,0.5)`, Math.random() * 0.5, 50, -0.05));
+            }
+            this.smokeParticles.forEach(p => p.update());
+            this.smokeParticles = this.smokeParticles.filter(p => p.life > 0);
+        }
+        draw() {
+            if (this.isAlive) {
+                ctx.save(); ctx.translate(this.x, this.y);
+                this.buildings.forEach(b => { ctx.fillStyle = b.color; ctx.fillRect(b.x, b.y, b.w, b.h); });
+                ctx.restore();
+                 // Draw damage cracks
+                if(this.health < 3) {
+                    ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.moveTo(this.x + 10, this.y + this.height); ctx.lineTo(this.x + 25, this.y + 20); ctx.stroke();
+                }
+                if(this.health < 2) {
+                    ctx.beginPath(); ctx.moveTo(this.x + 60, this.y + this.height); ctx.lineTo(this.x + 45, this.y + 15); ctx.stroke();
+                }
+            } else {
+                ctx.fillStyle = '#444'; ctx.fillRect(this.x, this.y + this.height - 10, this.width, 10);
+                ctx.fillStyle = '#222'; ctx.fillRect(this.x + 10, this.y + this.height - 20, 15, 10);
+                ctx.fillRect(this.x + 40, this.y + this.height - 15, 20, 5);
+            }
+            ctx.globalAlpha = 1.0;
+            this.smokeParticles.forEach(p => p.draw(ctx));
+            ctx.globalAlpha = 1.0;
+        }
+    }
+
+    class Battery {
+        constructor(x, y) { this.x = x; this.y = y; this.missiles = 10; }
+        draw() {
+            ctx.save(); ctx.translate(this.x, this.y);
+            const grad = ctx.createLinearGradient(-30, -15, 30, 0);
+            grad.addColorStop(0, '#555'); grad.addColorStop(1, '#222');
+            ctx.fillStyle = grad;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-30, 0); ctx.lineTo(-20, -15);
+            ctx.lineTo(20, -15); ctx.lineTo(30, 0); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#333'; ctx.fillRect(-10, -35, 20, 20);
+            ctx.fillStyle = '#00ff00'; ctx.fillRect(-4, -40, 8, 5);
+            ctx.shadowColor = '#fff'; ctx.shadowBlur = 5;
+            ctx.fillStyle = '#FFF'; ctx.font = "14px 'Orbitron'";
+            ctx.textAlign = 'center'; ctx.fillText(this.missiles, 0, 18);
+            ctx.restore();
+        }
+    }
+
+    class Missile {
+        constructor(startX, startY, targetX, targetY, speed, color, isEnemy = false) {
+            this.x = this.startX = startX; this.y = this.startY = startY;
+            this.targetX = targetX; this.targetY = targetY;
+            this.speed = speed; this.color = color; this.isEnemy = isEnemy; this.isAlive = true;
+            const angle = Math.atan2(targetY - startY, targetX - startX);
+            this.dx = Math.cos(angle) * speed; this.dy = Math.sin(angle) * speed;
+        }
+        update() {
+            this.x += this.dx; this.y += this.dy;
+            const dist = Math.hypot(this.x - this.targetX, this.y - this.targetY);
+            if (!this.isEnemy && dist < this.speed) {
+                this.isAlive = false;
+                explosions.push(new Explosion(this.targetX, this.targetY, 'player'));
+                audioManager.playExplosion();
+            }
+        }
+        draw() {
+            ctx.strokeStyle = this.color; ctx.lineWidth = 2;
+            ctx.shadowColor = this.color; ctx.shadowBlur = 10;
+            ctx.beginPath(); ctx.moveTo(this.startX, this.startY); ctx.lineTo(this.x, this.y); ctx.stroke();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(this.x, this.y, 3, 0, Math.PI * 2); ctx.fill();
+        }
+    }
+
+    class Explosion {
+        constructor(x, y, type) { // type: 'player', 'enemy', 'city_impact'
+            this.x = x; this.y = y; this.isAlive = true; this.type = type;
+            this.radius = 5;
+            this.maxRadius = type === 'city_impact' ? 80 : 40 + Math.random() * 20;
+            this.isGrowing = true;
+
+            const particleCount = type === 'city_impact' ? 60 : 30;
+            // Fiery explosions for all types, with a hint of cyan for player's
+            let hueStart = 10; // Red/Orange
+            let hueRange = 40;
+
+            for (let i = 0; i < particleCount; i++) {
+                let particleHue = hueStart + Math.random() * hueRange;
+                if (type === 'player' && Math.random() < 0.1) {
+                     particleHue = 180 + Math.random() * 20; // A splash of cyan for distinction
+                }
+                const lightness = Math.random() * 30 + 50;
+                particles.push(new Particle(this.x, this.y, `hsl(${particleHue}, 100%, ${lightness}%)`, Math.random() * 2 + 1));
+            }
+        }
+        update() {
+            if (this.isGrowing) { this.radius += 1.5; if (this.radius >= this.maxRadius) this.isGrowing = false; } 
+            else { this.radius -= 0.8; if (this.radius <= 0) this.isAlive = false; }
+        }
+        draw() {
+            const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+            const alpha = this.radius / this.maxRadius;
+            let colors = {
+                'player': { c1: 'hsla(40, 100%, 80%,', c2: 'hsla(20, 100%, 50%,' }, // Fiery glow
+                'enemy': { c1: 'hsla(30, 100%, 80%,', c2: 'hsla(10, 100%, 50%,' },
+                'city_impact': { c1: 'hsla(40, 100%, 80%,', c2: 'hsla(20, 100%, 50%,' }
+            }[this.type];
+
+            grad.addColorStop(0, `${colors.c1} ${alpha * 0.8})`);
+            grad.addColorStop(0.5, `${colors.c2} ${alpha * 0.5})`);
+            grad.addColorStop(1, `${colors.c2} 0)`);
+            ctx.fillStyle = grad;
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+        }
+    }
+
+    function createStars() { stars = []; for (let i = 0; i < 100; i++) { stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, radius: Math.random() * 1.5, alpha: Math.random() * 0.5 + 0.2 }); } }
+
+    // --- Game Initialization ---
     function initGame(startLevel = 1) {
-        clearAllGameTimeouts(); 
-        score = 0; 
-        lives = 3; 
-        level = startLevel;
+        clearAllGameTimeouts(); score = 0; lives = 3; level = startLevel;
         availableQuestions = [...selectedUnitBank]; // MODIFIED: Load from selected bank
         pauseButton.textContent = 'Pause';
-        updateUI(); 
-        initLevel();
+        updateUI(); initLevel();
         if(gameLoopId) cancelAnimationFrame(gameLoopId);
-        createStars(); 
-        gameLoop(); 
-        audioManager.startMusic();
+        createStars(); gameLoop(); audioManager.startMusic();
     }
     
     function initLevel() {
@@ -542,32 +690,22 @@
         const cityY = canvas.height - 40;
         const citySpacing = (canvas.width - 6 * 70) / 7;
         for (let i = 0; i < 6; i++) { cities.push(new City(citySpacing * (i + 1) + 70 * i, cityY)); }
-        
         if (batteries.length === 0) {
             batteries.push(new Battery(canvas.width * 0.15, canvas.height));
             batteries.push(new Battery(canvas.width * 0.5, canvas.height));
             batteries.push(new Battery(canvas.width * 0.85, canvas.height));
         }
         batteries.forEach(b => b.missiles = 10);
-        
-        playerMissiles = []; 
-        explosions = []; 
-        enemyMissiles = []; 
-        particles = []; 
-        muzzleFlashes = [];
-        gameState = 'playing'; 
-        forceEndButton.style.display = 'inline-block';
+        playerMissiles = []; explosions = []; enemyMissiles = []; particles = []; muzzleFlashes = [];
+        gameState = 'playing'; forceEndButton.style.display = 'inline-block';
         startWave();
     }
     
     function startWave() {
-        const missileCount = 4 + level * 2; 
-        const missileSpeed = 0.6 + level * 0.15;
+        const missileCount = 4 + level * 2; const missileSpeed = 0.6 + level * 0.15;
         const waveDuration = Math.max(12000, 40000 - (level * 2000));
         const averageInterval = waveDuration / missileCount;
-        totalMissilesForWave = missileCount; 
-        launchedMissilesThisWave = 0;
-        
+        totalMissilesForWave = missileCount; launchedMissilesThisWave = 0;
         for (let i = 0; i < missileCount; i++) {
             const spawnDelay = (i * averageInterval) + (Math.random() * averageInterval / 2);
             gameSetTimeout(() => {
@@ -581,16 +719,9 @@
                 launchedMissilesThisWave++;
             }, spawnDelay);
         }
-        
         const lastMissileTime = (missileCount - 1) * averageInterval + (averageInterval / 2);
         const stalemateDelay = lastMissileTime + 10000;
-        gameSetTimeout(() => { 
-            if (gameState === 'playing' && launchedMissilesThisWave >= totalMissilesForWave) { 
-                enemyMissiles = []; 
-                explosions = []; 
-                endLevel(); 
-            } 
-        }, stalemateDelay);
+        gameSetTimeout(() => { if (gameState === 'playing' && launchedMissilesThisWave >= totalMissilesForWave) { enemyMissiles = []; explosions = []; endLevel(); } }, stalemateDelay);
     }
 
     // --- Game Loop & Drawing ---
@@ -603,19 +734,13 @@
     }
     
     function update() {
-        if (gameState === 'playing' && launchedMissilesThisWave >= totalMissilesForWave && enemyMissiles.length === 0 && explosions.length === 0) { 
-            endLevel(); 
-            return; 
-        }
-        
+        if (gameState === 'playing' && launchedMissilesThisWave >= totalMissilesForWave && enemyMissiles.length === 0 && explosions.length === 0) { endLevel(); return; }
         [...playerMissiles, ...enemyMissiles].forEach(m => m.update());
         explosions.forEach(e => e.update());
         particles.forEach(p => p.update());
         muzzleFlashes.forEach(mf => mf.update());
         cities.forEach(c => c.update());
-        
         checkCollisions();
-        
         playerMissiles = playerMissiles.filter(m => m.isAlive);
         enemyMissiles = enemyMissiles.filter(m => m.isAlive);
         explosions = explosions.filter(e => e.isAlive);
@@ -625,24 +750,12 @@
 
     function draw() {
         const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        bgGrad.addColorStop(0, '#020018'); 
-        bgGrad.addColorStop(0.6, '#080030'); 
-        bgGrad.addColorStop(1, '#1a0048');
-        ctx.fillStyle = bgGrad; 
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        stars.forEach(star => { 
-            ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`; 
-            ctx.beginPath(); 
-            ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2); 
-            ctx.fill(); 
-        });
-        
+        bgGrad.addColorStop(0, '#020018'); bgGrad.addColorStop(0.6, '#080030'); bgGrad.addColorStop(1, '#1a0048');
+        ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        stars.forEach(star => { ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`; ctx.beginPath(); ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2); ctx.fill(); });
         const groundGrad = ctx.createLinearGradient(0, canvas.height - 80, 0, canvas.height);
-        groundGrad.addColorStop(0, 'transparent'); 
-        groundGrad.addColorStop(1, '#020018');
-        ctx.fillStyle = groundGrad; 
-        ctx.fillRect(0, canvas.height-80, canvas.width, 80);
+        groundGrad.addColorStop(0, 'transparent'); groundGrad.addColorStop(1, '#020018');
+        ctx.fillStyle = groundGrad; ctx.fillRect(0, canvas.height-80, canvas.width, 80);
         
         cities.forEach(c => c.draw());
         batteries.forEach(b => b.draw());
@@ -653,47 +766,19 @@
         ctx.globalAlpha = 1.0;
     }
     
-    function drawCenteredText(text, yOffset, size, color) { 
-        ctx.fillStyle = color; 
-        ctx.font = `${size}px 'Orbitron'`; 
-        ctx.textAlign = "center"; 
-        ctx.shadowColor = color; 
-        ctx.shadowBlur = 10; 
-        ctx.fillText(text, canvas.width / 2, canvas.height / 2 + yOffset); 
-        ctx.shadowBlur = 0; 
-    }
-    function drawLevelTransition() { 
-        ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; 
-        ctx.fillRect(0, 0, canvas.width, canvas.height); 
-        drawCenteredText(`Level ${level} Complete`, -40, 30, '#ffff80'); 
-        drawCenteredText(`Bonus: ${levelCompleteBonus}`, 10, 20, '#e0e0e0'); 
-        updateUI(); 
-    }
-    function drawPaused() { 
-        ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; 
-        ctx.fillRect(0, 0, canvas.width, canvas.height); 
-        drawCenteredText('PAUSED', 0, 40, '#ffff80'); 
-    }
-    function updateUI() { 
-        scoreEl.textContent = score; 
-        levelEl.textContent = level; 
-        livesEl.textContent = lives; 
-    }
+    function drawCenteredText(text, yOffset, size, color) { ctx.fillStyle = color; ctx.font = `${size}px 'Orbitron'`; ctx.textAlign = "center"; ctx.shadowColor = color; ctx.shadowBlur = 10; ctx.fillText(text, canvas.width / 2, canvas.height / 2 + yOffset); ctx.shadowBlur = 0; }
+    function drawLevelTransition() { ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; ctx.fillRect(0, 0, canvas.width, canvas.height); drawCenteredText(`Level ${level} Complete`, -40, 30, '#ffff80'); drawCenteredText(`Bonus: ${levelCompleteBonus}`, 10, 20, '#e0e0e0'); updateUI(); }
+    function drawPaused() { ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; ctx.fillRect(0, 0, canvas.width, canvas.height); drawCenteredText('PAUSED', 0, 40, '#ffff80'); }
+    function updateUI() { scoreEl.textContent = score; levelEl.textContent = level; livesEl.textContent = lives; }
 
     // --- Logic & Collisions ---
     function checkCollisions() {
         enemyMissiles.forEach(missile => {
             if (!missile.isAlive) return;
-            
             explosions.forEach(explosion => {
                 const dist = Math.hypot(missile.x - explosion.x, missile.y - explosion.y);
-                if (dist < explosion.radius) { 
-                    missile.isAlive = false; 
-                    score += 100; 
-                    updateUI(); 
-                }
+                if (dist < explosion.radius) { missile.isAlive = false; score += 100; updateUI(); }
             });
-
             if (missile.y >= missile.targetY) {
                 missile.isAlive = false;
                 let cityWasHit = false;
@@ -705,10 +790,7 @@
                         cityWasHit = true;
                     }
                 });
-                if (!cityWasHit) { 
-                    explosions.push(new Explosion(missile.x, missile.y, 'enemy')); 
-                    audioManager.playExplosion(); 
-                }
+                if (!cityWasHit) { explosions.push(new Explosion(missile.x, missile.y, 'enemy')); audioManager.playExplosion(); }
                 if (cityWasHit) triggerQuestion("standard");
             }
         });
@@ -737,36 +819,14 @@
         }
     }
 
-    function startNextLevelTransition() { 
-        gameState = 'level_transition'; 
-        gameSetTimeout(() => { 
-            level++; 
-            initLevel(); 
-        }, 3000); 
-    }
-    
+    function startNextLevelTransition() { gameState = 'level_transition'; gameSetTimeout(() => { level++; initLevel(); }, 3000); }
     function gameOver() {
-        gameState = 'game_over'; 
-        forceEndButton.style.display = 'none';
-        finalScoreEl.textContent = score; 
-        const finalLevel = level;
+        gameState = 'game_over'; forceEndButton.style.display = 'none';
+        finalScoreEl.textContent = score; const finalLevel = level;
         const restartOptionsContainer = document.getElementById('restartOptionsContainer');
-        restartOptionsContainer.innerHTML = ''; 
-        audioManager.stopMusic();
-        
-        function createRestartButton(text, startLvl) { 
-            const button = document.createElement('button'); 
-            button.textContent = text; 
-            button.classList.add('action-btn'); 
-            button.onclick = () => { 
-                gameOverScreen.style.display = 'none'; 
-                initGame(startLvl); 
-            }; 
-            restartOptionsContainer.appendChild(button); 
-        }
-        
-        createRestartButton('Level 1', 1); 
-        if (finalLevel >= 5) createRestartButton('Level 5', 5);
+        restartOptionsContainer.innerHTML = ''; audioManager.stopMusic();
+        function createRestartButton(text, startLvl) { const button = document.createElement('button'); button.textContent = text; button.classList.add('action-btn'); button.onclick = () => { gameOverScreen.style.display = 'none'; initGame(startLvl); }; restartOptionsContainer.appendChild(button); }
+        createRestartButton('Level 1', 1); if (finalLevel >= 5) createRestartButton('Level 5', 5);
         
         // NEW: Add button to return to unit selection
         const unitSelectButton = document.createElement('button');
@@ -787,8 +847,7 @@
 
     // --- Question Handling ---
     function triggerQuestion(type) {
-        gameState = 'question'; 
-        forceEndButton.style.display = 'none';
+        gameState = 'question'; forceEndButton.style.display = 'none';
         
         // MODIFIED: Repopulate from selected bank if empty
         if (availableQuestions.length === 0) {
@@ -797,23 +856,15 @@
             } else {
                 // This should not happen if a unit was selected, but as a fallback:
                 console.error("No unit selected! Restarting.");
-                unitSelectionScreen.style.display = 'flex';
+                unitSelectionScreen.style.display = 'flex'; // Go back to unit select
                 return;
             }
         }
         
         const qIndex = Math.floor(Math.random() * availableQuestions.length);
         const currentQuestion = availableQuestions.splice(qIndex, 1)[0];
-        
-        questionTextEl.textContent = currentQuestion.question; 
-        optionsContainerEl.innerHTML = '';
-        currentQuestion.options.forEach(option => { 
-            const button = document.createElement('button'); 
-            button.textContent = option; 
-            button.classList.add('option-btn'); 
-            button.onclick = () => handleAnswer(option, currentQuestion.answer, type); 
-            optionsContainerEl.appendChild(button); 
-        });
+        questionTextEl.textContent = currentQuestion.question; optionsContainerEl.innerHTML = '';
+        currentQuestion.options.forEach(option => { const button = document.createElement('button'); button.textContent = option; button.classList.add('option-btn'); button.onclick = () => handleAnswer(option, currentQuestion.answer, type); optionsContainerEl.appendChild(button); });
         questionModal.style.display = 'flex';
     }
 
@@ -881,67 +932,34 @@
     });
 
     pauseButton.addEventListener('click', () => {
-        if (gameState === 'playing') { 
-            gameState = 'paused'; 
-            pauseButton.textContent = 'Resume'; 
-            forceEndButton.style.display = 'none'; 
-            Tone.Transport.pause(); 
-        } 
-        else if (gameState === 'paused') { 
-            gameState = 'playing'; 
-            pauseButton.textContent = 'Pause'; 
-            forceEndButton.style.display = 'inline-block'; 
-            Tone.Transport.start(); 
-        }
+        if (gameState === 'playing') { gameState = 'paused'; pauseButton.textContent = 'Resume'; forceEndButton.style.display = 'none'; Tone.Transport.pause(); } 
+        else if (gameState === 'paused') { gameState = 'playing'; pauseButton.textContent = 'Pause'; forceEndButton.style.display = 'inline-block'; Tone.Transport.start(); }
     });
     
-    doubleButton.addEventListener('click', () => { 
-        doubleOrNothingModal.style.display = 'none'; 
-        triggerQuestion('double'); 
-    });
-    continueButton.addEventListener('click', () => { 
-        doubleOrNothingModal.style.display = 'none'; 
-        startNextLevelTransition(); 
-    });
+    doubleButton.addEventListener('click', () => { doubleOrNothingModal.style.display = 'none'; triggerQuestion('double'); });
+    continueButton.addEventListener('click', () => { doubleOrNothingModal.style.display = 'none'; startNextLevelTransition(); });
 
     function handleCanvasInteraction(e) {
-        if (gameState !== 'playing') return; 
-        e.preventDefault();
+        if (gameState !== 'playing') return; e.preventDefault();
         const rect = canvas.getBoundingClientRect();
         let clientX, clientY;
-        
-        if (e.touches && e.touches.length > 0) { 
-            clientX = e.touches[0].clientX; 
-            clientY = e.touches[0].clientY; 
-        } 
-        else { 
-            clientX = e.clientX; 
-            clientY = e.clientY; 
-        }
-        
-        const x = clientX - rect.left; 
-        const y = clientY - rect.top;
-        
+        if (e.touches && e.touches.length > 0) { clientX = e.touches[0].clientX; clientY = e.touches[0].clientY; } 
+        else { clientX = e.clientX; clientY = e.clientY; }
+        const x = clientX - rect.left; const y = clientY - rect.top;
         let bestBattery = null, minDist = Infinity;
         batteries.forEach(b => {
             if (b.missiles > 0) {
                 const dist = Math.hypot(x - b.x, y - (b.y - 25));
-                if (dist < minDist) { 
-                    minDist = dist; 
-                    bestBattery = b; 
-                }
+                if (dist < minDist) { minDist = dist; bestBattery = b; }
             }
         });
-        
         if (bestBattery) {
             bestBattery.missiles--;
             muzzleFlashes.push(new MuzzleFlash(bestBattery.x, bestBattery.y - 40));
             playerMissiles.push(new Missile(bestBattery.x, bestBattery.y - 40, x, y, 6, '#00ffff'));
-            audioManager.playLaunch(); 
-            updateUI();
+            audioManager.playLaunch(); updateUI();
         }
     }
-    
     canvas.addEventListener('click', handleCanvasInteraction);
     canvas.addEventListener('touchstart', handleCanvasInteraction);
     
@@ -954,13 +972,7 @@
         }); 
     });
     
-    forceEndButton.addEventListener('click', () => { 
-        if (gameState === 'playing') { 
-            enemyMissiles = []; 
-            explosions = []; 
-            endLevel(true); 
-        } 
-    });
+    forceEndButton.addEventListener('click', () => { if (gameState === 'playing') { enemyMissiles = []; explosions = []; endLevel(true); } });
 
     // --- NEW: Unit Selection Listeners ---
     function selectUnit(unitKey) {
@@ -978,11 +990,13 @@
     unitSelectBtns.unit6.addEventListener('click', () => selectUnit('unit6'));
     unitSelectBtns.unit7.addEventListener('click', () => selectUnit('unit7'));
     unitSelectBtns.unit8.addEventListener('click', () => selectUnit('unit8'));
-    
+
     // --- Initial Call ---
+    // We just draw the canvas and stars, the unit selection modal is already visible
     resizeCanvas();
-    draw(); // Draw the initial frame
-    
+    createStars();
+    draw();
+
 </script>
 </body>
 </html>
