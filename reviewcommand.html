@@ -1,8 +1,201 @@
-<!-- ... existing code ... -->
-            color: var(--bg-dark);
-            box-shadow: 0 0 15px var(--glow-color);
-        }
-        
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History Missile Command Evolved</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        :root {
+            --glow-color: #00ffff;
+            --accent-color: #00ffff;
+            --danger-color: #ff4d4d;
+            --warn-color: #ffff80;
+            --bg-dark: #020018;
+            --bg-medium: #1a1a3a;
+            --text-color: #e0e0e0;
+            --correct-color: #4ade80;
+        }
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-color);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10+ */
+            user-select: none; /* Standard syntax */
+        }
+
+        canvas {
+            background-color: transparent; /* Will be drawn in JS */
+            display: block;
+            cursor: crosshair;
+        }
+
+        .game-container {
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 0 15px var(--glow-color), 0 0 25px var(--glow-color) inset;
+            padding: 1rem;
+            background: rgba(10, 0, 26, 0.8);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+        }
+
+        #ui-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0.4));
+            color: var(--accent-color);
+            text-transform: uppercase;
+            font-size: 1rem;
+            border-top: 2px solid var(--accent-color);
+        }
+        
+        .ui-button {
+            background-color: transparent;
+            border: 2px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 0 5px var(--glow-color);
+            text-shadow: 0 0 5px var(--glow-color);
+        }
+
+        .ui-button:hover {
+            background-color: var(--accent-color);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--glow-color);
+        }
+
+        #forceEndButton {
+            border-color: var(--warn-color);
+            color: var(--warn-color);
+            box-shadow: 0 0 5px var(--warn-color);
+            text-shadow: 0 0 5px var(--warn-color);
+            margin-left: 0.5rem;
+        }
+
+        #forceEndButton:hover {
+            background-color: var(--warn-color);
+            color: var(--bg-dark);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: rgba(10, 0, 26, 0.9);
+            margin: auto;
+            padding: 2.5rem;
+            border: 2px solid var(--accent-color);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            border-radius: 12px;
+            box-shadow: 0 0 25px var(--glow-color);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h1, .modal-content h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+            color: var(--warn-color);
+            text-shadow: 0 0 8px var(--warn-color);
+        }
+
+        #startScreen h1, #gameOverScreen h1 {
+            font-size: 2.5rem;
+            color: var(--warn-color);
+            text-shadow: 0 0 10px var(--warn-color), 0 0 20px var(--danger-color);
+            margin-bottom: 1.5rem;
+        }
+
+        #startScreen p, #gameOverScreen p {
+            font-size: 1rem;
+            line-height: 1.8;
+            max-width: 600px;
+            margin-bottom: 2rem;
+            color: var(--text-color);
+        }
+
+        .action-btn {
+            display: inline-block;
+            padding: 1rem 1.5rem;
+            font-family: 'Orbitron', sans-serif;
+            background: transparent;
+            border: 2px solid var(--danger-color);
+            color: var(--danger-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+            border-radius: 8px;
+            text-transform: uppercase;
+            margin: 0.5rem;
+            box-shadow: 0 0 10px var(--danger-color);
+            text-shadow: 0 0 8px var(--danger-color);
+        }
+
+        .action-btn:hover {
+            background: var(--danger-color);
+            color: var(--bg-dark);
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            font-family: 'Orbitron', sans-serif;
+            background: transparent;
+            border: 2px solid var(--accent-color);
+            color: var(--accent-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            box-shadow: 0 0 5px var(--glow-color);
+        }
+
+        .option-btn:hover {
+            background: var(--accent-color);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--glow-color);
+        }
+        
         /* New Styles for Unit Selection */
         .unit-select-grid {
             display: grid;
@@ -36,15 +229,42 @@
             box-shadow: 0 0 15px var(--glow-color);
         }
 
-        #answerResultText.correct {
-            color: var(--correct-color);
-<!-- ... existing code ... -->
-    </div>
+        #answerResultText.correct {
+            color: var(--correct-color);
+            text-shadow: 0 0 10px var(--correct-color);
+        }
+        #answerResultText.incorrect {
+            color: var(--danger-color);
+            text-shadow: 0 0 10px var(--danger-color);
+        }
+        #answerResultSubtext {
+            font-size: 1rem;
+            margin-top: -1rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="ui-panel">
+        <div>Score: <span id="score">0</span></div>
+        <div>Level: <span id="level">1</span></div>
+        <div>Lives: <span id="lives">3</span></div>
+        <div>
+             <button id="pauseButton" class="ui-button">Pause</button>
+             <button id="forceEndButton" class="ui-button" style="display: none;">END WAVE</button>
+        </div>
+    </div>
 </div>
 
 <!-- Modals -->
 <div id="questionModal" class="modal"><div class="modal-content"><h2 id="questionText"></h2><div id="optionsContainer"></div></div></div>
 <div id="doubleOrNothingModal" class="modal"><div class="modal-content"><h2 id="doubleOrNothingText"></h2><div id="doubleOrNothingOptionsContainer"><button id="doubleButton" class="option-btn">Double Bonus!</button><button id="continueButton" class="option-btn">No Thanks</button></div></div></div>
+
 <!-- Unit Selection Screen (NEW) -->
 <div id="unitSelectionScreen" class="modal" style="display: flex;"><div class="modal-content">
     <h2 style="font-size: 1.5rem; color: var(--warn-color); text-shadow: 0 0 8px var(--warn-color);">Select Your Unit</h2>
@@ -59,12 +279,33 @@
         <button id="selectUnit8" class="unit-btn">Unit 8</button>
     </div>
 </div></div>
+
+<!-- Start Screen (Now hidden by default) -->
 <div id="startScreen" class="modal" style="display: none;"><div class="modal-content"><h1>History Missile Command</h1><p>The year is 2242. Rogue AI has launched a temporal attack, disguised as missile strikes on historical pressure points. Defend the timeline! Intercept the strikes, and when a city is hit, correct the corrupted history data to prevent a paradox. The fate of the past and future is in your hands.</p><button id="startButton" class="action-btn">Engage Defense System</button></div></div>
+
 <div id="gameOverScreen" class="modal"><div class="modal-content"><h1>System Failure</h1><p>Final Score: <span id="finalScore">0</span></p><p>Re-initialize from restore point:</p<div id="restartOptionsContainer"></div></div></div>
-<!-- ... existing code ... -->
-    const doubleOrNothingModal = document.getElementById('doubleOrNothingModal'), doubleOrNothingTextEl = document.getElementById('doubleOrNothingText'), doubleButton = document.getElementById('doubleButton'), continueButton = document.getElementById('continueButton');
-    const startScreen = document.getElementById('startScreen'), gameOverScreen = document.getElementById('gameOverScreen'), startButton = document.getElementById('startButton'), finalScoreEl = document.getElementById('finalScore');
-    const answerResultModal = document.getElementById('answerResultModal'), answerResultTextEl = document.getElementById('answerResultText'), answerResultSubtextEl = document.getElementById('answerResultSubtext'), answerResultContinueButton = document.getElementById('answerResultContinueButton');
+<!-- Answer Result Modal -->
+<div id="answerResultModal" class="modal">
+    <div class="modal-content">
+        <h2 id="answerResultText"></h2>
+        <p id="answerResultSubtext"></p>
+        <button id="answerResultContinueButton" class="action-btn">Continue</button>
+    </div>
+</div>
+
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // UI Elements
+    const scoreEl = document.getElementById('score'), levelEl = document.getElementById('level'), livesEl = document.getElementById('lives');
+    const pauseButton = document.getElementById('pauseButton'), forceEndButton = document.getElementById('forceEndButton');
+    const questionModal = document.getElementById('questionModal'), questionTextEl = document.getElementById('questionText'), optionsContainerEl = document.getElementById('optionsContainer');
+    const doubleOrNothingModal = document.getElementById('doubleOrNothingModal'), doubleOrNothingTextEl = document.getElementById('doubleOrNothingText'), doubleButton = document.getElementById('doubleButton'), continueButton = document.getElementById('continueButton');
+    const startScreen = document.getElementById('startScreen'), gameOverScreen = document.getElementById('gameOverScreen'), startButton = document.getElementById('startButton'), finalScoreEl = document.getElementById('finalScore');
+    const answerResultModal = document.getElementById('answerResultModal'), answerResultTextEl = document.getElementById('answerResultText'), answerResultSubtextEl = document.getElementById('answerResultSubtext'), answerResultContinueButton = document.getElementById('answerResultContinueButton');
+
     // NEW Unit Selection Elements
     const unitSelectionScreen = document.getElementById('unitSelectionScreen');
     const unitSelectBtns = {
@@ -78,14 +319,49 @@
         unit8: document.getElementById('selectUnit8'),
     };
 
-    // Game State & Objects
-    let score = 0, lives = 3, level = 1, gameState = 'start';
-<!-- ... existing code ... -->
-        playWrong() { if(this.isInitialized) this.uiSynth.triggerAttackRelease('G2', '8n'); }
-    };
+    // Game State & Objects
+    let score = 0, lives = 3, level = 1, gameState = 'start';
+    let cities = [], batteries = [], enemyMissiles = [], playerMissiles = [], explosions = [], particles = [], stars = [], muzzleFlashes = [];
+    let totalMissilesForWave = 0, launchedMissilesThisWave = 0, levelCompleteBonus = 0;
+    let activeTimeouts = [], gameLoopId;
+    let afterAnswerCallback = null; // Holds the next action after the answer result modal
+    
+    // --- Audio Manager ---
+    const audioManager = {
+        isInitialized: false,
+        music: null,
+        launchSynth: null,
+        explosionSynth: null,
+        hitSynth: null,
+        uiSynth: null,
+
+        init() {
+            if (this.isInitialized) return;
+            
+            this.explosionSynth = new Tone.MembraneSynth({ pitchDecay: 0.02, octaves: 2, oscillator: { type: 'sine' }, envelope: { attack: 0.001, decay: 0.5, sustain: 0.01, release: 0.8 }, }).toDestination();
+            this.launchSynth = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0 }, }).toDestination();
+            this.hitSynth = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 4, envelope: { attack: 0.01, decay: 0.8, sustain: 0.01, release: 1.4 }, }).toDestination();
+            this.uiSynth = new Tone.Synth({ oscillator: { type: 'triangle' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.1 }, }).toDestination();
+
+            const synth = new Tone.FMSynth({ harmonicity: 1.5, modulationIndex: 1.2, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 1 }, modulationEnvelope: { attack: 0.1, decay: 0.3, sustain: 0.1, release: 1 }, }).toDestination();
+            synth.volume.value = -22;
+            const pattern = new Tone.Sequence((time, note) => { synth.triggerAttackRelease(note, '8n', time); }, ['C2', ['G2', 'C3'], 'Eb2', 'G2'], '4n');
+            pattern.probability = 0.9;
+            this.music = pattern;
+            
+            this.isInitialized = true;
+        },
+        startMusic() { if(this.isInitialized && Tone.Transport.state !== 'started') { Tone.Transport.start(); this.music.start(0); }},
+        stopMusic() { if(this.isInitialized) { this.music.stop(0); Tone.Transport.stop(); }},
+        playLaunch() { if(this.isInitialized) this.launchSynth.triggerAttack(); },
+        playExplosion() { if(this.isInitialized) this.explosionSynth.triggerAttackRelease('C1', '8n'); },
+        playCityHit() { if(this.isInitialized) this.hitSynth.triggerAttackRelease('G0', '4n'); },
+        playCorrect() { if(this.isInitialized) this.uiSynth.triggerAttackRelease('C4', '8n'); },
+        playWrong() { if(this.isInitialized) this.uiSynth.triggerAttackRelease('G2', '8n'); }
+    };
 
     // --- NEW: All Unit Question Banks ---
-    // Renamed 'answers' to 'options' and 'correctAnswer' to 'answer' to match this game's existing logic
+    // (Using 'options' and 'answer' to match this game's existing logic)
     const unitQuestionBanks = {
         unit1: [
             { question: "What was one of the most devastating impacts of the Columbian Exchange on the \"New World\" (The Americas)?", options: ["The introduction of crops like potatoes and tomatoes.", "The introduction of European diseases to which natives had no immunity.", "The exchange of precious metals, which enriched native populations.", "The introduction of livestock like cattle, which destroyed all native crops."], answer: "The introduction of European diseases to which natives had no immunity." },
@@ -129,7 +405,7 @@
             { question: "What was significant about the 1800 Presidential election?", options: ["It was the first time George Washington was elected.", "It resulted in the War of 1812.", "It was the first peaceful transfer of power from one political party to another.", "It led to the purchase of the Louisiana Territory."], answer: "It was the first peaceful transfer of power from one political party to another." },
             { question: "The 1800 election demonstrated the stability of the young nation's political system and led to which amendment?", options: ["The 10th Amendment", "The 1st Amendment", "The 12th Amendment", "The 5th Amendment"], answer: "The 12th Amendment" },
             { question: "Why did the United States purchase the Louisiana Territory?", options: ["To prevent Great Britain from seizing it.", "To secure control of the port of New Orleans and the Mississippi River.", "To find a new location for Native American tribes.", "To fulfill a key term of the Monroe Doctrine."], answer: "To secure control of the port of New Orleans and the Mississippi River." },
-            { question: "What was a major result of the Louisiana Purchase?", options: ["It doubled the size of the country.", "It ended the War of 1An 1812.", "It caused the nullification crisis with South Carolina.", "It led directly to the Three-Fifths Compromise."], answer: "It doubled the size of the country." },
+            { question: "What was a major result of the Louisiana Purchase?", options: ["It doubled the size of the country.", "It ended the War of 1812.", "It caused the nullification crisis with South Carolina.", "It led directly to the Three-Fifths Compromise."], answer: "It doubled the size of the country." },
             { question: "In what way did the War of 1812 impact the United States?", options: ["It resulted in the U.S. losing significant territory to Great Britain.", "It fostered a sense of national identity and unity.", "It led to the immediate end of slavery.", "It proved that the Articles of Confederation were effective."], answer: "It fostered a sense of national identity and unity." },
             { question: "What was the central idea of the Monroe Doctrine?", options: ["To encourage European nations to create new colonies in the Americas.", "To establish a trade alliance with Great Britain against France.", "To discourage European colonization or intervention in the Americas.", "To promote the forced removal of Native Americans."], answer: "To discourage European colonization or intervention in the Americas." },
             { question: "What issue did Andrew Jackson face in the 1830s that nearly led to South Carolina's secession?", options: ["The Indian Removal Act", "The purchase of the Louisiana Territory", "The nullification crisis over federal tariffs", "The election of 1800"], answer: "The nullification crisis over federal tariffs" },
@@ -219,10 +495,10 @@
             { question: "The *Brown v. Board of Education* decision was a crucial catalyst for...", options: ["The broader Civil Rights Movement.", "The Vietnam War.", "The Watergate scandal.", "The counter-culture movement."], answer: "The broader Civil Rights Movement." },
             { question: "Why did figures like Malcolm X and groups like the Black Panthers advocate for more assertive strategies?", options: ["They believed Martin Luther King Jr.'s nonviolent approach was working too quickly.", "Frustration with the slow pace of change and continued violence against African Americans.", "They were part of the counter-culture movement.", "They supported the U.S. involvement in Vietnam."], answer: "Frustration with the slow pace of change and continued violence against African Americans." },
             { question: "Compared to Martin Luther King Jr.'s approach of civil disobedience, Malcolm X and the Black Panthers believed in...", options: ["Self-defense and Black nationalism.", "The \"separate but equal\" doctrine.", "The policy of containment.", "Passing the Equal Rights Amendment (ERA)."], answer: "Self-defense and Black nationalism." },
-            { question: "What was the importance of the Voting Rights Act of 1965?", options: ["It outlawed discriminatory voting practices like literacy tests and poll taxes.", "It gave women the right to vote.", "It legalized segregation in public schools.", "It was the primary goal of the Great Society agenda."], answer: "It outlawed discriminatory voting practices like literacy tests and poll taxes." },
+            { question: "What was the importance of the Voting Rights Act of 1965?", options: ["It outlawed discriminatory voting practices like literacy tests and poll taxes.", "It gave women the right to vote.", "It legalized segregation in public schools.", "It was the primary goal of the Great Society agenda."], answer: "It outlawTensionsed discriminatory voting practices like literacy tests and poll taxes." },
             { question: "The Voting Rights Act of 1965 led to a significant increase in...", options: ["U.S. troops in Vietnam.", "Anti-American sentiment in the Middle East.", "Black voter registration and political participation.", "Public trust in the government."], answer: "Black voter registration and political participation." },
             { question: "What was the principal factor contributing to heightened tensions between Cuba and the U.S. in the 1960s?", options: ["Fidel Castro's communist revolution and alliance with the Soviet Union.", "The U.S. policy of containment in Southeast Asia.", "The rise of the counter-culture movement.", "The U.S. support for Israel."], answer: "Fidel Castro's communist revolution and alliance with the Soviet Union." },
-            { question: "The tensions between the U.S. and Cuba during the 1960s led to which event that brought the world to the brink of nuclear war?", options: ["The Bay of Pigs invasion", "The Gulf of Tonkin incident", "The Cuban Missile Crisis", "The Watergate scandal"], answer: "The Cuban Missile Crisis" },
+            { question: "The between the U.S. and Cuba during the 1960s led to which event that brought the world to the brink of nuclear war?", options: ["The Bay of Pigs invasion", "The Gulf of Tonkin incident", "The Cuban Missile Crisis", "The Watergate scandal"], answer: "The Cuban Missile Crisis" },
             { question: "What were the key goals of President Lyndon B. Johnson's Great Society agenda?", options: ["To win the war in Vietnam and contain communism.", "To eliminate poverty and racial injustice.", "To promote the counter-culture movement.", "To land a man on the moon."], answer: "To eliminate poverty and racial injustice." },
             { question: "What led to the U.S. becoming militarily involved in Vietnam?", options: ["The policy of containment, to prevent the spread of communism.", "The Watergate scandal.", "The 1953 Iranian coup.", "A direct attack on the U.S. mainland by North Vietnam."], answer: "The policy of containment, to prevent the spread of communism." },
             { question: "What was the outcome of the Vietnam War?", options: ["The U.S. successfully contained communism, and South Vietnam remains independent.", "The reunification of Vietnam under communist rule.", "The U.S. remains militarily involved in Vietnam today.", "It led to the resignation of President Johnson."], answer: "The reunification of Vietnam under communist rule." },
@@ -236,48 +512,262 @@
 
     let availableQuestions = []; // Will be populated by unit selection
     let selectedUnitBank = []; // Stores the master list for the current game
-    
-    function clearAllGameTimeouts() { activeTimeouts.forEach(id => clearTimeout(id)); activeTimeouts = []; }
-    function gameSetTimeout(callback, delay) { const id = setTimeout(callback, delay); activeTimeouts.push(id); return id; }
-<!-- ... existing code ... -->
-    // --- Game Initialization ---
-    function initGame(startLevel = 1) {
-        clearAllGameTimeouts(); score = 0; lives = 3; level = startLevel;
+    
+    // --- Game Functions ---
+
+    function resizeCanvas() {
+        // This function can be expanded if dynamic resizing is needed
+        // For now, it respects the 800x600 defined in the HTML
+        canvas.width = 800;
+        canvas.height = 600;
+    }
+
+    function initGame(startLevel = 1) {
+        clearAllGameTimeouts(); 
+        score = 0; 
+        lives = 3; 
+        level = startLevel;
         availableQuestions = [...selectedUnitBank]; // MODIFIED: Load from selected bank
-        pauseButton.textContent = 'Pause';
-        updateUI(); initLevel();
-        if(gameLoopId) cancelAnimationFrame(gameLoopId);
-<!-- ... existing code ... -->
-                        cityWasHit = true;
-                    }
-                });
-                if (!cityWasHit) { explosions.push(new Explosion(missile.x, missile.y, 'enemy')); audioManager.playExplosion(); }
-                if (cityWasHit) triggerQuestion("standard");
-            }
-        });
-    }
-
-    function endLevel(isForced = false) {
-        if (gameState !== 'playing') return;
-        forceEndButton.style.display = 'none';
-
-        if (isForced) {
-        // MODIFIED: Check for game over before transitioning
-        if (lives <= 0 || cities.every(c => !c.isAlive)) {
-            if (lives <= 0) lives = 0;
-            updateUI();
-            gameOver();
-        } else {
-            startNextLevelTransition();
+        pauseButton.textContent = 'Pause';
+        updateUI(); 
+        initLevel();
+        if(gameLoopId) cancelAnimationFrame(gameLoopId);
+        createStars(); 
+        gameLoop(); 
+        audioManager.startMusic();
+    }
+    
+    function initLevel() {
+        cities = [];
+        const cityY = canvas.height - 40;
+        const citySpacing = (canvas.width - 6 * 70) / 7;
+        for (let i = 0; i < 6; i++) { cities.push(new City(citySpacing * (i + 1) + 70 * i, cityY)); }
+        
+        if (batteries.length === 0) {
+            batteries.push(new Battery(canvas.width * 0.15, canvas.height));
+            batteries.push(new Battery(canvas.width * 0.5, canvas.height));
+            batteries.push(new Battery(canvas.width * 0.85, canvas.height));
         }
-        } else {
-            gameState = 'double_or_nothing';
-<!-- ... existing code ... -->
-            const finalLevel = level;
-        const restartOptionsContainer = document.getElementById('restartOptionsContainer');
-        restartOptionsContainer.innerHTML = ''; audioManager.stopMusic();
-        function createRestartButton(text, startLvl) { const button = document.createElement('button'); button.textContent = text; button.classList.add('action-btn'); button.onclick = () => { gameOverScreen.style.display = 'none'; initGame(startLvl); }; restartOptionsContainer.appendChild(button); }
-        createRestartButton('Level 1', 1); if (finalLevel >= 5) createRestartButton('Level 5', 5);
+        batteries.forEach(b => b.missiles = 10);
+        
+        playerMissiles = []; 
+        explosions = []; 
+        enemyMissiles = []; 
+        particles = []; 
+        muzzleFlashes = [];
+        gameState = 'playing'; 
+        forceEndButton.style.display = 'inline-block';
+        startWave();
+    }
+    
+    function startWave() {
+        const missileCount = 4 + level * 2; 
+        const missileSpeed = 0.6 + level * 0.15;
+        const waveDuration = Math.max(12000, 40000 - (level * 2000));
+        const averageInterval = waveDuration / missileCount;
+        totalMissilesForWave = missileCount; 
+        launchedMissilesThisWave = 0;
+        
+        for (let i = 0; i < missileCount; i++) {
+            const spawnDelay = (i * averageInterval) + (Math.random() * averageInterval / 2);
+            gameSetTimeout(() => {
+                if (gameState !== 'playing' && gameState !== 'level_transition') return;
+                const startX = Math.random() * canvas.width;
+                const liveCities = cities.filter(c => c.isAlive);
+                const targetCity = liveCities.length > 0 ? liveCities[Math.floor(Math.random() * liveCities.length)] : {x: Math.random() * canvas.width, y: canvas.height, width: 0};
+                const targetX = targetCity.x + targetCity.width / 2;
+                const targetY = targetCity.y;
+                enemyMissiles.push(new Missile(startX, 0, targetX, targetY, missileSpeed, '#ff4d4d', true));
+                launchedMissilesThisWave++;
+            }, spawnDelay);
+        }
+        
+        const lastMissileTime = (missileCount - 1) * averageInterval + (averageInterval / 2);
+        const stalemateDelay = lastMissileTime + 10000;
+        gameSetTimeout(() => { 
+            if (gameState === 'playing' && launchedMissilesThisWave >= totalMissilesForWave) { 
+                enemyMissiles = []; 
+                explosions = []; 
+                endLevel(); 
+            } 
+        }, stalemateDelay);
+    }
+
+    // --- Game Loop & Drawing ---
+    function gameLoop() {
+        if (gameState === 'playing') update();
+        draw();
+        if (gameState === 'level_transition') drawLevelTransition();
+        else if (gameState === 'paused') drawPaused();
+        gameLoopId = requestAnimationFrame(gameLoop);
+    }
+    
+    function update() {
+        if (gameState === 'playing' && launchedMissilesThisWave >= totalMissilesForWave && enemyMissiles.length === 0 && explosions.length === 0) { 
+            endLevel(); 
+            return; 
+        }
+        
+        [...playerMissiles, ...enemyMissiles].forEach(m => m.update());
+        explosions.forEach(e => e.update());
+        particles.forEach(p => p.update());
+        muzzleFlashes.forEach(mf => mf.update());
+        cities.forEach(c => c.update());
+        
+        checkCollisions();
+        
+        playerMissiles = playerMissiles.filter(m => m.isAlive);
+        enemyMissiles = enemyMissiles.filter(m => m.isAlive);
+        explosions = explosions.filter(e => e.isAlive);
+        particles = particles.filter(p => p.life > 0);
+        muzzleFlashes = muzzleFlashes.filter(mf => mf.isAlive);
+    }
+
+    function draw() {
+        const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        bgGrad.addColorStop(0, '#020018'); 
+        bgGrad.addColorStop(0.6, '#080030'); 
+        bgGrad.addColorStop(1, '#1a0048');
+        ctx.fillStyle = bgGrad; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        stars.forEach(star => { 
+            ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`; 
+            ctx.beginPath(); 
+            ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2); 
+            ctx.fill(); 
+        });
+        
+        const groundGrad = ctx.createLinearGradient(0, canvas.height - 80, 0, canvas.height);
+        groundGrad.addColorStop(0, 'transparent'); 
+        groundGrad.addColorStop(1, '#020018');
+        ctx.fillStyle = groundGrad; 
+        ctx.fillRect(0, canvas.height-80, canvas.width, 80);
+        
+        cities.forEach(c => c.draw());
+        batteries.forEach(b => b.draw());
+        [...playerMissiles, ...enemyMissiles].forEach(m => m.draw());
+        explosions.forEach(e => e.draw());
+        particles.forEach(p => p.draw(ctx));
+        muzzleFlashes.forEach(mf => mf.draw());
+        ctx.globalAlpha = 1.0;
+    }
+    
+    function drawCenteredText(text, yOffset, size, color) { 
+        ctx.fillStyle = color; 
+        ctx.font = `${size}px 'Orbitron'`; 
+        ctx.textAlign = "center"; 
+        ctx.shadowColor = color; 
+        ctx.shadowBlur = 10; 
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2 + yOffset); 
+        ctx.shadowBlur = 0; 
+    }
+    function drawLevelTransition() { 
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height); 
+        drawCenteredText(`Level ${level} Complete`, -40, 30, '#ffff80'); 
+        drawCenteredText(`Bonus: ${levelCompleteBonus}`, 10, 20, '#e0e0e0'); 
+        updateUI(); 
+    }
+    function drawPaused() { 
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height); 
+        drawCenteredText('PAUSED', 0, 40, '#ffff80'); 
+    }
+    function updateUI() { 
+        scoreEl.textContent = score; 
+        levelEl.textContent = level; 
+        livesEl.textContent = lives; 
+    }
+
+    // --- Logic & Collisions ---
+    function checkCollisions() {
+        enemyMissiles.forEach(missile => {
+            if (!missile.isAlive) return;
+            
+            explosions.forEach(explosion => {
+                const dist = Math.hypot(missile.x - explosion.x, missile.y - explosion.y);
+                if (dist < explosion.radius) { 
+                    missile.isAlive = false; 
+                    score += 100; 
+                    updateUI(); 
+                }
+            });
+
+            if (missile.y >= missile.targetY) {
+                missile.isAlive = false;
+                let cityWasHit = false;
+                cities.forEach(city => {
+                    if (city.isAlive && missile.x >= city.x && missile.x <= city.x + city.width) {
+                        city.takeDamage();
+                        explosions.push(new Explosion(missile.x, city.y + 10, 'city_impact'));
+                        audioManager.playCityHit();
+                        cityWasHit = true;
+                    }
+                });
+                if (!cityWasHit) { 
+                    explosions.push(new Explosion(missile.x, missile.y, 'enemy')); 
+                    audioManager.playExplosion(); 
+                }
+                if (cityWasHit) triggerQuestion("standard");
+            }
+        });
+    }
+
+    function endLevel(isForced = false) {
+        if (gameState !== 'playing') return;
+        forceEndButton.style.display = 'none';
+
+        if (isForced) {
+            // MODIFIED: Check for game over before transitioning
+            if (lives <= 0 || cities.every(c => !c.isAlive)) {
+                if (lives <= 0) lives = 0;
+                updateUI();
+                gameOver();
+            } else {
+                startNextLevelTransition();
+            }
+        } else {
+            gameState = 'double_or_nothing';
+            levelCompleteBonus = cities.filter(c => c.isAlive).length * 100 * level;
+            score += levelCompleteBonus;
+            batteries.forEach(b => score += b.missiles * 5 * level);
+            doubleOrNothingTextEl.innerHTML = `Level ${level} Complete!<br>Bonus: ${levelCompleteBonus}<br><br>Gamble for Double?`;
+            doubleOrNothingModal.style.display = 'flex';
+        }
+    }
+
+    function startNextLevelTransition() { 
+        gameState = 'level_transition'; 
+        gameSetTimeout(() => { 
+            level++; 
+            initLevel(); 
+        }, 3000); 
+    }
+    
+    function gameOver() {
+        gameState = 'game_over'; 
+        forceEndButton.style.display = 'none';
+        finalScoreEl.textContent = score; 
+        const finalLevel = level;
+        const restartOptionsContainer = document.getElementById('restartOptionsContainer');
+        restartOptionsContainer.innerHTML = ''; 
+        audioManager.stopMusic();
+        
+        function createRestartButton(text, startLvl) { 
+            const button = document.createElement('button'); 
+            button.textContent = text; 
+            button.classList.add('action-btn'); 
+            button.onclick = () => { 
+                gameOverScreen.style.display = 'none'; 
+                initGame(startLvl); 
+            }; 
+            restartOptionsContainer.appendChild(button); 
+        }
+        
+        createRestartButton('Level 1', 1); 
+        if (finalLevel >= 5) createRestartButton('Level 5', 5);
+        
         // NEW: Add button to return to unit selection
         const unitSelectButton = document.createElement('button');
         unitSelectButton.textContent = 'Change Unit';
@@ -292,34 +782,185 @@
         };
         restartOptionsContainer.appendChild(unitSelectButton);
 
-        gameOverScreen.style.display = 'flex';
-    }
+        gameOverScreen.style.display = 'flex';
+    }
 
-    // --- Question Handling ---
-    function triggerQuestion(type) {
-        gameState = 'question'; forceEndButton.style.display = 'none';
+    // --- Question Handling ---
+    function triggerQuestion(type) {
+        gameState = 'question'; 
+        forceEndButton.style.display = 'none';
+        
         // MODIFIED: Repopulate from selected bank if empty
-        if (availableQuestions.length === 0) availableQuestions = [...selectedUnitBank];
-        const qIndex = Math.floor(Math.random() * availableQuestions.length);
-        const currentQuestion = availableQuestions.splice(qIndex, 1)[0];
-<!-- ... existing code ... -->
-                    if(lives <= 0) lives = 0;
-                    updateUI();
-                    gameOver();
-                } else {
-<!-- ... existing code ... -->
-        }
-        
-        answerResultModal.style.display = 'flex';
-    }
+        if (availableQuestions.length === 0) {
+            if (selectedUnitBank.length > 0) {
+                availableQuestions = [...selectedUnitBank];
+            } else {
+                // This should not happen if a unit was selected, but as a fallback:
+                console.error("No unit selected! Restarting.");
+                unitSelectionScreen.style.display = 'flex';
+                return;
+            }
+        }
+        
+        const qIndex = Math.floor(Math.random() * availableQuestions.length);
+        const currentQuestion = availableQuestions.splice(qIndex, 1)[0];
+        
+        questionTextEl.textContent = currentQuestion.question; 
+        optionsContainerEl.innerHTML = '';
+        currentQuestion.options.forEach(option => { 
+            const button = document.createElement('button'); 
+            button.textContent = option; 
+            button.classList.add('option-btn'); 
+            button.onclick = () => handleAnswer(option, currentQuestion.answer, type); 
+            optionsContainerEl.appendChild(button); 
+        });
+        questionModal.style.display = 'flex';
+    }
 
-    // --- Event Listeners ---
-    answerResultContinueButton.addEventListener('click', () => {
-<!-- ... existing code ... -->
-        canvas.addEventListener('click', handleCanvasInteraction);
-    canvas.addEventListener('touchstart', handleCanvasInteraction);
-    startButton.addEventListener('click', () => { Tone.start().then(() => { audioManager.init(); startScreen.style.display = 'none'; initGame(1); }); });
-    forceEndButton.addEventListener('click', () => { if (gameState === 'playing') { enemyMissiles = []; explosions = []; endLevel(true); } });
+    function handleAnswer(selectedOption, correctAnswer, type) {
+        questionModal.style.display = 'none';
+        const isCorrect = selectedOption === correctAnswer;
+
+        answerResultTextEl.classList.remove('correct', 'incorrect');
+        if (isCorrect) {
+            audioManager.playCorrect();
+            answerResultTextEl.textContent = 'Correct!';
+            answerResultTextEl.classList.add('correct');
+        } else {
+            audioManager.playWrong();
+            answerResultTextEl.textContent = 'Incorrect!';
+            answerResultTextEl.classList.add('incorrect');
+        }
+
+        if (type === 'standard') {
+            if (isCorrect) {
+                score += 500;
+                answerResultSubtextEl.textContent = '+500 points!';
+            } else {
+                lives--;
+                answerResultSubtextEl.textContent = 'You lost a life!';
+            }
+            
+            afterAnswerCallback = () => {
+                updateUI();
+                if (lives <= 0 || cities.every(c => !c.isAlive)) {
+                    if(lives <= 0) lives = 0;
+                    updateUI();
+                    gameOver();
+                } else {
+                    gameState = 'playing';
+                    forceEndButton.style.display = 'inline-block';
+                }
+            };
+
+        } else if (type === 'double') {
+            if (isCorrect) {
+                score += levelCompleteBonus;
+                answerResultSubtextEl.textContent = `Bonus Doubled! +${levelCompleteBonus} points!`;
+                levelCompleteBonus *= 2;
+            } else {
+                answerResultSubtextEl.textContent = 'Bonus lost. Better luck next time.';
+            }
+            
+            afterAnswerCallback = () => {
+                updateUI();
+                startNextLevelTransition();
+            };
+        }
+        
+        answerResultModal.style.display = 'flex';
+    }
+
+    // --- Event Listeners ---
+    answerResultContinueButton.addEventListener('click', () => {
+        answerResultModal.style.display = 'none';
+        if (afterAnswerCallback) {
+            afterAnswerCallback();
+            afterAnswerCallback = null;
+        }
+    });
+
+    pauseButton.addEventListener('click', () => {
+        if (gameState === 'playing') { 
+            gameState = 'paused'; 
+            pauseButton.textContent = 'Resume'; 
+            forceEndButton.style.display = 'none'; 
+            Tone.Transport.pause(); 
+        } 
+        else if (gameState === 'paused') { 
+            gameState = 'playing'; 
+            pauseButton.textContent = 'Pause'; 
+            forceEndButton.style.display = 'inline-block'; 
+            Tone.Transport.start(); 
+        }
+    });
+    
+    doubleButton.addEventListener('click', () => { 
+        doubleOrNothingModal.style.display = 'none'; 
+        triggerQuestion('double'); 
+    });
+    continueButton.addEventListener('click', () => { 
+        doubleOrNothingModal.style.display = 'none'; 
+        startNextLevelTransition(); 
+    });
+
+    function handleCanvasInteraction(e) {
+        if (gameState !== 'playing') return; 
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        let clientX, clientY;
+        
+        if (e.touches && e.touches.length > 0) { 
+            clientX = e.touches[0].clientX; 
+            clientY = e.touches[0].clientY; 
+        } 
+        else { 
+            clientX = e.clientX; 
+            clientY = e.clientY; 
+        }
+        
+        const x = clientX - rect.left; 
+        const y = clientY - rect.top;
+        
+        let bestBattery = null, minDist = Infinity;
+        batteries.forEach(b => {
+            if (b.missiles > 0) {
+                const dist = Math.hypot(x - b.x, y - (b.y - 25));
+                if (dist < minDist) { 
+                    minDist = dist; 
+                    bestBattery = b; 
+                }
+            }
+        });
+        
+        if (bestBattery) {
+            bestBattery.missiles--;
+            muzzleFlashes.push(new MuzzleFlash(bestBattery.x, bestBattery.y - 40));
+            playerMissiles.push(new Missile(bestBattery.x, bestBattery.y - 40, x, y, 6, '#00ffff'));
+            audioManager.playLaunch(); 
+            updateUI();
+        }
+    }
+    
+    canvas.addEventListener('click', handleCanvasInteraction);
+    canvas.addEventListener('touchstart', handleCanvasInteraction);
+    
+    // MODIFIED: This now only handles the audio init and starting the game
+    startButton.addEventListener('click', () => { 
+        Tone.start().then(() => { 
+            audioManager.init(); 
+            startScreen.style.display = 'none'; 
+            initGame(1); 
+        }); 
+    });
+    
+    forceEndButton.addEventListener('click', () => { 
+        if (gameState === 'playing') { 
+            enemyMissiles = []; 
+            explosions = []; 
+            endLevel(true); 
+        } 
+    });
 
     // --- NEW: Unit Selection Listeners ---
     function selectUnit(unitKey) {
@@ -337,7 +978,11 @@
     unitSelectBtns.unit6.addEventListener('click', () => selectUnit('unit6'));
     unitSelectBtns.unit7.addEventListener('click', () => selectUnit('unit7'));
     unitSelectBtns.unit8.addEventListener('click', () => selectUnit('unit8'));
-
+    
+    // --- Initial Call ---
+    resizeCanvas();
+    draw(); // Draw the initial frame
+    
 </script>
 </body>
 </html>
