@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Review Game Arcade</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for retro pixel font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* Apply the retro font to the body */
+        body {
+            font-family: 'Press Start 2P', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+            /* Add a subtle static/scanline effect */
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.03));
+            background-size: 100% 3px, 6px 100%;
+            z-index: 2;
+            animation: flicker 0.15s infinite;
+        }
+        
+        @keyframes flicker {
+          0% { opacity: 0.2; }
+          20% { opacity: 0.5; }
+          40% { opacity: 0.3; }
+          60% { opacity: 0.6; }
+          80% { opacity: 0.4; }
+          100% { opacity: 0.7; }
+        }
+
+        /* Custom glow effects for buttons */
+        .btn-glow-cyan {
+            box-shadow: 0 0 10px #06b6d4, 0 0 20px #06b6d4, 0 0 30px #06b6d4;
+        }
+        .btn-glow-cyan:hover {
+            box-shadow: 0 0 20px #06b6d4, 0 0 30px #06b6d4, 0 0 40px #06b6d4;
+        }
+        
+        .btn-glow-lime {
+            box-shadow: 0 0 10px #84cc16, 0 0 20px #84cc16, 0 0 30px #84cc16;
+        }
+        .btn-glow-lime:hover {
+            box-shadow: 0 0 20px #84cc16, 0 0 30px #84cc16, 0 0 40px #84cc16;
+        }
+        
+        .btn-glow-fuchsia {
+            box-shadow: 0 0 10px #d946ef, 0 0 20px #d946ef, 0 0 30px #d946ef;
+        }
+        .btn-glow-fuchsia:hover {
+            box-shadow: 0 0 20px #d946ef, 0 0 30px #d946ef, 0 0 40px #d946ef;
+        }
+        
+        .btn-glow-amber {
+            box-shadow: 0 0 10px #f59e0b, 0 0 20px #f59e0b, 0 0 30px #f59e0b;
+        }
+        .btn-glow-amber:hover {
+            box-shadow: 0 0 20px #f59e0b, 0 0 30px #f59e0b, 0 0 40px #f59e0b;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100">
+    <!-- Main container -->
+    <div class="flex flex-col items-center justify-center min-h-screen p-6">
+        
+        <!-- Content Box -->
+        <div class="w-full max-w-4xl bg-gray-800 bg-opacity-80 border-4 border-cyan-400 rounded-lg shadow-2xl p-6 md:p-10 text-center" style="box-shadow: 0 0 25px #06b6d4;">
+            
+            <!-- Header Title -->
+            <h1 class="text-3xl md:text-5xl font-bold text-cyan-400 mb-6" style="text-shadow: 0 0 10px #06b6d4;">
+                RETRO REVIEW ARCADE
+            </h1>
+            
+            <!-- Instructions -->
+            <p class="text-base md:text-lg text-white mb-10 leading-relaxed">
+                Welcome, student! Select the game you want to play. Once the game begins, you can select the unit from our course that you want to review.
+            </p>
+
+            <!-- Game Selection Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <!-- Game 1 Button -->
+                <a href="https://marquisw4634.github.io/History/reviewcommand.html" 
+                   class="btn-glow-cyan bg-cyan-500 text-gray-900 text-lg md:text-xl font-bold p-6 rounded-md transform transition-all duration-300 hover:scale-105 hover:bg-cyan-400 focus:outline-none focus:ring-4 focus:ring-cyan-300">
+                   Missle Defense
+                </a>
+                
+                <!-- Game 2 Button -->
+                <a href="https://marquisw4634.github.io/History/reviewpac.html" 
+                   class="btn-glow-lime bg-lime-500 text-gray-900 text-lg md:text-xl font-bold p-6 rounded-md transform transition-all duration-300 hover:scale-105 hover:bg-lime-400 focus:outline-none focus:ring-4 focus:ring-lime-300">
+                   Pixel-Man
+                </a>
+                
+                <!-- Game 3 Button -->
+                <a href="https://marquisw4634.github.io/History/reviewpingpong.html" 
+                   class="btn-glow-fuchsia bg-fuchsia-500 text-gray-900 text-lg md:text-xl font-bold p-6 rounded-md transform transition-all duration-300 hover:scale-105 hover:bg-fuchsia-400 focus:outline-none focus:ring-4 focus:ring-fuchsia-300">
+                   Ping Pong Extreme
+                </a>
+                
+                <!-- Game 4 Button -->
+                <a href="https://marquisw4634.github.io/History/reviewbird.html" 
+                   class="btn-glow-amber bg-amber-500 text-gray-900 text-lg md:text-xl font-bold p-6 rounded-md transform transition-all duration-300 hover:scale-105 hover:bg-amber-400 focus:outline-none focus:ring-4 focus:ring-amber-300">
+                   Trivia Bird
+                </a>
+                
+            </div>
+            
+        </div>
+        
+    </div>
+</body>
+</html>
