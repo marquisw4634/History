@@ -3,73 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>History Trivia Challenge</title>
+    <title>Zen History Trivia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Press+Start+2P', cursive;
-            background-color: #0a0a0a;
-            color: #00ff00;
-            text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
             overflow: hidden;
-            background-image: linear-gradient(rgba(0,0,0,0.3) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(0,0,0,0.3) 1px, transparent 1px);
-            background-size: 3px 3px;
-            animation: flicker 0.15s infinite alternate;
         }
-        @keyframes flicker {
-            0% { opacity: 0.95; }
-            100% { opacity: 1; }
-        }
-        .terminal-window {
+        .app-container {
             width: 95%;
             max-width: 800px;
             height: 90vh;
             max-height: 700px;
-            background-color: rgba(10, 20, 10, 0.85);
-            border: 3px solid #00ff00;
-            border-radius: 10px;
-            box-shadow: 0 0 25px #00ff00, 0 0 35px #00ff00 inset;
-            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
             display: flex;
             flex-direction: column;
-            backdrop-filter: blur(2px);
         }
-        .terminal-header {
-            border-bottom: 2px solid #00ff00;
-            padding-bottom: 0.5rem;
+        .header {
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 1rem;
             margin-bottom: 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 1rem;
-        }
-        .terminal-title {
             font-size: 1.25rem;
-            color: #ffff00;
-            text-shadow: 0 0 5px #ffff00;
+            font-weight: 600;
+            color: #1e3a8a; /* Deep blue */
         }
         .btn {
-            font-family: 'Press+Start+2P', cursive;
-            background-color: transparent;
-            border: 2px solid #00ff00;
-            color: #00ff00;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            background-color: #3b82f6; /* Bright blue */
+            color: #ffffff;
             padding: 0.75rem 1.5rem;
-            text-shadow: 0 0 5px #00ff00;
+            border-radius: 10px;
             transition: all 0.2s ease;
             cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
         }
         .btn:hover {
-            background-color: #00ff00;
-            color: #0a0a0a;
-            text-shadow: none;
-            box-shadow: 0 0 15px #00ff00;
+            background-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
         }
         
         .unit-select-grid {
@@ -103,78 +87,106 @@
         }
         
         #question-text {
-            font-size: 1.25rem;
-            line-height: 1.8;
+            font-size: 1.5rem;
+            line-height: 1.6;
             margin-bottom: 2rem;
-            color: #ffffff;
-            text-shadow: 0 0 3px #ffffff;
+            color: #1f2937;
+            font-weight: 600;
         }
         
         .option-btn {
             display: block;
             width: 100%;
             text-align: left;
-            padding: 1rem;
+            padding: 1.25rem;
             margin-bottom: 1rem;
-            border: 2px solid #00ff00;
-            color: #00ff00;
+            border: 2px solid #cbd5e1;
+            color: #374151;
+            background-color: #fff;
+            border-radius: 12px;
             transition: all 0.2s ease;
+            font-size: 1rem;
+            font-weight: 600;
         }
-        .option-btn:hover {
-            background-color: #00ff00;
-            color: #0a0a0a;
-            text-shadow: none;
+        .option-btn:not(:disabled):hover {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            color: #2563eb;
         }
         
         .option-btn.correct {
-            background-color: #00ff00;
-            color: #0a0a0a;
-            text-shadow: none;
-            animation: pulse-green 0.5s;
+            background-color: #dcfce7; /* Soft green */
+            border-color: #22c55e;
+            color: #15803d;
         }
         .option-btn.incorrect {
-            background-color: #ff0000;
-            color: #ffffff;
-            border-color: #ff0000;
-            text-shadow: 0 0 5px #ff0000;
-            animation: pulse-red 0.5s;
+            background-color: #fee2e2; /* Soft red */
+            border-color: #ef4444;
+            color: #b91c1c;
         }
-        @keyframes pulse-green {
-            0% { box-shadow: 0 0 15px #00ff00; }
-            100% { box-shadow: 0 0 25px #00ff00; }
-        }
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 15px #ff0000; }
-            100% { box-shadow: 0 0 25px #ff0000; }
+        .option-btn:disabled {
+            cursor: not-allowed;
         }
         
+        #timer-bar-container {
+            width: 100%;
+            height: 10px;
+            background-color: #e5e7eb;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        #timer-bar {
+            height: 100%;
+            width: 100%;
+            background-color: #3b82f6;
+            border-radius: 5px;
+            transition: width 0.1s linear;
+        }
+        
+        #feedback-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            height: 3rem; /* Reserve space */
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .feedback-correct {
+            color: #22c55e;
+        }
+        .feedback-incorrect {
+            color: #ef4444;
+        }
+
         #results-screen {
             text-align: center;
         }
         #results-title {
             font-size: 2.5rem;
-            color: #ffff00;
-            text-shadow: 0 0 10px #ffff00;
+            color: #1e3a8a;
+            font-weight: 700;
             margin-bottom: 2rem;
         }
         #results-score {
             font-size: 1.75rem;
-            color: #ffffff;
-            text-shadow: 0 0 5px #ffffff;
+            color: #374151;
             margin-bottom: 3rem;
         }
-        
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
-<body>
+<body class="flex justify-center items-center">
 
-    <div class="terminal-window">
+    <div class="app-container">
     
         <!-- Unit Selection Screen -->
         <div id="unit-selection-screen">
-            <div class="terminal-header">
-                <span class="terminal-title">> SELECT UNIT_</span>
+            <div class="header">
+                <span class="text-xl">History Trivia</span>
             </div>
+            <h2 class="text-2xl font-bold text-center mb-6 text-gray-700">Select a Unit to Study</h2>
             <div class="unit-select-grid">
                 <button id="selectUnit1" class="btn unit-btn">Unit 1</button>
                 <button id="selectUnit2" class="btn unit-btn">Unit 2</button>
@@ -189,10 +201,14 @@
 
         <!-- Quiz Screen -->
         <div id="quiz-screen" class="hidden">
-            <div class="terminal-header">
+            <div class="header">
                 <div>SCORE: <span id="score-display">0</span></div>
-                <div><span id="question-count-display">1 / 30</span></div>
+                <div><span id="question-count-display">1 / 10</span></div>
             </div>
+            <div id="timer-bar-container">
+                <div id="timer-bar"></div>
+            </div>
+            <p id="feedback-text"></p>
             <div id="question-container">
                 <h2 id="question-text">Loading question...</h2>
                 <div id="options-container">
@@ -203,12 +219,12 @@
         
         <!-- Results Screen -->
         <div id="results-screen" class="hidden">
-            <div class="terminal-header">
-                <span class="terminal-title">> TEST_COMPLETE_</span>
+            <div class="header">
+                <span class="text-xl">Round Complete!</span>
             </div>
             <div class="flex flex-col justify-center items-center h-full">
-                <h2 id="results-title">RESULTS:</h2>
-                <p id="results-score">You scored 0 out of 0</p>
+                <h2 id="results-title">RESULTS</h2>
+                <p id="results-score" class="text-3xl">You scored 0 out of 10</p>
                 <button id="play-again-btn" class="btn">Main Menu</button>
             </div>
         </div>
@@ -226,35 +242,42 @@
         const questionText = document.getElementById('question-text');
         const optionsContainer = document.getElementById('options-container');
         
+        const timerBar = document.getElementById('timer-bar');
+        const feedbackText = document.getElementById('feedback-text');
+        
         const resultsTitle = document.getElementById('results-title');
         const resultsScore = document.getElementById('results-score');
         const playAgainBtn = document.getElementById('play-again-btn');
 
         // --- Game State ---
-        let currentQuestions = [];
-        let totalQuestions = 0;
+        let masterQuestionBank = []; // The full bank for the selected unit
+        let currentRoundQuestions = []; // The 10 questions for this round
         let currentQuestionIndex = 0;
         let score = 0;
         let audioInitialized = false;
         let sounds = {};
+        
+        let timerInterval = null;
+        let timeLeft = 0;
+        const ROUND_LENGTH = 10;
+        const TIME_PER_QUESTION = 15; // 15 seconds
+        const POINTS_PER_SECOND = 10; // Points per second remaining
+        const BASE_POINTS_CORRECT = 50; // Base points for any correct answer
 
         // --- Sound Engine ---
         function initAudio() {
             if (audioInitialized) return;
             try {
                 sounds.click = new Tone.Synth({
-                    oscillator: { type: 'triangle' },
-                    envelope: { attack: 0.005, decay: 0.1, sustain: 0.0, release: 0.1 }
+                    oscillator: { type: 'triangle' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.0, release: 0.1 }
                 }).toDestination();
                 
                 sounds.correct = new Tone.Synth({
-                    oscillator: { type: 'sine' },
-                    envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 }
+                    oscillator: { type: 'sine' }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 }
                 }).toDestination();
 
                 sounds.incorrect = new Tone.Synth({
-                    oscillator: { type: 'square' },
-                    envelope: { attack: 0.01, decay: 0.3, sustain: 0.0, release: 0.3 }
+                    oscillator: { type: 'square' }, envelope: { attack: 0.01, decay: 0.3, sustain: 0.0, release: 0.3 }
                 }).toDestination();
                 
                 audioInitialized = true;
@@ -271,7 +294,6 @@
         }
 
         // --- Question Banks ---
-        // Using "question" and "correctAnswer" to match Flappy Bird's format
         const unitQuestionBanks = {
             unit1: [
                 { question: "What was one of the most devastating impacts of the Columbian Exchange on the \"New World\" (The Americas)?", options: ["The introduction of crops like potatoes and tomatoes.", "The introduction of European diseases to which natives had no immunity.", "The exchange of precious metals, which enriched native populations.", "The introduction of livestock like cattle, which destroyed all native crops."], correctAnswer: 1 },
@@ -371,7 +393,7 @@
                 { question: "What were some of the cultural changes that occurred in the 1920s?", options: ["A return to Victorian-era norms.", "The emergence of the Harlem Renaissance and the Jazz Age.", "The success of Prohibition in ending alcohol consumption.", "The decline of consumer culture."], correctAnswer: 1 },
                 { question: "What new opportunities were available for women in the 1920s?", options: ["The right to vote (19th Amendment) and new employment opportunities.", "The requirement to work in \"Hoovervilles.\"", "The right to consumer credit only.", "The opportunity to join the Palmer Raids."], correctAnswer: 0 },
                 { question: "What was the importance and significance of the Harlem Renaissance?", options: ["It was a period of fear of communism and radicalism.", "It was a government program to provide relief during the Great Depression.", "A cultural renaissance for African American artists, writers, and musicians.", "The name for the underground economy created by Prohibition."], correctAnswer: 2 },
-                { question: "What was const-red-scare = and how did the US respond to it in the 1920s?", options: ["A cultural movement, met with government funding.", "A period of fear of communism, met with measures like the Palmer Raids.", "An economic crisis, met with the New Deal.", "A reform movement, met with Prohibition."], correctAnswer: 1 },
+                { question: "What was the Red Scare and how did the US respond to it in the 1920s?", options: ["A cultural movement, met with government funding.", "A period of fear of communism, met with measures like the Palmer Raids.", "An economic crisis, met with the New Deal.", "A reform movement, met with Prohibition."], correctAnswer: 1 },
                 { question: "Was Prohibition a success? Describe its impact on society.", options: ["Yes, it successfully curbed all alcohol consumption.", "Yes, it led to a decrease in organized crime.", "No, it failed to curb consumption and gave rise to organized crime.", "No, it was the leading cause of the Great Depression."], correctAnswer: 2 },
                 { question: "What led to the stock market crash of 1929?", options: ["The success of Prohibition.", "The Harlem Renaissance.", "Speculative investing, overextended credit, and structural weaknesses.", "The implementation of the New Deal."], correctAnswer: 2 },
                 { question: "How did the overproduction in the 1920s lead to economic issues by 1929?", options: ["It flooded the market with surplus goods, driving down prices.", "It created too many jobs, leading to inflation.", "It caused the Red Scare.", "It was the main goal of the New Deal."], correctAnswer: 0 },
@@ -399,7 +421,7 @@
                 { question: "Explain the primary significance of the Supreme Court's ruling in *Brown v. Board of Education* regarding public schooling in the United States.", options: ["It established the \"separate but equal\" doctrine.", "It overturned the \"separate but equal\" doctrine, thereby legally ending segregation in public education.", "It gave women the right to vote.", "It authorized federal oversight of voter registration."], correctAnswer: 1 },
                 { question: "What were the main reasons that figures like Malcolm X and groups such as the Black Panthers advocated for more assertive strategies compared to Martin Luther King Jr.'s approach of civil disobedience?", options: ["They believed nonviolent protest was working too quickly.", "Frustration with the slow pace of change and continued violence against African Americans.", "They were part of the counter-culture movement.", "They supported the U.S. involvement in Vietnam."], correctAnswer: 1 },
                 { question: "Explain the importance of the Voting Rights Act of 1965.", options: ["It outlawed discriminatory voting practices like literacy tests and poll taxes.", "It gave women the right to vote.", "It legalized segregation in public schools.", "It was the primary goal of the Great Society agenda."], correctAnswer: 0 },
-                { question: "What was const-principal-factor = contributing to the heightened tensions between Cuba and the United States during the 1960s?", options: ["Fidel Castro's communist revolution and alliance with the Soviet Union.", "The U.S. policy of containment in Southeast Asia.", "The rise of the counter-culture movement.", "The U.S. support for Israel."], correctAnswer: 0 },
+                { question: "What was the principal factor contributing to the heightened tensions between Cuba and the United States during the 1960s?", options: ["Fidel Castro's communist revolution and alliance with the Soviet Union.", "The U.S. policy of containment in Southeast Asia.", "The rise of the counter-culture movement.", "The U.S. support for Israel."], correctAnswer: 0 },
                 { question: "What were the key goals and achievements of Johnson’s Great Society Agenda?", options: ["To win the war in Vietnam and contain communism.", "To eliminate poverty and racial injustice, achieving laws like the Civil Rights Act of 1964.", "To promote the counter-culture movement.", "To land a man on the moon."], correctAnswer: 1 },
                 { question: "What led to the United States becoming militarily involved in Vietnam?", options: ["The policy of containment, to prevent the spread of communism.", "The Watergate scandal.", "The 1953 Iranian coup.", "A direct attack on the U.S. mainland by North Vietnam."], correctAnswer: 0 },
                 { question: "What was the outcome of the Vietnam War?", options: ["The U.S. successfully contained communism, and South Vietnam remains independent.", "The reunification of Vietnam under communist rule and deep social divisions in the U.S.", "The U.S. remains militarily involved in Vietnam today.", "It led to the resignation of President Johnson."], correctAnswer: 1 },
@@ -410,7 +432,6 @@
                 { question: "What were the reasons for the rise of anti-American sentiment in some parts of the Middle East?", options: ["U.S. support for Israel and involvement in regional politics.", "The U.S. counter-culture movement.", "The U.S. policy of containment in Vietnam.", "The *Brown v. Board of Education* decision."], correctAnswer: 0 }
             ]
         };
-
 
         // --- Game Functions ---
         
@@ -431,10 +452,25 @@
          */
         function startQuiz(unitKey) {
             playSound('click', 'C4', '8n');
-            currentQuestions = [...unitQuestionBanks[unitKey]]; // Get a fresh copy
-            shuffleArray(currentQuestions);
+            masterQuestionBank = [...unitQuestionBanks[unitKey]]; // Set the master bank
             
-            totalQuestions = currentQuestions.length;
+            startNewRound();
+        }
+        
+        /**
+         * Starts a new round of 10 questions.
+         */
+        function startNewRound() {
+            shuffleArray(masterQuestionBank);
+            // Take the first 10 questions. If the bank has less than 10, take all of them.
+            currentRoundQuestions = masterQuestionBank.slice(0, Math.min(ROUND_LENGTH, masterQuestionBank.length));
+            
+            if (currentRoundQuestions.length === 0) {
+                console.error("No questions found for this unit!");
+                returnToMenu();
+                return;
+            }
+            
             currentQuestionIndex = 0;
             score = 0;
             
@@ -449,13 +485,14 @@
          * Displays the next question or the results screen if finished.
          */
         function displayNextQuestion() {
-            if (currentQuestionIndex >= totalQuestions) {
+            if (currentQuestionIndex >= currentRoundQuestions.length) {
                 showResults();
                 return;
             }
             
-            const question = currentQuestions[currentQuestionIndex];
+            const question = currentRoundQuestions[currentQuestionIndex];
             
+            feedbackText.textContent = ""; // Clear feedback
             questionText.textContent = question.question;
             optionsContainer.innerHTML = ''; // Clear previous options
             
@@ -469,39 +506,92 @@
             });
             
             scoreDisplay.textContent = score;
-            questionCountDisplay.textContent = `${currentQuestionIndex + 1} / ${totalQuestions}`;
+            questionCountDisplay.textContent = `${currentQuestionIndex + 1} / ${currentRoundQuestions.length}`;
+            
+            startTimer();
         }
         
         /**
-         * Handles the click event on an answer button.
+         * Starts the timer for the current question.
+         */
+        function startTimer() {
+            clearInterval(timerInterval); // Clear any existing timer
+            timeLeft = TIME_PER_QUESTION;
+            timerBar.style.width = '100%';
+            timerBar.style.backgroundColor = '#3b82f6'; // Reset to blue
+
+            const intervalTime = 100; // 100ms
+            const totalSteps = TIME_PER_QUESTION * (1000 / intervalTime);
+            let currentStep = 0;
+
+            timerInterval = setInterval(() => {
+                currentStep++;
+                timeLeft = TIME_PER_QUESTION * (1 - (currentStep / totalSteps));
+                let widthPercent = (timeLeft / TIME_PER_QUESTION) * 100;
+                timerBar.style.width = `${widthPercent}%`;
+                
+                if (widthPercent < 25) {
+                    timerBar.style.backgroundColor = '#ef4444'; // Red
+                } else if (widthPercent < 50) {
+                    timerBar.style.backgroundColor = '#f59e0b'; // Yellow
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleAnswer(null); // Pass null to indicate time ran out
+                }
+            }, intervalTime);
+        }
+        
+        /**
+         * Handles the click event on an answer button or timer running out.
          * @param {Event} e
          */
         function handleAnswerClick(e) {
-            playSound('click', 'C4', '8n');
             const selectedButton = e.target;
             const selectedIndex = parseInt(selectedButton.dataset.index);
-            const correctIndex = currentQuestions[currentQuestionIndex].correctAnswer;
+            handleAnswer(selectedIndex);
+        }
 
+        function handleAnswer(selectedIndex) {
+            clearInterval(timerInterval); // Stop the timer
+            
+            const correctIndex = currentRoundQuestions[currentQuestionIndex].correctAnswer;
+            let points = 0;
+            
             // Disable all buttons
             const buttons = optionsContainer.querySelectorAll('.option-btn');
             buttons.forEach(btn => btn.disabled = true);
 
             if (selectedIndex === correctIndex) {
-                score++;
-                selectedButton.classList.add('correct');
+                // Calculate points: 50 base + up to 150 bonus (15s * 10)
+                points = BASE_POINTS_CORRECT + Math.floor(timeLeft * POINTS_PER_SECOND);
+                score += points;
+                feedbackText.textContent = `+${points} POINTS!`;
+                feedbackText.className = 'feedback-text feedback-correct';
+                buttons[selectedIndex].classList.add('correct');
                 playSound('correct', 'G4', '8n');
             } else {
-                selectedButton.classList.add('incorrect');
-                // Highlight the correct answer
-                buttons[correctIndex].classList.add('correct');
+                // Incorrect or time ran out
+                feedbackText.textContent = selectedIndex === null ? "TIME'S UP!" : "+0 POINTS";
+                feedbackText.className = 'feedback-text feedback-incorrect';
                 playSound('incorrect', 'C3', '4n');
+                
+                // Highlight the correct answer
+                if (buttons[correctIndex]) {
+                    buttons[correctIndex].classList.add('correct');
+                }
+                // Also highlight the wrong one if one was clicked
+                if (selectedIndex !== null && buttons[selectedIndex]) {
+                    buttons[selectedIndex].classList.add('incorrect');
+                }
             }
             
             // Go to the next question after a short delay
             setTimeout(() => {
                 currentQuestionIndex++;
                 displayNextQuestion();
-            }, 1500); // 1.5 second delay
+            }, 2000); // 2 second delay
         }
         
         /**
@@ -511,20 +601,15 @@
             quizScreen.classList.add('hidden');
             resultsScreen.classList.remove('hidden');
             
-            resultsScore.textContent = `You scored ${score} out of ${totalQuestions}`;
+            const roundTotal = currentRoundQuestions.length;
+            resultsScore.textContent = `You scored ${score} points!`;
             
-            if (score / totalQuestions > 0.8) {
+            if (score / (roundTotal * (BASE_POINTS_CORRECT + (POINTS_PER_SECOND * TIME_PER_QUESTION / 2))) > 0.8) { // Rough guess for "good"
                 resultsTitle.textContent = "EXCELLENT!";
-                resultsTitle.style.color = "#00ff00";
-                resultsTitle.style.textShadow = "0 0 10px #00ff00";
-            } else if (score / totalQuestions > 0.5) {
+            } else if (score > roundTotal * BASE_POINTS_CORRECT) {
                 resultsTitle.textContent = "GOOD JOB!";
-                resultsTitle.style.color = "#ffff00";
-                resultsTitle.style.textShadow = "0 0 10px #ffff00";
             } else {
                 resultsTitle.textContent = "TRY AGAIN!";
-                resultsTitle.style.color = "#ff0000";
-                resultsTitle.style.textShadow = "0 0 10px #ff0000";
             }
         }
         
@@ -541,38 +626,22 @@
         // --- Event Listeners ---
         
         // Unit selection buttons
-        unitSelectBtns.unit1.addEventListener('click', () => {
-            Tone.start().then(initAudio); // Ensure audio is ready
-            startQuiz('unit1');
-        });
-        unitSelectBtns.unit2.addEventListener('click', () => {
-            Tone.start().then(initAudio);
-            startQuiz('unit2');
-        });
-        unitSelectBtns.unit3.addEventListener('click', () => {
-            Tone.start().then(initAudio);
-            startQuiz('unit3');
-        });
-        unitSelectBtns.unit4.addEventListener('click', () => {
-            Tone.start().then(initAudio);
-            startQuiz('unit4');
-        });
-        unitSelectBtns.unit5.addEventListener('click', () => {
-            Tone.start().then(initAudio);
-            startQuiz('unit5');
-        });
-        unitSelectBtns.unit6.addEventListener('click', () => {
-            Tone.start().then(initAudio);
-            startQuiz('unit6');
-        });
-        unitSelectBtns.unit7.addEventListener('click', () => {
-            Tone.start().then(initAudio);
-            startQuiz('unit7');
-        });
-        unitSelectBtns.unit8.addEventListener('click', () => {
-            Tone.start().then(initAudio);
-            startQuiz('unit8');
-        });
+        function addUnitButtonListener(buttonId, unitKey) {
+            const btn = document.getElementById(buttonId);
+            btn.addEventListener('click', () => {
+                Tone.start().then(initAudio); // Ensure audio is ready on first click
+                startQuiz(unitKey);
+            });
+        }
+        
+        addUnitButtonListener('selectUnit1', 'unit1');
+        addUnitButtonListener('selectUnit2', 'unit2');
+        addUnitButtonListener('selectUnit3', 'unit3');
+        addUnitButtonListener('selectUnit4', 'unit4');
+        addUnitButtonListener('selectUnit5', 'unit5');
+        addUnitButtonListener('selectUnit6', 'unit6');
+        addUnitButtonListener('selectUnit7', 'unit7');
+        addUnitButtonListener('selectUnit8', 'unit8');
 
         // Play again button
         playAgainBtn.addEventListener('click', returnToMenu);
