@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History Trivia Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press+Start+2P', cursive;
+            background-color: #0a0a0a;
+            color: #00ff00;
+            text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            background-image: linear-gradient(rgba(0,0,0,0.3) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0,0,0,0.3) 1px, transparent 1px);
+            background-size: 3px 3px;
+            animation: flicker 0.15s infinite alternate;
+        }
+        @keyframes flicker {
+            0% { opacity: 0.95; }
+            100% { opacity: 1; }
+        }
+        .terminal-window {
+            width: 95%;
+            max-width: 800px;
+            height: 90vh;
+            max-height: 700px;
+            background-color: rgba(10, 20, 10, 0.85);
+            border: 3px solid #00ff00;
+            border-radius: 10px;
+            box-shadow: 0 0 25px #00ff00, 0 0 35px #00ff00 inset;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(2px);
+        }
+        .terminal-header {
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1rem;
+        }
+        .terminal-title {
+            font-size: 1.25rem;
+            color: #ffff00;
+            text-shadow: 0 0 5px #ffff00;
+        }
+        .btn {
+            font-family: 'Press+Start+2P', cursive;
+            background-color: transparent;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            padding: 0.75rem 1.5rem;
+            text-shadow: 0 0 5px #00ff00;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #00ff00;
+            color: #0a0a0a;
+            text-shadow: none;
+            box-shadow: 0 0 15px #00ff00;
+        }
+        
+        .unit-select-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        @media (min-width: 640px) {
+            .unit-select-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        .unit-btn {
+            font-size: 1.1rem;
+            padding: 1.5rem;
+        }
+        
+        #quiz-screen {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        #question-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 1rem; /* for scrollbar */
+        }
+        
+        #question-text {
+            font-size: 1.25rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            color: #ffffff;
+            text-shadow: 0 0 3px #ffffff;
+        }
+        
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover {
+            background-color: #00ff00;
+            color: #0a0a0a;
+            text-shadow: none;
+        }
+        
+        .option-btn.correct {
+            background-color: #00ff00;
+            color: #0a0a0a;
+            text-shadow: none;
+            animation: pulse-green 0.5s;
+        }
+        .option-btn.incorrect {
+            background-color: #ff0000;
+            color: #ffffff;
+            border-color: #ff0000;
+            text-shadow: 0 0 5px #ff0000;
+            animation: pulse-red 0.5s;
+        }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 15px #00ff00; }
+            100% { box-shadow: 0 0 25px #00ff00; }
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 15px #ff0000; }
+            100% { box-shadow: 0 0 25px #ff0000; }
+        }
+        
+        #results-screen {
+            text-align: center;
+        }
+        #results-title {
+            font-size: 2.5rem;
+            color: #ffff00;
+            text-shadow: 0 0 10px #ffff00;
+            margin-bottom: 2rem;
+        }
+        #results-score {
+            font-size: 1.75rem;
+            color: #ffffff;
+            text-shadow: 0 0 5px #ffffff;
+            margin-bottom: 3rem;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div class="terminal-window">
+    
+        <!-- Unit Selection Screen -->
+        <div id="unit-selection-screen">
+            <div class="terminal-header">
+                <span class="terminal-title">> SELECT UNIT_</span>
+            </div>
+            <div class="unit-select-grid">
+                <button id="selectUnit1" class="btn unit-btn">Unit 1</button>
+                <button id="selectUnit2" class="btn unit-btn">Unit 2</button>
+                <button id="selectUnit3" class="btn unit-btn">Unit 3</button>
+                <button id="selectUnit4" class="btn unit-btn">Unit 4</button>
+                <button id="selectUnit5" class="btn unit-btn">Unit 5</button>
+                <button id="selectUnit6" class="btn unit-btn">Unit 6</button>
+                <button id="selectUnit7" class="btn unit-btn">Unit 7</button>
+                <button id="selectUnit8" class="btn unit-btn">Unit 8</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden">
+            <div class="terminal-header">
+                <div>SCORE: <span id="score-display">0</span></div>
+                <div><span id="question-count-display">1 / 30</span></div>
+            </div>
+            <div id="question-container">
+                <h2 id="question-text">Loading question...</h2>
+                <div id="options-container">
+                    <!-- Options injected by JS -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Screen -->
+        <div id="results-screen" class="hidden">
+            <div class="terminal-header">
+                <span class="terminal-title">> TEST_COMPLETE_</span>
+            </div>
+            <div class="flex flex-col justify-center items-center h-full">
+                <h2 id="results-title">RESULTS:</h2>
+                <p id="results-score">You scored 0 out of 0</p>
+                <button id="play-again-btn" class="btn">Main Menu</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const unitSelectionScreen = document.getElementById('unit-selection-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        
+        const scoreDisplay = document.getElementById('score-display');
+        const questionCountDisplay = document.getElementById('question-count-display');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        
+        const resultsTitle = document.getElementById('results-title');
+        const resultsScore = document.getElementById('results-score');
+        const playAgainBtn = document.getElementById('play-again-btn');
+
+        // --- Game State ---
+        let currentQuestions = [];
+        let totalQuestions = 0;
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let audioInitialized = false;
+        let sounds = {};
+
+        // --- Sound Engine ---
+        function initAudio() {
+            if (audioInitialized) return;
+            try {
+                sounds.click = new Tone.Synth({
+                    oscillator: { type: 'triangle' },
+                    envelope: { attack: 0.005, decay: 0.1, sustain: 0.0, release: 0.1 }
+                }).toDestination();
+                
+                sounds.correct = new Tone.Synth({
+                    oscillator: { type: 'sine' },
+                    envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 }
+                }).toDestination();
+
+                sounds.incorrect = new Tone.Synth({
+                    oscillator: { type: 'square' },
+                    envelope: { attack: 0.01, decay: 0.3, sustain: 0.0, release: 0.3 }
+                }).toDestination();
+                
+                audioInitialized = true;
+            } catch (e) {
+                console.error("Audio failed to initialize:", e);
+            }
+        }
+        
+        function playSound(sound, note = 'C4', duration = '8n') {
+            if (!audioInitialized) return;
+            if (sounds[sound]) {
+                sounds[sound].triggerAttackRelease(note, duration);
+            }
+        }
+
+        // --- Question Banks ---
+        // Using "question" and "correctAnswer" to match Flappy Bird's format
+        const unitQuestionBanks = {
+            unit1: [
+                { question: "What was one of the most devastating impacts of the Columbian Exchange on the \"New World\" (The Americas)?", options: ["The introduction of crops like potatoes and tomatoes.", "The introduction of European diseases to which natives had no immunity.", "The exchange of precious metals, which enriched native populations.", "The introduction of livestock like cattle, which destroyed all native crops."], correctAnswer: 1 },
+                { question: "According to the study guide, how did the Columbian Exchange economically impact the \"Old World\" (Europe)?", options: ["It led to widespread disease that crippled European economies.", "It introduced new crops like wheat and cattle, which were previously unknown.", "It provided an influx of goods and precious metals from the Americas, enriching European nations.", "It drained European treasuries due to the high cost of exploration."], correctAnswer: 2 },
+                { question: "Which of the following describes a correct exchange of goods during the Columbian Exchange as per the study guide?", options: ["Europe sent potatoes and tomatoes to the Americas.", "The Americas sent wheat and cattle to Europe.", "Europe sent diseases to the Americas, and the Americas sent precious metals to Europe.", "The Americas sent firearms and rum to Africa."], correctAnswer: 2 },
+                { question: "What economic theory is described as fueling European colonization by promoting the exchange of manufactured goods for slaves, who were then used to produce raw materials for Europe?", options: ["Capitalism", "The Columbian Exchange", "Mercantilism", "The Social Contract"], correctAnswer: 2 },
+                { question: "The study guide describes mercantilism in the context of the Triangular Trade. What was transported from Africa to the Americas in this trade network?", options: ["Guns, ironware, and rum", "Sugar, tobacco, and cotton", "African slaves", "Precious metals and wheat"], correctAnswer: 2 },
+                { question: "What was transported from the Americas to Europe as part of the Triangular Trade?", options: ["Manufactured goods", "African slaves", "Guns and ironware", "Raw materials like sugar, tobacco, and cotton"], correctAnswer: 3 },
+                { question: "What was the primary motivation for groups like the Puritans, Quakers, and Anglicans to colonize North America?", options: ["To find gold and precious metals.", "To establish a new system of mercantilism.", "To escape religious persecution and worship as they wished.", "To gain military experience by fighting the French."], correctAnswer: 2 },
+                { question: "Which group sought to create a \"city upon a hill,\" a religiously pure community?", options: ["The Anglicans", "The Puritans", "The Quakers", "The British Parliament"], correctAnswer: 1 },
+                { question: "Pennsylvania was founded by the Quakers, led by William Penn, as a haven for what?", options: ["Religious tolerance and acceptance.", "Puritan worship only.", "Plantation-based agriculture.", "Shipbuilding and fishing."], correctAnswer: 0 },
+                { question: "How was the economy of the New England colonies shaped by its geography?", options: ["The warm climate and rich soil made it ideal for cash crops like tobacco.", "The fertile soil led to it being called the \"breadbasket\" of the colonies.", "The rocky soil and short growing season led to a focus on trade, shipbuilding, and fishing.", "Its proximity to Africa made it the center of the slave trade."], correctAnswer: 2 },
+                { question: "The Middle Colonies were known as the \"breadbasket\" of the colonies for what reason?", options: ["They had a warm climate and rich soil for cash crops.", "They focused on fishing and shipbuilding.", "They had rocky soil and a short growing season.", "They had fertile soil and a moderate climate suitable for grain and livestock."], correctAnswer: 3 },
+                { question: "What was the primary economic focus of the Southern colonies, based on their geography?", options: ["Trade, shipbuilding, and fishing.", "Producing grain and livestock.", "Plantation-based agriculture, growing crops like tobacco, rice, and indigo.", "Manufacturing firearms and textiles."], correctAnswer: 2 },
+                { question: "According to John Locke's ideas of Natural Rights, where does a legitimate government get its authority?", options: ["From the monarch or king.", "From its military power.", "From the consent of the people.", "From its control of trade and resources."], correctAnswer: 2 },
+                { question: "What are the three natural rights John Locke believed individuals are born with?", options: ["Life, liberty, and property.", "Life, liberty, and the pursuit of happiness.", "Food, clothing, and ammunition.", "Religious freedom, freedom of speech, and the right to vote."], correctAnswer: 0 },
+                { question: "What was a major outcome of the French and Indian War for the British?", options: ["They lost all their territories in the Americas.", "They formed a permanent, peaceful alliance with all native tribes.", "They acquired Canada and all French territories east of the Mississippi River.", "The war left them debt-free and economically prosperous."], correctAnswer: 2 },
+                { question: "What was a significant impact of the French and Indian War on the *colonists*?", options: ["Britain immediately granted them more autonomy and representation.", "Britain imposed new taxes and stricter control to help pay off war debt.", "They were forced to give up all their land west of the Mississippi.", "They were immediately granted full British citizenship."], correctAnswer: 1 },
+                { question: "What British policy, enacted after the French and Indian War, limited westward expansion and fueled colonists' discontent?", options: ["The Treaty of Paris", "The Declaration of Independence", "The Proclamation of 1763", "The Triangular Trade Act"], correctAnswer: 2 },
+                { question: "How did the Declaration of Independence impact the political history of the United States?", options: ["It created the final system of government, including the Constitution.", "It asserted the principles of natural rights and that government's power comes from the consent of the governed.", "It ended the French and Indian War and gave Canada to Britain.", "It established a monarchy for the new United States."], correctAnswer: 1 },
+                { question: "What right did the Declaration of Independence assert that people have in relation to a destructive government?", options: ["The right to patiently endure it.", "The right to appeal to the British King.", "The right to alter or abolish it.", "The right to pay taxes to it without representation."], correctAnswer: 2 },
+                { question: "Which of the following was *not* listed as a significant challenge faced by the Continental Army?", options: ["Lack of resources like food, clothing, and ammunition.", "Inexperienced troops who lacked proper training.", "An overabundance of funds from the Continental Congress.", "Logistical challenges in moving troops and supplies."], correctAnswer: 2 },
+                { question: "What was a significant financial challenge for the Continental Army?", options: ["The Continental Congress struggled to raise funds to support the army.", "Soldiers were overpaid, leading to inflation.", "Foreign aid from France was too expensive to accept.", "British blockades prevented the army from spending its money."], correctAnswer: 0 },
+                { question: "Which of the following was a key factor that contributed to the colonists winning the Revolutionary War?", options: ["A large, well-trained, and fully supplied army from the start.", "The lack of commitment from colonists.", "Foreign aid from countries like France.", "The British army's familiarity with the local terrain."], correctAnswer: 2 },
+                { question: "Who was mentioned as a key leader providing essential military expertise to the Continental Army?", options: ["John Locke", "William Penn", "George Washington", "Thomas Jefferson"], correctAnswer: 2 },
+                { question: "What advantage did the colonists have over the British forces during the Revolutionary War?", options: ["A superior navy.", "A well-funded treasury.", "Knowledge of the local terrain (home-field advantage).", "A professionally trained and experienced army."], correctAnswer: 2 }
+            ],
+            unit2: [
+                { question: "What was the primary reason for convening the Constitutional Convention in 1787?", options: ["To declare independence from Great Britain.", "To address the weaknesses of the Articles of Confederation.", "To purchase the Louisiana Territory.", "To write the Bill of Rights."], correctAnswer: 1 },
+                { question: "The delegates at the Constitutional Convention aimed to create a stronger framework for the federal government to address which issues?", options: ["Religious freedom and colonial expansion.", "The French and Indian War.", "Taxation, representation, and state disputes.", "The slave trade and mercantilism."], correctAnswer: 2 },
+                { question: "What did the Three-Fifths Compromise establish?", options: ["Three-fifths of the states had to agree to pass any law.", "Three-fifths of the enslaved population would be counted for representation and taxation.", "Only three-fifths of the population was eligible to vote.", "The federal government would receive three-fifths of all state taxes."], correctAnswer: 1 },
+                { question: "The Three-Fifths Compromise was a solution to a dispute between which two groups?", options: ["Large states and small states.", "The executive branch and the legislative branch.", "Federalists and Anti-Federalists.", "Northern states and Southern states."], correctAnswer: 3 },
+                { question: "What did the Great Compromise (or Connecticut Compromise) resolve?", options: ["The dispute over how to count the enslaved population.", "The conflict between large and small states over representation in Congress.", "The argument over the separation of powers.", "The disagreement about purchasing the Louisiana Territory."], correctAnswer: 1 },
+                { question: "What type of legislature did the Great Compromise create?", options: ["A unicameral (one-house) legislature with equal representation.", "A unicameral (one-house) legislature with proportional representation.", "A bicameral (two-house) legislature with equal representation in the Senate and proportional in the House.", "A bicameral (two-house) legislature where both houses had proportional representation."], correctAnswer: 2 },
+                { question: "Why does the Preamble of the Constitution begin with the phrase \"We the People\"?", options: ["To show that the government's authority is derived from the citizens.", "To limit the power of the government to only a select few people.", "To indicate that the document was written by all citizens.", "To honor the specific delegates who wrote the document."], correctAnswer: 0 },
+                { question: "What principle motivated the establishment of three distinct branches of government (executive, legislative, and judicial)?", options: ["The separation of powers, to prevent the concentration of power.", "The Great Compromise, to ensure equal representation.", "The Three-Fifths Compromise, to balance population counts.", "The Monroe Doctrine, to limit European influence."], correctAnswer: 0 },
+                { question: "What is the system called where each branch can monitor and limit the actions of the others?", options: ["Federalism", "Checks and balances", "The Great Compromise", "Nullification"], correctAnswer: 1 },
+                { question: "How did Federalists like James Madison and John Jay impact the role of the Federal government?", options: ["They advocated for a weak central government and stronger state rights.", "They advocated for a strong central government to address national issues and maintain order.", "They argued against the ratification of the Constitution.", "They promoted the Indian Removal Act."], correctAnswer: 1 },
+                { question: "Why is the Constitution considered a \"living document\"?", options: ["It has never been changed since it was written in 1787.", "It can adapt to changing times through the amendment process.", "It guarantees that all citizens can live freely.", "It was written on parchment, which is an organic material."], correctAnswer: 1 },
+                { question: "What is the overall importance of the Bill of Rights?", options: ["It outlines the structure of the federal government.", "It safeguards individual liberties from potential government encroachments.", "It details the process for purchasing new territories.", "It grants the government the authority to tax citizens."], correctAnswer: 1 },
+                { question: "What was significant about the 1800 Presidential election?", options: ["It was the first time George Washington was elected.", "It resulted in the War of 1812.", "It was the first peaceful transfer of power from one political party to another.", "It led to the purchase of the Louisiana Territory."], correctAnswer: 2 },
+                { question: "The 1800 election demonstrated the stability of the young nation's political system and led to which amendment?", options: ["The 10th Amendment", "The 1st Amendment", "The 12th Amendment", "The 5th Amendment"], correctAnswer: 2 },
+                { question: "Why did the United States purchase the Louisiana Territory?", options: ["To prevent Great Britain from seizing it.", "To secure control of the port of New Orleans and the Mississippi River.", "To find a new location for Native American tribes.", "To fulfill a key term of the Monroe Doctrine."], correctAnswer: 1 },
+                { question: "What was a major result of the Louisiana Purchase?", options: ["It doubled the size of the country.", "It ended the War of 1812.", "It caused the nullification crisis with South Carolina.", "It led directly to the Three-Fifths Compromise."], correctAnswer: 0 },
+                { question: "In what way did the War of 1812 impact the United States?", options: ["It resulted in the U.S. losing significant territory to Great Britain.", "It fostered a sense of national identity and unity.", "It led to the immediate end of slavery.", "It proved that the Articles of Confederation were effective."], correctAnswer: 1 },
+                { question: "What was the central idea of the Monroe Doctrine?", options: ["To encourage European nations to create new colonies in the Americas.", "To establish a trade alliance with Great Britain against France.", "To discourage European colonization or intervention in the Americas.", "To promote the forced removal of Native Americans."], correctAnswer: 2 },
+                { question: "What issue did Andrew Jackson face in the 1830s that nearly led to South Carolina's secession?", options: ["The Indian Removal Act", "The purchase of the Louisiana Territory", "The nullification crisis over federal tariffs", "The election of 1800"], correctAnswer: 2 },
+                { question: "How did the Indian Removal Act of 1830 impact the relationship between the U.S. government and Native American communities?", options: ["It improved the relationship by guaranteeing ancestral lands.", "It had no significant impact.", "It strained the relationship by forcing the relocation of many tribes.", "It led to the Monroe Doctrine."], correctAnswer: 2 }
+            ],
+            unit3: [
+                { question: "What was the 19th-century belief that the United States was destined to expand across North America?", options: ["Popular Sovereignty", "Manifest Destiny", "Abolitionism", "The National Market"], correctAnswer: 1 },
+                { question: "How did Manifest Destiny impact Native American populations?", options: ["It led to their protection and the preservation of their lands.", "It encouraged their assimilation into U.S. culture as equals.", "It led to their displacement and mistreatment.", "It had no significant impact on them."], correctAnswer: 2 },
+                { question: "How did compromises like the Missouri Compromise and the Compromise of 1850 worsen the North-South divide?", options: ["They permanently ended slavery in all territories, angering the South.", "They gave all new territories to the South, angering the North.", "They addressed slavery in new territories, but only intensified tensions over its extension.", "They forced the North to adopt an agricultural economy."], correctAnswer: 2 },
+                { question: "How did the Gettysburg Address and the Emancipation Proclamation reshape public perception of the Civil War?", options: ["They emphasized the economic goals of the war.", "They highlighted the war's purpose as a fight for freedom and equality.", "They declared the war was only about preserving the Union, not slavery.", "They discouraged soldiers from continuing to fight."], correctAnswer: 1 },
+                { question: "What was the central message Abraham Lincoln conveyed in the Gettysburg Address?", options: ["That the Confederacy had already won the war.", "That the U.S. was dedicated to freedom, equality, and democracy.", "That the war's only purpose was to gain new territory.", "That the Emancipation Proclamation was a mistake."], correctAnswer: 1 },
+                { question: "After Reconstruction, how did Southern states respond to the 14th and 15th Amendments?", options: ["They fully embraced the amendments, ensuring equal rights for African Americans.", "They implemented Jim Crow laws and other tactics to suppress African American rights.", "They seceded from the Union once again.", "They asked the federal government for help in implementing the amendments."], correctAnswer: 1 },
+                { question: "What was the effect of Eli Whitney's cotton gin on slavery?", options: ["It decreased the demand for enslaved workers as machines did the work.", "It increased the demand for enslaved workers to cultivate and pick more cotton.", "It had no effect on the demand for enslaved workers.", "It made slavery illegal in the South."], correctAnswer: 1 },
+                { question: "What does the idea of a growing \"national market\" refer to?", options: ["The U.S. economy becoming integrated, with goods sold across the country.", "The U.S. only trading with its own states and no other countries.", "The expansion of slavery into all new territories.", "The belief in Manifest Destiny."], correctAnswer: 0 },
+                { question: "How did transportation advancements like canals and railroads drive the First Industrial Revolution?", options: ["By allowing for the efficient movement of raw materials and finished products.", "By creating a new class of wealthy farmers.", "By ending the need for slave labor.", "By encouraging the idea of Manifest Destiny."], correctAnswer: 0 },
+                { question: "What were the key terms of the 1848 Treaty of Guadalupe-Hidalgo?", options: ["It ended the Civil War and freed all enslaved people.", "It established the Missouri Compromise line.", "It ended the Mexican-American War and ceded a significant portion of Mexican territory to the U.S.", "It created the \"Bleeding Kansas\" crisis."], correctAnswer: 2 },
+                { question: "Which of the following was a central reform concern in the U.S. during the mid-1800s?", options: ["Abolitionism and women's suffrage.", "Trust-busting and food safety.", "The Red Scare and Prohibition.", "Environmental protection."], correctAnswer: 0 },
+                { question: "What policy allowed residents of the Kansas and Nebraska territories to decide on the issue of slavery?", options: ["Manifest Destiny", "The Compromise of 1850", "Popular sovereignty", "The Emancipation Proclamation"], correctAnswer: 2 },
+                { question: "What was the outcome of popular sovereignty in the Kansas territory?", options: ["A peaceful vote that satisfied both North and South.", "Violent conflicts known as \"Bleeding Kansas.\"", "The immediate adoption of the cotton gin.", "The creation of the Treaty of Guadalupe-Hidalgo."], correctAnswer: 1 },
+                { question: "Following the passage of the 13th Amendment, how and why did sharecropping emerge as a substitute for slavery in the post-Reconstruction South?", options: ["It was a way to industrialize the Southern economy.", "It emerged as a substitute for slavery, though it often led to economic dependency.", "It was a government program to give all formerly enslaved people 40 acres and a mule.", "It was a new reform movement to improve conditions for prisoners."], correctAnswer: 1 }
+            ],
+            unit4: [
+                { question: "What was a primary reason people settled in the West in the late 1800s?", options: ["To escape the impacts of the transcontinental railroad.", "To work in established, safe factories.", "The promise of economic opportunities like mining, ranching, and farming.", "To join Native American tribes."], correctAnswer: 2 },
+                { question: "What was one of the impacts of the transcontinental railroad?", options: ["It slowed down westward settlement.", "It connected the East and West coasts, facilitating the transport of goods and people.", "It led to the downfall of capitalism.", "It was primarily used to assimilate Native Americans."], correctAnswer: 1 },
+                { question: "What did the Homestead Act of 1862 provide to settlers?", options: ["160 acres of land for a small fee, if they improved it.", "A guaranteed job in a factory.", "Free passage on the transcontinental railroad.", "Assimilation into Native American tribes."], correctAnswer: 0 },
+                { question: "What was the primary purpose of the Dawes Act of 1887?", options: ["To assimilate Native Americans by redistributing tribal lands.", "To encourage the growth of labor unions.", "To provide 160 acres of land to all settlers.", "To build the transcontinental railroad."], correctAnswer: 0 },
+                { question: "What was a major result of the Dawes Act?", options: ["The preservation of Native American culture.", "The loss of Native American lands and culture.", "The establishment of Angel Island.", "The rise of capitalism."], correctAnswer: 1 },
+                { question: "What are characteristics of capitalism?", options: ["Government control and fixed prices.", "Freedom of competition and supply and demand.", "Nativism and assimilation.", "The Dawes Act and the Homestead Act."], correctAnswer: 1 },
+                { question: "According to Andrew Carnegie's \"Gospel of Wealth,\" what was the responsibility of wealthy individuals?", options: ["To keep all their wealth for their families.", "To use their wealth for the greater good of society through philanthropy.", "To invest only in the transcontinental railroad.", "To run for political office."], correctAnswer: 1 },
+                { question: "What were key issues that workers faced in the late 19th century?", options: ["Short working hours and high wages.", "Safe working conditions.", "Long working hours, low wages, and unsafe conditions.", "Generous child labor laws."], correctAnswer: 2 },
+                { question: "How did the efforts of labor unions impact working conditions in the 1900s?", options: ["They advocated for longer hours and lower pay.", "They had no impact on working conditions.", "They advocated for better wages, shorter hours, and safer workplaces.", "They were primarily focused on nativism."], correctAnswer: 2 },
+                { question: "How did the experience for immigrants at Angel Island and Ellis Island differ?", options: ["Ellis Island processed Asian immigrants, while Angel Island processed Europeans.", "Angel Island processed immigrants quickly, while Ellis Island detained them for months.", "Angel Island had a more restrictive and discriminatory approach, especially towards Asian immigrants.", "There was no difference; both were identical."], correctAnswer: 2 },
+                { question: "What is nativism and how did it impact immigration in the late 19th century?", options: ["The belief that native-born Americans were superior to immigrants.", "The process of assimilating Native Americans.", "The economic theory of supply and demand.", "The \"Gospel of Wealth\"."], correctAnswer: 0 }
+            ],
+            unit5: [
+                { question: "What were the goals of the Progressive Movement?", options: ["Expanding voting rights and promoting social welfare.", "Establishing monopolies and trusts.", "Promoting imperialism and colonization.", "Encouraging unrestricted submarine warfare."], correctAnswer: 0 },
+                { question: "How did political machines like Tammany Hall impact growing cities during the late 19th century?", options: ["They influenced local politics through corrupt practices like patronage and bribery.", "They worked to end corruption and promote fair elections.", "They were primarily focused on advocating for women's suffrage.", "They were established by Progressive Presidents to regulate businesses."], correctAnswer: 0 },
+                { question: "In response to the issues highlighted by muckrakers, such as those described in Upton Sinclair's \"The Jungle,\" what actions did the federal government take?", options: ["The establishment of Tammany Hall.", "The passage of the 19th Amendment.", "The passage of the Pure Food and Drug Act and the Meat Inspection Act.", "The declaration of war against Germany."], correctAnswer: 2 },
+                { question: "How did the Progressive Presidents reshape public perceptions of the government's roles and responsibilities in relation to private businesses?", options: ["By arguing that the government should never intervene in private business.", "By actively engaging in the regulation of private businesses to curb monopolies and protect consumers.", "By establishing political machines like Tammany Hall.", "By legalizing racial segregation."], correctAnswer: 1 },
+                { question: "What was the outcome to the ruling in the Supreme Court case of Plessy v Ferguson?", options: ["It granted women the right to vote.", "It busted all major trusts and monopolies.", "It established the \"separate but equal\" doctrine, legalizing racial segregation.", "It outlawed child labor."], correctAnswer: 2 },
+                { question: "Despite different strategies employed by Washington, DuBois, and Garvey, what common goal were they all working toward?", options: ["The promotion of American imperialism.", "The establishment of political machines.", "The regulation of the meatpacking industry.", "Achieving equal rights for Black Americans."], correctAnswer: 3 },
+                { question: "What is the significance of the 19th Amendment to the United States Constitution?", options: ["It established the \"separate but equal\" doctrine.", "It granted women the right to vote.", "It prohibited the sale of alcohol.", "It created the League of Nations."], correctAnswer: 1 },
+                { question: "What were arguments *against* American Imperialism?", options: ["The U.S. needed new markets and resources.", "Imperialism contradicted American principles and the Constitution.", "The U.S. needed to spread its values and civilization.", "The U.S. needed to strengthen its national security."], correctAnswer: 1 },
+                { question: "What were arguments and reasons *for* imperialism?", options: ["The desire for new markets and resources.", "The U.S. had sufficient sources of raw materials.", "Imperialism violated the Constitution.", "Imperialism would weaken national security."], correctAnswer: 0 },
+                { question: "How did Presidents Roosevelt, Taft, and Wilson impact US foreign policy?", options: ["Roosevelt's \"Big Stick Diplomacy,\" Taft's \"Dollar Diplomacy,\" and Wilson's \"Moral Diplomacy\" were different approaches.", "They all advocated for American isolationism.", "They all worked to create the League of Nations.", "They all supported the \"separate but equal\" doctrine."], correctAnswer: 0 },
+                { question: "What were the MAIN causes of World War I?", options: ["Militarism, Alliances, Imperialism, and Nationalism.", "Monopolies, Activism, Industry, and Nativism.", "Muckraking, Amendments, Injunctions, and Neutrality.", "Moral, Dollar, and Big Stick Diplomacies."], correctAnswer: 0 },
+                { question: "What were the three events that caused the U.S. to eventually join World War 1?", options: ["Zimmerman Telegram, Unrestricted Submarine Warfare, Sinking of the Lusitania", "Assassination of Franz Ferdinand, Rise of Tammany Hall, Plessy v. Ferguson", "The Jungle, The 19th Amendment, Moral Diplomacy", "Dollar Diplomacy, Big Stick Diplomacy, Moral Diplomacy"], correctAnswer: 0 }, // Note: I consolidated the answer for a better fit
+                { question: "How did the Committee on Public Information as well as the Espionage and Sedition Acts try to change public opinion of World War I?", options: ["By using propaganda (Committee) and restricting freedom of speech (Acts).", "By exposing unsanitary conditions in the army.", "By advocating for the U.S. to not join the war.", "By supporting political machines like Tammany Hall."], correctAnswer: 0 },
+                { question: "Why did the United States not approve the Treaty of Versailles?", options: ["Because Germany was not punished harshly enough.", "Because it granted women the right to vote.", "Due to concerns over reparations, disagreements over borders, and opposition to the League of Nations.", "Because the Zimmerman Telegram was proven to be a fake."], correctAnswer: 2 }
+            ],
+            unit6: [
+                { question: "What led to a unique teenage culture developing in the 1920s?", options: ["The Great Depression", "Advancements like the automobile and radio.", "The Red Scare", "The implementation of New Deal programs."], correctAnswer: 1 },
+                { question: "What were some of the cultural changes that occurred in the 1920s?", options: ["A return to Victorian-era norms.", "The emergence of the Harlem Renaissance and the Jazz Age.", "The success of Prohibition in ending alcohol consumption.", "The decline of consumer culture."], correctAnswer: 1 },
+                { question: "What new opportunities were available for women in the 1920s?", options: ["The right to vote (19th Amendment) and new employment opportunities.", "The requirement to work in \"Hoovervilles.\"", "The right to consumer credit only.", "The opportunity to join the Palmer Raids."], correctAnswer: 0 },
+                { question: "What was the importance and significance of the Harlem Renaissance?", options: ["It was a period of fear of communism and radicalism.", "It was a government program to provide relief during the Great Depression.", "A cultural renaissance for African American artists, writers, and musicians.", "The name for the underground economy created by Prohibition."], correctAnswer: 2 },
+                { question: "What was const-red-scare = and how did the US respond to it in the 1920s?", options: ["A cultural movement, met with government funding.", "A period of fear of communism, met with measures like the Palmer Raids.", "An economic crisis, met with the New Deal.", "A reform movement, met with Prohibition."], correctAnswer: 1 },
+                { question: "Was Prohibition a success? Describe its impact on society.", options: ["Yes, it successfully curbed all alcohol consumption.", "Yes, it led to a decrease in organized crime.", "No, it failed to curb consumption and gave rise to organized crime.", "No, it was the leading cause of the Great Depression."], correctAnswer: 2 },
+                { question: "What led to the stock market crash of 1929?", options: ["The success of Prohibition.", "The Harlem Renaissance.", "Speculative investing, overextended credit, and structural weaknesses.", "The implementation of the New Deal."], correctAnswer: 2 },
+                { question: "How did the overproduction in the 1920s lead to economic issues by 1929?", options: ["It flooded the market with surplus goods, driving down prices.", "It created too many jobs, leading to inflation.", "It caused the Red Scare.", "It was the main goal of the New Deal."], correctAnswer: 0 },
+                { question: "Describe the criticism Herbert Hoover faced for how he attempted to address the Great Depression.", options: ["He intervened too much and created the New Deal.", "His adherence to laissez-faire economics and reluctance to intervene decisively.", "He caused the Red Scare with his Palmer Raids.", "He started the stock market crash through speculative investing."], correctAnswer: 1 },
+                { question: "How did the Great Depression impact individuals and their lives?", options: ["It led to widespread employment and confidence in the American Dream.", "It plunged millions into unemployment, poverty, and homelessness.", "It created a unique teenage culture of leisure.", "It led to a boom in the birth rate."], correctAnswer: 1 },
+                { question: "What were the Three R’s or goals of the New Deal programs?", options: ["Reading, Writing, and Arithmetic", "Rebellion, Raids, and Radicalism", "Relief, Recovery, and Reform", "Reduce, Reuse, and Recycle"], correctAnswer: 2 },
+                { question: "What were some of the issues that people had with the New Deal programs?", options: ["They did not do enough to address the Great Depression.", "Accusations of government overreach and insufficient relief efforts.", "They relied too much on laissez-faire economics.", "They caused the stock market crash of 1929."], correctAnswer: 1 }
+            ],
+            unit7: [
+                { question: "Explain how the policy of isolationism shaped the United States' initial reaction to the rise of dictators and aggression in Europe and Asia leading up to World War II.", options: ["The U.S. immediately intervened to stop aggression.", "The U.S. adopted neutrality to focus on domestic issues like the Great Depression.", "The U.S. formed NATO to challenge dictators.", "The U.S. provided economic aid through the Marshall Plan."], correctAnswer: 1 },
+                { question: "What was the impact of the attack on Pearl Harbor and how did it change America’s stance on the war?", options: ["It caused the U.S. to double down on isolationism.", "It ended U.S. isolationism and led to a declaration of war against Japan.", "It led to the D-Day invasion the very next day.", "It started the Cold War with the Soviet Union."], correctAnswer: 1 },
+                { question: "What were the Japanese internment camps and what impact did they have on Japanese Americans?", options: ["Military bases to train Japanese American soldiers.", "Camps where 120,000 Japanese Americans were forcibly relocated, resulting in severe violations of civil liberties.", "Economic aid packages sent to Japan after the war.", "Strategic islands captured during the Island-Hopping campaign."], correctAnswer: 1 },
+                { question: "Explain the strategic importance of the D-Day invasion and its impact on the outcome of World War II.", options: ["It was the final battle of the war against Japan.", "It enabled the Allies to breach German defenses and establish a foothold in Western Europe.", "It was a failed invasion that prolonged the war.", "It was the event that brought the U.S. into the war."], correctAnswer: 1 },
+                { question: "Describe the Island-Hopping strategy used in the Pacific during World War II and its effectiveness.", options: ["Bypassing all islands to launch a direct attack on mainland Japan.", "Selectively targeting strategically important islands while bypassing heavily fortified ones.", "Establishing Japanese internment camps on various islands.", "A naval blockade of all Japanese ports."], correctAnswer: 1 },
+                { question: "What was President Truman’s justification for using the atomic bombs on Japan, and what was the outcome?", options: ["To test the new weapon; it led to Japan's surrender.", "To expedite the end of the war and reduce anticipated casualties; it led to Japan's surrender.", "As a first strike against the Soviet Union; it started the Cold War.", "In response to the D-Day invasion; it prolonged the war."], correctAnswer: 1 },
+                { question: "What was the economic impact of World War II on the United States?", options: ["It worsened the Great Depression.", "It stimulated production, ended the Great Depression, and increased employment for women.", "It led to a policy of isolationism.", "It decreased employment opportunities for women."], correctAnswer: 1 },
+                { question: "What did joining the United Nations and NATO after WW2 say about how America’s foreign policy was changing in the post-war era?", options: ["A return to strict isolationism.", "A shift away from isolationism toward multilateralism and collective security.", "A focus on \"Brinkmanship\" and starting the Space Race.", "A plan to rebuild Japan with the Marshall Plan."], correctAnswer: 1 },
+                { question: "What were the major factors that contributed to the beginning of the Cold War between the United States and the Soviet Union?", options: ["The D-Day invasion.", "Ideological differences and the Soviet Union's reluctance to permit free elections in Eastern Europe.", "The attack on Pearl Harbor.", "The 1950s gender norms."], correctAnswer: 1 },
+                { question: "Describe the Marshall Plan. Consider its purpose and its effects on post-war Europe.", options: ["An initiative to provide economic assistance to rebuild Europe and mitigate the appeal of communism.", "A military alliance against Japan.", "A plan to fund the U.S. side of the Space Race.", "A plan to relocate Japanese Americans into internment camps."], correctAnswer: 0 },
+                { question: "Explain the impact the Space Race and the Cold War tensions had on the United States.", options: ["It decreased investment in science and technology.", "It prompted increased investment in science and education and intensified geopolitical tensions.", "It led to the Marshall Plan.", "It ended the Cold War peacefully."], correctAnswer: 1 },
+                { question: "What is Brinkmanship as it relates to the Cold War?", options: ["The practice of pursuing a policy to the verge of war to compel an opponent to yield.", "The U.S. initiative to provide economic aid to Europe.", "The strategy of \"Island-Hopping\" in the Pacific.", "The 1950s expectation for men to be the primary providers."], correctAnswer: 0 },
+                { question: "Explain gender norms and expectations of the 1950s.", options: ["Men and women shared domestic and provider roles equally.", "Men were typically expected to be providers, while women were expected to fulfill domestic responsibilities.", "Women were the primary providers, while men fulfilled domestic roles.", "There were no defined gender roles or expectations."], correctAnswer: 1 }
+            ],
+            unit8: [
+                { question: "Explain the primary significance of the Supreme Court's ruling in *Brown v. Board of Education* regarding public schooling in the United States.", options: ["It established the \"separate but equal\" doctrine.", "It overturned the \"separate but equal\" doctrine, thereby legally ending segregation in public education.", "It gave women the right to vote.", "It authorized federal oversight of voter registration."], correctAnswer: 1 },
+                { question: "What were the main reasons that figures like Malcolm X and groups such as the Black Panthers advocated for more assertive strategies compared to Martin Luther King Jr.'s approach of civil disobedience?", options: ["They believed nonviolent protest was working too quickly.", "Frustration with the slow pace of change and continued violence against African Americans.", "They were part of the counter-culture movement.", "They supported the U.S. involvement in Vietnam."], correctAnswer: 1 },
+                { question: "Explain the importance of the Voting Rights Act of 1965.", options: ["It outlawed discriminatory voting practices like literacy tests and poll taxes.", "It gave women the right to vote.", "It legalized segregation in public schools.", "It was the primary goal of the Great Society agenda."], correctAnswer: 0 },
+                { question: "What was const-principal-factor = contributing to the heightened tensions between Cuba and the United States during the 1960s?", options: ["Fidel Castro's communist revolution and alliance with the Soviet Union.", "The U.S. policy of containment in Southeast Asia.", "The rise of the counter-culture movement.", "The U.S. support for Israel."], correctAnswer: 0 },
+                { question: "What were the key goals and achievements of Johnson’s Great Society Agenda?", options: ["To win the war in Vietnam and contain communism.", "To eliminate poverty and racial injustice, achieving laws like the Civil Rights Act of 1964.", "To promote the counter-culture movement.", "To land a man on the moon."], correctAnswer: 1 },
+                { question: "What led to the United States becoming militarily involved in Vietnam?", options: ["The policy of containment, to prevent the spread of communism.", "The Watergate scandal.", "The 1953 Iranian coup.", "A direct attack on the U.S. mainland by North Vietnam."], correctAnswer: 0 },
+                { question: "What was the outcome of the Vietnam War?", options: ["The U.S. successfully contained communism, and South Vietnam remains independent.", "The reunification of Vietnam under communist rule and deep social divisions in the U.S.", "The U.S. remains militarily involved in Vietnam today.", "It led to the resignation of President Johnson."], correctAnswer: 1 },
+                { question: "List at least three key arguments commonly raised by anti-war protestors in the United States during the Vietnam War.", options: ["The war was immoral, a civil conflict, and diverted resources from domestic needs.", "The war was not costly enough and needed more troops.", "The war was a moral crusade against communism that all should support.", "The war was supported by the counter-culture movement."], correctAnswer: 0 },
+                { question: "Define and provide examples of the counter-culture movement that emerged in the United States during the late 1960s?", options: ["A government program to end poverty.", "A youth-driven phenomenon that rejected mainstream values, exemplified by hippies and rock music.", "The women's rights movement.", "The group of advisors responsible for the Watergate scandal."], correctAnswer: 1 },
+                { question: "What was a major consequence of the Watergate scandal?", options: ["An increase in public trust in the government.", "The re-election of President Richard Nixon.", "A significant erosion of public trust in the government and the resignation of President Nixon.", "The U.S. withdrawal from Vietnam."], correctAnswer: 2 },
+                { question: "What did the women's rights movement during the 1960s and 70s work to achieve?", options: ["The \"separate but equal\" doctrine.", "U.S. withdrawal from Vietnam.", "Equal rights and opportunities, such as equal pay and an end to discrimination.", "The rise of the counter-culture movement."], correctAnswer: 2 },
+                { question: "What were the reasons for the rise of anti-American sentiment in some parts of the Middle East?", options: ["U.S. support for Israel and involvement in regional politics.", "The U.S. counter-culture movement.", "The U.S. policy of containment in Vietnam.", "The *Brown v. Board of Education* decision."], correctAnswer: 0 }
+            ]
+        };
+
+
+        // --- Game Functions ---
+        
+        /**
+         * Shuffles an array in place.
+         * @param {Array} array The array to shuffle.
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+        
+        /**
+         * Starts the quiz for a specific unit.
+         * @param {string} unitKey - The key for the unit (e.g., 'unit1').
+         */
+        function startQuiz(unitKey) {
+            playSound('click', 'C4', '8n');
+            currentQuestions = [...unitQuestionBanks[unitKey]]; // Get a fresh copy
+            shuffleArray(currentQuestions);
+            
+            totalQuestions = currentQuestions.length;
+            currentQuestionIndex = 0;
+            score = 0;
+            
+            unitSelectionScreen.classList.add('hidden');
+            resultsScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            
+            displayNextQuestion();
+        }
+        
+        /**
+         * Displays the next question or the results screen if finished.
+         */
+        function displayNextQuestion() {
+            if (currentQuestionIndex >= totalQuestions) {
+                showResults();
+                return;
+            }
+            
+            const question = currentQuestions[currentQuestionIndex];
+            
+            questionText.textContent = question.question;
+            optionsContainer.innerHTML = ''; // Clear previous options
+            
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('option-btn');
+                button.dataset.index = index; // Store the index of the answer
+                button.addEventListener('click', handleAnswerClick);
+                optionsContainer.appendChild(button);
+            });
+            
+            scoreDisplay.textContent = score;
+            questionCountDisplay.textContent = `${currentQuestionIndex + 1} / ${totalQuestions}`;
+        }
+        
+        /**
+         * Handles the click event on an answer button.
+         * @param {Event} e
+         */
+        function handleAnswerClick(e) {
+            playSound('click', 'C4', '8n');
+            const selectedButton = e.target;
+            const selectedIndex = parseInt(selectedButton.dataset.index);
+            const correctIndex = currentQuestions[currentQuestionIndex].correctAnswer;
+
+            // Disable all buttons
+            const buttons = optionsContainer.querySelectorAll('.option-btn');
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (selectedIndex === correctIndex) {
+                score++;
+                selectedButton.classList.add('correct');
+                playSound('correct', 'G4', '8n');
+            } else {
+                selectedButton.classList.add('incorrect');
+                // Highlight the correct answer
+                buttons[correctIndex].classList.add('correct');
+                playSound('incorrect', 'C3', '4n');
+            }
+            
+            // Go to the next question after a short delay
+            setTimeout(() => {
+                currentQuestionIndex++;
+                displayNextQuestion();
+            }, 1500); // 1.5 second delay
+        }
+        
+        /**
+         * Shows the final results screen.
+         */
+        function showResults() {
+            quizScreen.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+            
+            resultsScore.textContent = `You scored ${score} out of ${totalQuestions}`;
+            
+            if (score / totalQuestions > 0.8) {
+                resultsTitle.textContent = "EXCELLENT!";
+                resultsTitle.style.color = "#00ff00";
+                resultsTitle.style.textShadow = "0 0 10px #00ff00";
+            } else if (score / totalQuestions > 0.5) {
+                resultsTitle.textContent = "GOOD JOB!";
+                resultsTitle.style.color = "#ffff00";
+                resultsTitle.style.textShadow = "0 0 10px #ffff00";
+            } else {
+                resultsTitle.textContent = "TRY AGAIN!";
+                resultsTitle.style.color = "#ff0000";
+                resultsTitle.style.textShadow = "0 0 10px #ff0000";
+            }
+        }
+        
+        /**
+         * Returns to the main unit selection menu.
+         */
+        function returnToMenu() {
+            playSound('click', 'C4', '8n');
+            resultsScreen.classList.add('hidden');
+            quizScreen.classList.add('hidden');
+            unitSelectionScreen.classList.remove('hidden');
+        }
+
+        // --- Event Listeners ---
+        
+        // Unit selection buttons
+        unitSelectBtns.unit1.addEventListener('click', () => {
+            Tone.start().then(initAudio); // Ensure audio is ready
+            startQuiz('unit1');
+        });
+        unitSelectBtns.unit2.addEventListener('click', () => {
+            Tone.start().then(initAudio);
+            startQuiz('unit2');
+        });
+        unitSelectBtns.unit3.addEventListener('click', () => {
+            Tone.start().then(initAudio);
+            startQuiz('unit3');
+        });
+        unitSelectBtns.unit4.addEventListener('click', () => {
+            Tone.start().then(initAudio);
+            startQuiz('unit4');
+        });
+        unitSelectBtns.unit5.addEventListener('click', () => {
+            Tone.start().then(initAudio);
+            startQuiz('unit5');
+        });
+        unitSelectBtns.unit6.addEventListener('click', () => {
+            Tone.start().then(initAudio);
+            startQuiz('unit6');
+        });
+        unitSelectBtns.unit7.addEventListener('click', () => {
+            Tone.start().then(initAudio);
+            startQuiz('unit7');
+        });
+        unitSelectBtns.unit8.addEventListener('click', () => {
+            Tone.start().then(initAudio);
+            startQuiz('unit8');
+        });
+
+        // Play again button
+        playAgainBtn.addEventListener('click', returnToMenu);
+
+    </script>
+</body>
+</html>
